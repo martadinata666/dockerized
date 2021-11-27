@@ -1,22 +1,29 @@
 ARG DOTNET_VERSION=6.0
 
-FROM node:lts-alpine as web-builder
+FROM 192.168.0.2:5050/dedyms/jellyfin:dev-web as web-builder
 ARG JELLYFIN_WEB_VERSION=master
-RUN apk add curl git zlib zlib-dev autoconf g++ make libpng-dev gifsicle alpine-sdk automake libtool make gcc musl-dev nasm python3 \
- && curl -L https://github.com/jellyfin/jellyfin-web/archive/${JELLYFIN_WEB_VERSION}.tar.gz | tar zxf - \
+RUN curl -L https://github.com/jellyfin/jellyfin-web/archive/${JELLYFIN_WEB_VERSION}.tar.gz | tar zxf - \
  && cd jellyfin-web-* \
  && npm ci --no-audit --unsafe-perm \
  && mv dist /dist
 
-FROM 192.168.0.2:5050/dedyms/debian:vaapi as app
+FROM 192.168.0.2:5050/dedyms/jellyfin:dev-dotnet as builder
+RUN git clone --depth=1 https://github.com/jellyfin/jellyfin.git /repo
+WORKDIR /repo
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+# because of changes in docker and systemd we need to not build in parallel at the moment
+# see https://success.docker.com/article/how-to-reserve-resource-temporarily-unavailable-errors-due-to-tasksmax-setting
+RUN dotnet publish Jellyfin.Server --disable-parallel --configuration Release --output="/jellyfin" --self-contained --runtime linux-x64 "-p:DebugSymbols=false;DebugType=none"
 
+
+
+FROM 192.168.0.2:5050/dedyms/debian:vaapi as app
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND="noninteractive"
 # http://stackoverflow.com/questions/48162574/ddg#49462622
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(Native-GPU-Support)
 ENV NVIDIA_DRIVER_CAPABILITIES="compute,video,utility"
-
 RUN mkdir -p /cache /config /media \
     && chmod 777 /cache /config /media
 
@@ -24,16 +31,6 @@ RUN mkdir -p /cache /config /media \
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
-
-FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} as builder
-WORKDIR /repo
-COPY . .
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-# because of changes in docker and systemd we need to not build in parallel at the moment
-# see https://success.docker.com/article/how-to-reserve-resource-temporarily-unavailable-errors-due-to-tasksmax-setting
-RUN dotnet publish Jellyfin.Server --disable-parallel --configuration Release --output="/jellyfin" --self-contained --runtime linux-x64 "-p:DebugSymbols=false;DebugType=none"
-
-FROM app
 
 COPY --from=builder /jellyfin /jellyfin
 COPY --from=web-builder /dist /jellyfin/jellyfin-web
