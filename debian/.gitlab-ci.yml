@@ -1,0 +1,91 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  RELEASE: ""
+  UPDATE: ""
+  DATE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/debian"
+
+stages:
+  - build-base
+  - build-base-dev
+  - build-vaapi
+
+buildx-baseimage:
+  cache: {}
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-base
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - apk add --no-cache curl
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" . -f bullseye/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f sid/Dockerfile
+    - echo "Trigger node image rebuild"
+    - curl -X POST -F token=a8c3854eafce198b5f5d0ab1ccb281 -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
+    - echo "Trigger jre image rebuild"
+    - curl -X POST -F token=3f73e6591b35bbfffff25a9dc35a6a -F ref=master http://192.168.0.2:10000/api/v4/projects/38/trigger/pipeline
+    - echo "Trigger apache image rebuild"
+    - curl -X POST -F token=dfd3db6ce73e023db61003307a932f -F ref=master http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
+    - echo "Trigger nginx image rebuild"
+    - curl -X POST -F token=30c9b43f93cc3139fdd82f240cbfef -F ref=master http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
+  except:
+    - schedules
+  only:
+    - triggers
+
+buildx-vaapi:
+  cache: {}
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-vaapi
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:vaapi" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:vaapi" . -f bullseye/Dockerfile.vaapi
+  #except:
+  #  - schedules
+  only:
+    #variables:
+    #  - $SCHEDULE_TYPE == "vaapi"
+    refs:
+      - master
+      - schedules
+    changes:
+      - bullseye/Dockerfile.vaapi
+
+buildx-base-dev:
+  cache: {}
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-base-dev
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f bullseye/Dockerfile.dev
+  #except:
+  #  - schedules
+  only:
+    #variables:
+    #  - $SCHEDULE_TYPE == "vaapi"
+    refs:
+      - master
+      - schedules
+    changes:
+      - bullseye/Dockerfile.dev

@@ -1,0 +1,18 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+ARG RELEASE
+ARG TARGETARCH
+ADD https://github.com/AnalogJ/scrutiny/releases/download/$RELEASE/scrutiny-collector-metrics-linux-$TARGETARCH /
+RUN chmod +x scrutiny-collector-metrics-linux-$TARGETARCH
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG RELEASE
+ARG TARGETARCH
+ENV SCRUTINY_API_URL=http://app:8080
+ENV SCRUTINY_VERSION=$RELEASE
+RUN apt update && apt install --no-install-recommends -y smartmontools cron && apt clean && rm -rf /var/lib/apt/lists/* && rm -f /etc/cron.daily/apt /etc/cron.daily/dpkg /etc/cron.daily/passwd
+RUN mkdir -p /scrutiny/collector
+COPY --from=fetcher /scrutiny-collector-metrics-linux-$TARGETARCH /scrutiny/collector/scrutiny-collector-metrics-linux
+COPY scrutiny.cron /etc/cron.d/scrutiny
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod 0644 /etc/cron.d/scrutiny
+ENTRYPOINT ["/entrypoint.sh"]

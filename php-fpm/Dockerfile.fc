@@ -1,0 +1,11 @@
+FROM 192.168.0.2:5050/dedyms/php-fpm:alpine
+USER root
+RUN apk add --no-cache git bzip2-dev libx11-dev && \
+    apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib && \
+    docker-php-ext-configure bz2 && \
+    docker-php-ext-install bz2 && \
+    git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib && \
+    docker-php-ext-configure pdlib && \
+    docker-php-ext-install pdlib && \
+    apk del git
+USER $CONTAINERUSER

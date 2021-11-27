@@ -1,0 +1,10 @@
+FROM registry.gitlab.com/dedyms/debian:latest AS tukang
+RUN apt update && apt install -y unzip
+WORKDIR /tmp
+ADD https://afterlogic.org/download/webmail_php.zip .
+RUN unzip webmail_php.zip -d /tmp/webmail/
+
+FROM registry.gitlab.com/dedyms/apache2:fcgid
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang /tmp/webmail/ /var/www/html/
+USER $CONTAINERUSER
+VOLUME /var/www/html

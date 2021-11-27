@@ -1,0 +1,13 @@
+# Builder
+FROM 192.168.0.2:5050/dedyms/cadvisor:dev as builder
+ARG VERSION=$VERSION
+ENV CADVISOR_VERSION=$VERSION
+#RUN git clone --depth=1 --branch release-v0.43 https://github.com/google/cadvisor.git /go/src/github.com/google/cadvisor
+RUN git clone --depth=1 --branch release-${CADVISOR_VERSION} https://github.com/google/cadvisor.git /go/src/github.com/google/cadvisor
+WORKDIR /go/src/github.com/google/cadvisor
+RUN make build
+
+# Image for usage
+FROM debian:bullseye-slim
+COPY --from=builder /go/src/github.com/google/cadvisor/cadvisor /usr/bin/cadvisor
+ENTRYPOINT ["/usr/bin/cadvisor","-logtostderr","-docker_only"]

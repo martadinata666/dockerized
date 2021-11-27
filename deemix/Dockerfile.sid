@@ -1,0 +1,20 @@
+FROM registry.gitlab.com/dedyms/sid-slim:node16-dev as builder
+WORKDIR $HOME
+ENV NODE_ENV=production
+USER $CONTAINERUSER
+RUN git clone --depth=1 --recursive https://gitlab.com/RemixDev/deemix-gui.git 
+WORKDIR $HOME/deemix-gui/server
+RUN yarn install
+WORKDIR $HOME/deemix-gui/webui
+RUN yarn install
+WORKDIR $HOME/deemix-gui
+RUN yarn install
+
+FROM registry.gitlab.com/dedyms/sid-slim:node16
+USER $CONTAINERUSER
+ENV WEBPORT=6595
+COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/deemix-gui $HOME/deemix-gui
+WORKDIR $HOME/deemix-gui
+RUN mkdir -p /home/debian/deemix-gui/server/config
+VOLUME /home/debian/deemix-gui/server/config
+CMD yarn server-start-build --host 0.0.0.0 --port $WEBPORT

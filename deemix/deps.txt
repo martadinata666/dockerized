@@ -1,0 +1,1 @@
+libglib2.0-0 libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgdk-pixbuf-2.0-0 libgtk-3-0 libgbm1 libasound2

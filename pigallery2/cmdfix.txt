@@ -1,0 +1,1 @@
+CMD ["sh", "-c", "cd /usr/local/etc/php && ln -sf php.ini-$APP_ENV php.ini"]

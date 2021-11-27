@@ -1,0 +1,32 @@
+FROM registry.gitlab.com/dedyms/sid-slim:latest AS tukang
+WORKDIR /home/$CONTAINERUSER
+ARG RELEASE
+ARG ARCH
+ARG BRANCH=master
+#RUN apt update && apt install --no-install-recommends -y libmediainfo0v5 ca-certificates libicu67 curl mediainfo sqlite3 jq && apt clean && rm -rf /var/lib/apt/lists/*
+USER $CONTAINERUSER
+#https://github.com/lidarr/Lidarr/releases/download/v0.8.1.2135/Lidarr.master.0.8.1.2135.linux-core-x64.tar.gz
+ADD --chown=$CONTAINERUSER:$CONTAINERUSER https://github.com/lidarr/Lidarr/releases/download/v$RELEASE/Lidarr.master.$RELEASE.linux-core-$ARCH.tar.gz .
+# Extract radarr 
+RUN mkdir -p /home/$CONTAINERUSER/.local/bin/ && chown -R $CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin/
+RUN tar ixzf Lidarr.master.$RELEASE.linux-core-$ARCH.tar.gz -C /home/$CONTAINERUSER/.local/bin --strip-components=1 && \
+    rm Lidarr.master.$RELEASE.linux-core-$ARCH.tar.gz && \
+    echo "UpdateMethod=docker\nBranch=${BRANCH}\nPackageVersion=${RELEASE}\nPackageAuthor=[dedyms](http://gitlab.com/dedyms)" > /home/$CONTAINERUSER/.local/bin/package_info && \
+    rm -rf /home/$CONTAINERUSER/.local/bin/Lidarr.Update
+
+FROM registry.gitlab.com/dedyms/sid-slim:latest
+WORKDIR /home/$CONTAINERUSER
+ARG RELEASE
+ENV LIDARR_VERSION=$RELEASE
+RUN apt update && \
+    apt install --no-install-recommends -y libmediainfo0v5 ca-certificates libicu67 curl mediainfo sqlite3 jq && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+USER $CONTAINERUSER
+COPY --from=tukang /home/$CONTAINERUSER/.local/bin/ /home/$CONTAINERUSER/.local/bin/
+# Show port
+EXPOSE 8686
+# Execute command
+RUN mkdir -p /home/$CONTAINERUSER/lidarr
+VOLUME /home/$CONTAINERUSER/lidarr
+CMD ["bash", "-c", "/home/$CONTAINERUSER/.local/bin/Lidarr -no-browser -data=/home/$CONTAINERUSER/lidarr"]

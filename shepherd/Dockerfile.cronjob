@@ -1,0 +1,12 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest
+
+ENV FILTER_SERVICES=''
+ENV TZ='Asia/Jakarta'
+ENV VERBOSE='true'
+ENV AVATAR_URL=''
+ENV USER=''
+
+RUN apt update -y && apt install -y --no-install-recommends curl docker.io && apt clean && rm -rf /var/lib/apt/lists/*
+RUN gpasswd -a $CONTAINERUSER docker
+COPY shepherd.cronjob /usr/local/bin/shepherd
+CMD /usr/local/bin/shepherd
