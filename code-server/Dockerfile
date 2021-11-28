@@ -10,19 +10,19 @@ RUN apt update && \
         curl && \
         yarn --production --verbose --frozen-lockfile global add code-server@"$CODE_RELEASE" && \
         yarnpkg cache clean && \
-apt-get purge --auto-remove -y \
+    apt-get purge --auto-remove -y \
 	build-essential \
 	libx11-dev \
 	libxkbfile-dev \
 	libsecret-1-dev \
 	pkg-config && \
- apt install -y \
+    apt install -y \
 	ssl-cert \
         git \
 	jq \
 	net-tools && \
- apt clean && \
- rm -rf \
+    apt clean && \
+    rm -rf \
 	/tmp/* \
 	/var/lib/apt/lists/* \
 	/var/tmp/*
