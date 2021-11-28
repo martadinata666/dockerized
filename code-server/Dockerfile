@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/node:lts as tukang
+FROM 192.168.0.2:5050/dedyms/node:lts-dev as tukang
 ARG CODE_RELEASE
 # environment settings
 RUN apt update && \
@@ -7,8 +7,11 @@ RUN apt update && \
 	libxkbfile-dev \
 	libsecret-1-dev \
 	pkg-config \
-        curl && \
-        yarn --production --verbose --frozen-lockfile global add code-server@"$CODE_RELEASE" && \
+        curl
+RUN     node --version && \
+        npm install --ignore-engines -g code-server@"$CODE_RELEASE"
+RUN     node --version && \
+        yarn --ignore-engines rebuild code-server@"$CODE_RELEASE" && \
         yarnpkg cache clean && \
     apt-get purge --auto-remove -y \
 	build-essential \
