@@ -1,7 +1,0 @@
-docker-php-ext-configure bz2
-docker-php-ext-install bz2
-
-apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib
-git clone https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib
-docker-php-ext-configure pdlib
-docker-php-ext-install pdlib
