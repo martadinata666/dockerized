@@ -2,19 +2,27 @@
 variables:
   RELEASE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/nextcloud-smb"
+  GITHUB_REPO_NAME: "nextcloud/server"
+  GITHUB_PUSH_NAME: "nextcloud/notify_push"
 
 buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
   before_script:
+    - export NEXTCLOUDRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export PUSHRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_PUSH_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE=$(echo $NEXTCLOUDRELEASE | cut -c 2-)
+    - echo $NEXTCLOUDRELEASE
+    - echo $RELEASE
+    - echo $PUSHRELEASE
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg NEXTCLOUD_VERSION=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile
+    - docker buildx build --build-arg NEXTCLOUD_VERSION=$RELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile
   only:
     #refs:
     #  - master
@@ -22,5 +30,6 @@ buildx-stable:
     #changes:
     #  - Dockerfile
     #  - entrypoint.sh
-    variables:
-      - $RELEASE != ""
+    #variables:
+    #  - $RELEASE != ""
+    - triggers

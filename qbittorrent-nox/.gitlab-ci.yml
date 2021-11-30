@@ -4,7 +4,7 @@ variables:
   #QBIT: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/qbittorrent-nox"
   GITHUB_REPO_NAME: "userdocs/qbittorrent-nox-static"
-  GITHUB_VUE_REPO_NAME: "WDaan/VueTorrent"
+  GITHUB_MATUI_REPO_NAME: "bill-ahmed/qbit-matui"
 
 buildx-git:
   # Official docker image.
@@ -14,15 +14,17 @@ buildx-git:
     #- apk add curl jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
-    #- export VUERELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_VUE_REPO_NAME/releases/latest" | jq -r .tag_name)
-    #- echo $VUERELEASE
+    - export MATUIRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_MATUI_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $MATUIRELEASE
+    - export ZIPRELEASE=$(echo $MATUIRELEASE | cut -c 2-)
+    - echo $ZIPRELEASE
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg QBVERSION=$RELEASE --build-arg VUERELEASE=$VUERELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f Dockerfile
+    - docker buildx build --build-arg QBVERSION=$RELEASE --build-arg MATUIRELEASE=$MATUIRELEASE --build-arg ZIPRELEASE=$ZIPRELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f Dockerfile
   only:
     refs:
       - master
