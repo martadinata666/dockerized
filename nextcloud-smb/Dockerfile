@@ -1,7 +1,7 @@
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
 FROM 192.168.0.2:5050/dedyms/apache:fpm
-
+ARG TARGETARCH
 ARG NEXTCLOUD_VERSION
 ARG PUSH_VERSION
 ENV PHP_MEMORY_LIMIT 2048M
@@ -9,6 +9,20 @@ ENV PHP_UPLOAD_LIMIT 3000M
 # BUMP
 # Move to root to create things
 USER root
+
+
+# Fetch notify_push
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
+        mv notify-push /usr/local/bin/notify-push && \
+        chmod +x /usr/local/bin/notify-push; \
+    fi;
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
+        mv notify-push /usr/local/bin/notify-push && \
+        chmod +x /usr/local/bin/notify-push; \
+    fi;
+
 RUN set -ex; \
     \
     apt update; \
@@ -69,22 +83,8 @@ RUN set -ex; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
     rm -rf /var/lib/apt/lists/*
 
-# Fetch notify_push
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        wget https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
-        mv notify_push-x86-64-unknown-linux-musl /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-        wget https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
-        mv notify_push-aarch64-unknown-linux-musl /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
-
-
-
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER /home/debian/supervisor/supervisord.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisord.conf /home/debian/supervisor/supervisord.conf
 COPY *.sh upgrade.exclude /
 # Add modified entrypoint because fpm already using user 1000
 #COPY entrypoint.sh /entrypoint.sh

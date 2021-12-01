@@ -10,7 +10,7 @@ buildx-stable:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
   before_script:
-    - export NEXTCLOUDRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export NEXTCLOUDRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - export PUSHRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_PUSH_NAME/releases/latest" | jq -r .tag_name)
     - export RELEASE=$(echo $NEXTCLOUDRELEASE | cut -c 2-)
     - echo $NEXTCLOUDRELEASE
