@@ -1,5 +1,5 @@
 # buster binfmt
-FROM php:8.0-fpm
+FROM php:8.0.13-fpm
 ENV TZ=Asia/Jakarta
 ARG USER=debian
 RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/apt/sources.list && \
@@ -47,6 +47,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
          mysqli \
          bz2 && \
     pecl install apcu && \
+    pecl install inotify && \
     pecl install memcached && \
     pecl install redis && \
     pecl install smbclient && \
@@ -61,7 +62,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
     git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib && \
     docker-php-ext-configure pdlib && \
     docker-php-ext-install pdlib && \
-    docker-php-ext-enable apcu memcached redis smbclient imagick && \
+    docker-php-ext-enable apcu memcached redis smbclient imagick inotify && \
     docker-php-source delete && \
     apt-mark auto '.*' > /dev/null; \
 	[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \

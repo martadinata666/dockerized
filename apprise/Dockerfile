@@ -1,5 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
 # set environment variables
+ARG APPRISE_RELEASE
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV APPRISE_CONFIG_DIR /config
@@ -8,12 +9,14 @@ WORKDIR $HOME
 RUN apt-get update -qq && \
     apt-get install -y -qq --no-install-recommends libffi-dev libssl-dev
 USER $CONTAINERUSER
-RUN git clone --depth=1 https://github.com/caronc/apprise-api.git apprise
+RUN git clone --depth=1 -b $APPRISE_RELEASE https://github.com/caronc/apprise-api.git apprise
 RUN pip3 install --user --no-cache-dir -r ./apprise/requirements.txt gunicorn
 
 
 
 FROM 192.168.0.2:5050/dedyms/nginx:mainline
+ARG APPRISE_RELEASE
+ENV APPRISE_RELEASE=$APPRISE_RELEASE
 USER root
 RUN apt update && apt install -y --no-install-recommends \
     python3-minimal libffi7 libssl1.1 python3-setuptools supervisor && \
