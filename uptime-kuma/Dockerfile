@@ -3,10 +3,10 @@ FROM 192.168.0.2:5050/dedyms/apprise:binary AS apprise
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
 ARG RELEASE
 WORKDIR $HOME
-RUN apt update && apt install -y --no-install-recommends python3 python-is-python3 libsqlite3-dev && git clone -b $RELEASE --depth=1 https://github.com/louislam/uptime-kuma.git uptime-kuma && npm -g install pnpm
+RUN apt update && apt install -y --no-install-recommends python3 python-is-python3 libsqlite3-dev && git clone -b $RELEASE --depth=1 https://github.com/louislam/uptime-kuma.git uptime-kuma
 WORKDIR $HOME/uptime-kuma
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-RUN npm -d install --legacy-peer-deps && \
+RUN npm -d install && \
     npm -d run build && \
     npm -d prune --prod
 
@@ -23,4 +23,4 @@ VOLUME $HOME/uptime-kuma/data
 EXPOSE 3001
 HEALTHCHECK --interval=60s --timeout=30s --start-period=300s CMD node extra/healthcheck.js
 USER $CONTAINERUSER
-CMD ["pnpm", "run", "start-server"]
+CMD ["npm", "run", "start-server"]
