@@ -4,7 +4,7 @@ ARG RELEASE
 WORKDIR $HOME
 RUN git clone --depth=1 -b $RELEASE https://github.com/IrosTheBeggar/mStream.git mstream && rm -rf /home/$CONTAINERUSER/mstream/.git /home/$CONTAINERUSER/mstream/docs
 WORKDIR /home/$CONTAINERUSER/mstream
-RUN npm install --prod
+RUN pnpm install --prod
 
 
 FROM 192.168.0.2:5050/dedyms/node:lts

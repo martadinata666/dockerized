@@ -10,7 +10,6 @@ ENV PHP_UPLOAD_LIMIT 3000M
 # Move to root to create things
 USER root
 
-
 # Fetch notify_push
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
@@ -83,6 +82,8 @@ RUN set -ex; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
     rm -rf /var/lib/apt/lists/*
 
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisord.conf /home/debian/supervisor/supervisord.conf
 COPY *.sh upgrade.exclude /

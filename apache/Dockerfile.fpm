@@ -15,7 +15,7 @@ COPY 000-default-ssl-fpm.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY remoteip.conf /etc/apache2/conf-available/remoteip.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/debian/supervisor
 # enabling mod and sites
-RUN a2enmod ssl proxy_fcgi headers rewrite remoteip proxy proxy_http http2 && \
+RUN a2enmod ssl proxy_fcgi headers rewrite remoteip proxy proxy_http proxy_wstunnel http2 && \
     a2ensite 000-default && \
     a2ensite 000-default-ssl && \
     a2enconf remoteip

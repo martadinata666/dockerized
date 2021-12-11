@@ -3,4 +3,4 @@ RUN apt update && apt install -y --no-install-recommends iputils-ping && apt cle
 ENV URL=google.com
 ENV OPTIONS="-4"
 USER $CONTAINERUSER
-RUN ["bash","-c","ping $OPTIONS $URL"]
+CMD ["bash","-c","ping $OPTIONS $URL"]
