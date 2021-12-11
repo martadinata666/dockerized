@@ -84,6 +84,7 @@ RUN set -ex; \
 
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER event.py /usr/local/bin/event.py
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisord.conf /home/debian/supervisor/supervisord.conf
 COPY *.sh upgrade.exclude /
