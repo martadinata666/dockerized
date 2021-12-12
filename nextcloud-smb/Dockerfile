@@ -6,7 +6,7 @@ ARG NEXTCLOUD_VERSION
 ARG PUSH_VERSION
 ENV PHP_MEMORY_LIMIT 2048M
 ENV PHP_UPLOAD_LIMIT 3000M
-# BUMP
+
 # Move to root to create things
 USER root
 
@@ -25,13 +25,14 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 RUN set -ex; \
     \
     apt update; \
-    apt install -y --no-install-recommends \
+    apt install -y --no-install-recommends python3-pip \
         rsync \
         bzip2 \
         iproute2 \
         busybox-static \
         libldap-common \
     ; \
+    pip3 install yacron; \
     rm -rf /var/lib/apt/lists/*; \
     \
     mkdir -p /var/spool/cron/crontabs; \
@@ -84,13 +85,15 @@ RUN set -ex; \
 
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER event.py /usr/local/bin/event.py
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/debian/supervisor
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisord.conf /home/debian/supervisor/supervisord.conf
 COPY *.sh upgrade.exclude /
+
 # Add modified entrypoint because fpm already using user 1000
-#COPY entrypoint.sh /entrypoint.sh
+#COPY entrypoint.sh /entrypoint.s
 COPY config/* /usr/src/nextcloud/config/
+
 # No cmd, already inside base image and switch back
 USER $CONTAINERUSER
 ENTRYPOINT ["/entrypoint.sh"]
