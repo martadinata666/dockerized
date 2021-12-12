@@ -1,5 +1,6 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin"
+  DEV: ""
 
 buildx-git:
   # Official docker image.
@@ -43,6 +44,8 @@ buildx-dev-dotnet:
       - master
     changes:
       - Dockerfile.dev-dotnet
+    variables:
+      - $DEV=="true"
 
 
 buildx-dev-web:
@@ -65,4 +68,5 @@ buildx-dev-web:
       - master
     changes:
       - Dockerfile.dev-web
-
+    variables:
+      - $DEV=="true"

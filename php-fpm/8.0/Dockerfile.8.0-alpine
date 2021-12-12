@@ -1,6 +1,6 @@
-# buster binfmt
 FROM php:8.0.13-fpm-alpine
 ENV TZ=Asia/Jakarta
+# Ton of additional modules
 RUN apk add --virtual .build-deps \
     $PHPIZE_DEPS \
     git \
@@ -60,6 +60,10 @@ RUN apk add --virtual .build-deps \
     apk del .build-deps && \
     rm -rf /var/cache/apk/* && \
     docker-php-source delete
+
+#Add tini entrypoint
+RUN apt update && apt install -y tini && apt clean && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["/sbin/tini", "-g", "--", "docker-php-entrypoint"]
 
 # Enable normal user support
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
