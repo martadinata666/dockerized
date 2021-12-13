@@ -2,3 +2,5 @@ jobs:
   - name: nextcloud-cron
     command: php -f /var/www/html/cron.php
     schedule: "*/5 * * * *"
+    utc: false
+    executionTimeout: 120

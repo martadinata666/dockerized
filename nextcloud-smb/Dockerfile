@@ -87,7 +87,6 @@ COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/debian/supervisor
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisord.conf /home/debian/supervisor/supervisord.conf
 COPY *.sh upgrade.exclude /
 
 # Add modified entrypoint because fpm already using user 1000
