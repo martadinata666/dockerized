@@ -1,6 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/cadvisor"
   RELEASE: ""
+  DEV: ""
 
 buildx:
   # Official docker image.
@@ -22,46 +23,48 @@ buildx:
     changes:
       - Dockerfile
 
-#buildx-arm32:
-#  # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: build
-#  #services:
-#  #  - docker:dind
-#  before_script:
-#    - export RELEASE="raspberrypi"
-#    - export DATE=$(date +%Y%m%d)
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use --config buildx-config.toml
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.rpi
-#  only:
-#    changes:
-#      - Dockerfile.rpi
-
-
-#buildx-dev:
+buildx-arm32:
   # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: build
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
   #services:
   #  - docker:dind
-#  before_script:
-#    - export RELEASE="dev"
-#    - export DATE=$(date +%Y%m%d)
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use --config buildx-config.toml
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7,linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
-#  only:
-#    changes:
-#      - Dockerfile.dev
+  before_script:
+    - export RELEASE="rpi"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.rpi
+  only:
+    changes:
+      - Dockerfile.rpi
+
+
+buildx-dev:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  #services:
+  #  - docker:dind
+  before_script:
+    - export RELEASE="dev"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7,linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+  only:
+    variables:
+      - $DEV=="true"
+    changes:
+      - Dockerfile.dev
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
