@@ -50,8 +50,8 @@ ENV WHOOGLE_ALT_RD=$reddit_alt
 ARG translate_alt='lingva.ml'
 ENV WHOOGLE_ALT_TL=$translate_alt
 
-WHOOGLE_CONFIG_DISABLE=true
-WHOOGLE_CONFIG_THEME=dark
+ENV WHOOGLE_CONFIG_DISABLE=true
+ENV WHOOGLE_CONFIG_THEME=dark
 
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang $HOME/.local $HOME/.local
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang $HOME/whoogle/app $HOME/whoogle/app
@@ -62,4 +62,5 @@ EXPOSE $EXPOSE_PORT
 HEALTHCHECK  --interval=30s --timeout=5s \
   CMD curl -f http://localhost:${EXPOSE_PORT}/healthz || exit 1
 WORKDIR $HOME/whoogle
+USER $CONTAINERUSER
 CMD python3 -um app --host "${ADDRESS:-0.0.0.0}" --port "${PORT:-"${EXPOSE_PORT:-5000}"}"
