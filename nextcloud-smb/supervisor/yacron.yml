@@ -4,3 +4,10 @@ jobs:
     schedule: "*/5 * * * *"
     utc: false
     executionTimeout: 120
+
+jobs:
+  - name: nextcloud-preview-generate
+    command: /var/www/html/occ preview:pre-generate
+    schedule: "*/30 * * * *"
+    utc: false
+    executionTimeout: 120
