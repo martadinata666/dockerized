@@ -7,7 +7,7 @@ jobs:
 
 jobs:
   - name: nextcloud-preview-generate
-    command: /var/www/html/occ preview:pre-generate
+    command: /var/www/html/occ preview:pre-generate -vvv
     schedule: "*/30 * * * *"
     utc: false
-    executionTimeout: 120
+    #executionTimeout: 120
