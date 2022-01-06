@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5000/dedyms/node:14 as tukang
+FROM 192.168.0.2:5050/dedyms/node:14 as tukang
 ARG CODE_RELEASE
 # environment settings
 RUN apt update && \
