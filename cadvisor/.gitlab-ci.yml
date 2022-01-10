@@ -23,14 +23,15 @@ buildx:
     changes:
       - Dockerfile
 
-buildx-arm32:
+
+buildx-git:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
   #services:
   #  - docker:dind
   before_script:
-    - export RELEASE="rpi"
+    - export RELEASE="git"
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -38,11 +39,10 @@ buildx-arm32:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.rpi
+    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64,linux/arm/v7 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
   only:
     changes:
-      - Dockerfile.rpi
-
+      - Dockerfile.git
 
 buildx-dev:
   # Official docker image.
