@@ -8,7 +8,7 @@ RUN apk add --no-cache git wget
 # ./composer config -a github-oauth.github.com $TOKEN && \
 USER $CONTAINERUSER
 RUN git clone --depth 1 https://github.com/martadinata666/Heimdall.git /var/www/html && \
-    wget https://getcomposer.org/download/1.10.20/composer.phar && mv ./composer.phar ./composer && chmod +x ./composer && \
+    wget https://getcomposer.org/download/latest-1.x/composer.phar && mv ./composer.phar ./composer && chmod +x ./composer && \
     rm -rf .git/ && \
     ./composer config -a github-oauth.github.com $TOKEN && \
     ./composer update && \
