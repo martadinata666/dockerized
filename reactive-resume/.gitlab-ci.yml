@@ -30,6 +30,7 @@ buildx-static:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
+  needs: ["buildx-develop"]
   #services:
   #  - docker:dind
   before_script:
