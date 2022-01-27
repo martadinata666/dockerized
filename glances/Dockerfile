@@ -14,7 +14,7 @@ RUN apt update && \
      apt install -y --no-install-recommends python3-setuptools python3-psutil python3-minimal curl lm-sensors wireless-tools iputils-ping && \
     rm -rf /var/lib/apt/lists/*
 ENV WEBPORT=61208
-ENV ADDITIONAL_OPT=""
+ENV ADDITIONAL_OPT=-d
 RUN  groupadd -g 999 docker && \
      adduser $CONTAINERUSER docker && \
      mkdir -p $HOME/glances && \

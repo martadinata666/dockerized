@@ -45,4 +45,4 @@ VOLUME $HOME/youtubedl-material/audio
 VOLUME $HOME/youtubedl-material/video
 VOLUME $HOME/youtubedl-material/appdata
 EXPOSE 8080
-CMD ["forever","app.js"]
+CMD ["node","app.js"]
