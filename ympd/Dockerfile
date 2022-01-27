@@ -9,11 +9,12 @@ RUN cmake /src/ympd-1-master/
 RUN make
 
 FROM 192.168.0.2:5050/dedyms/debian:latest
-RUN apt update && apt install -y --no-install-recommends libmpdclient2 openssl mpd mpc supervisor && rm -rf /var/lib/apt/lists/* && apt clean
+RUN apt update && apt install -y --no-install-recommends libmpdclient2 openssl mpd mpc supervisor icecast2 && rm -rf /var/lib/apt/lists/* && apt clean
 WORKDIR $HOME
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang /src/ympd $HOME/.local/bin/ympd
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang /src/mkdata $HOME/.local/bin/mkdata
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER mpd.conf $HOME/mpd/mpd.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER icecast.xml $HOME/mpd/icecast.xml
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor $HOME/supervisor
 ENV MPD_SERVER=localhost
 ENV MPD_PORT=6600
