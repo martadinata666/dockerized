@@ -5,21 +5,18 @@ jobs:
     utc: false
     executionTimeout: 120
 
-jobs:
   - name: nextcloud-preview-generate
     command: php -f /var/www/html/occ -vvv preview:pre-generate
     schedule: "*/30 * * * *"
     utc: false
     #executionTimeout: 120
 
-jobs:
   - name: nextcloud-facerecognition
     command: php -f /var/www/html/occ -vvv face:background_job
     schedule: "0 * * * *"
     utc: false
     #executionTimeout: 120
 
-jobs:
   - name: nextcloud-fulltextsearch
     command: php -f /var/www/html/occ -vvv fulltextsearch:index
     schedule: "0 * * * *"

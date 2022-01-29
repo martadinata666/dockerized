@@ -31,8 +31,14 @@ RUN set -ex; \
         iproute2 \
         busybox-static \
         libldap-common \
+        gcc \
+        libc6-dev \
+        python3-dev \
     ; \
     pip3 install yacron; \
+    apt remove -y --purge gcc libc6-dev python3-dev; \
+    apt autoremove -y --purge; \
+    apt clean; \
     rm -rf /var/lib/apt/lists/*; \
     \
     mkdir -p /var/spool/cron/crontabs; \
