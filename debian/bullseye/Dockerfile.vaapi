@@ -3,8 +3,8 @@ FROM 192.168.0.2:5050/dedyms/debian:bullseye
 ARG TARGETARCH
 ARG GMMLIB_VERSION=22.0.0
 ARG IGC_VERSION=1.0.9933
-ARG NEO_VERSION=22.01.22131
-ARG LEVEL_ZERO_VERSION=1.2.22131
+ARG NEO_VERSION=22.04.22286
+ARG LEVEL_ZERO_VERSION=1.2.22286
 
 # echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list && \
 RUN apt update && apt install --no-install-recommends -y ca-certificates gnupg wget apt-transport-https \

@@ -19,6 +19,6 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG RELEASE
 ENV SCRUTINY_VERSION=$RELEASE
 USER $CONTAINERUSER
-COPY --from=tukang /home/$CONTAINERUSER/scrutiny/ /home/$CONTAINERUSER/scrutiny/
-VOLUME /scrutiny/config
-CMD /home/$CONTAINERUSER/scrutiny/bin/scrutiny-web-linux start
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/scrutiny /scrutiny
+VOLUME /scrutiny
+CMD /scrutiny/bin/scrutiny-web-linux start

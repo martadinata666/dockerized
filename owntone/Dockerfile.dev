@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS tukang
+FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
 RUN apt update && apt install -y --no-install-recommends build-essential git autotools-dev autoconf automake libtool gettext gawk \
   gperf antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
   libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \

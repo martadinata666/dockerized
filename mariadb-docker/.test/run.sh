@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
-dir="$(dirname "$(readlink -f "$BASH_SOURCE")")"
+dir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 if [ $# -eq 0 ]
 then
@@ -15,17 +15,19 @@ architecture=$(docker image inspect --format '{{.Architecture}}' "$image")
 
 killoff()
 {
-	[ -n "$cid" ] && docker kill $cid > /dev/null
+	[ -n "$cid" ] && docker kill "$cid" > /dev/null
 	sleep 2
-	[ -n "$cid" ] && docker rm -v -f $cid > /dev/null || true
+	if [ -n "$cid" ]; then
+	       docker rm -v -f "$cid" > /dev/null || true
+	fi
 	cid=""
 }
 
 die()
 {
-	[ -n "$cid" ] && docker logs $cid
+	[ -n "$cid" ] && docker logs "$cid"
 	killoff
-        echo $@ >&2
+        echo "$@" >&2
         exit 1
 }
 trap "killoff" EXIT
@@ -43,17 +45,17 @@ runandwait()
 	waiting=${DOCKER_LIBRARY_START_TIMEOUT:-10}
 	echo "waiting to start..."
 	set +e +o pipefail +x
-	while [ $waiting -gt 0 ]
+	while [ "$waiting" -gt 0 ]
 	do
 		(( waiting-- ))
 		sleep 1
-		if ! docker exec -i $cid mysql -h localhost --protocol tcp -P 3306 -e 'select 1' 2>&1 | fgrep "Can't connect" > /dev/null
+		if ! docker exec -i "$cid" mysql -h localhost --protocol tcp -P 3306 -e 'select 1' 2>&1 | grep -F "Can't connect" > /dev/null
 		then
 			break
 		fi
         done
 	set -eo pipefail -x
-	if [ $waiting -eq 0 ]
+	if [ "$waiting" -eq 0 ]
 	then
 		die 'timeout'
 	fi
@@ -104,6 +106,11 @@ othertables=$(mariadbclient -u root --skip-column-names -Be "select group_concat
 
 otherusers=$(mariadbclient -u root --skip-column-names -Be "select user,host from mysql.user where (user,host) not in (('root', 'localhost'), ('root', '%'), ('mariadb.sys', 'localhost'))")
 [ "$otherusers" != '' ] && die "unexpected users $otherusers"
+
+	echo "Contents of /var/lib/mysql/mysql_upgrade_info:"
+	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
+	echo
+
 killoff
 
 	;&
@@ -122,7 +129,7 @@ killoff
 echo -e "Test: MYSQL_RANDOM_ROOT_PASSWORD, needs to satisify minimium complexity of simple-password-check plugin\n"
 
 runandwait -e MYSQL_RANDOM_ROOT_PASSWORD=1 "${image}" --plugin-load-add=simple_password_check
-pass=$(docker logs $cid | grep 'GENERATED ROOT PASSWORD' 2>&1)
+pass=$(docker logs "$cid" | grep 'GENERATED ROOT PASSWORD' 2>&1)
 # trim up until passwod
 pass=${pass#*GENERATED ROOT PASSWORD: }
 mariadbclient -u root -p"${pass}" -e 'select current_user()'
@@ -134,7 +141,7 @@ killoff
 echo -e "Test: second instance of MYSQL_RANDOM_ROOT_PASSWORD has a different password\n"
 
 runandwait -e MYSQL_RANDOM_ROOT_PASSWORD=1  "${image}" --plugin-load-add=simple_password_check
-newpass=$(docker logs $cid | grep 'GENERATED ROOT PASSWORD' 2>&1)
+newpass=$(docker logs "$cid" | grep 'GENERATED ROOT PASSWORD' 2>&1)
 # trim up until passwod
 newpass=${newpass#*GENERATED ROOT PASSWORD: }
 mariadbclient -u root -p"${newpass}" -e 'select current_user()'
@@ -194,7 +201,7 @@ echo bob > "$secretdir"/pass
 echo pluto > "$secretdir"/host
 echo titan > "$secretdir"/db
 echo ron > "$secretdir"/u
-echo scappers > $secretdir/p
+echo scappers > "$secretdir"/p
 
 runandwait \
        	-v "$secretdir":/run/secrets:Z \
@@ -287,7 +294,7 @@ killoff
 echo -e "Test: MARIADB_RANDOM_ROOT_PASSWORD, needs to satisify minimium complexity of simple-password-check plugin\n"
 
 runandwait -e MARIADB_RANDOM_ROOT_PASSWORD=1 "${image}" --plugin-load-add=simple_password_check
-pass=$(docker logs $cid  2>&1 | grep 'GENERATED ROOT PASSWORD')
+pass=$(docker logs "$cid"  2>&1 | grep 'GENERATED ROOT PASSWORD')
 # trim up until passwod
 pass=${pass#*GENERATED ROOT PASSWORD: }
 mariadbclient -u root -p"${pass}" -e 'select current_user()'
@@ -299,7 +306,7 @@ killoff
 echo -e "Test: second instance of MARIADB_RANDOM_ROOT_PASSWORD has a different password\n"
 
 runandwait -e MARIADB_RANDOM_ROOT_PASSWORD=1 "${image}" --plugin-load-add=simple_password_check
-newpass=$(docker logs $cid  2>&1 | grep 'GENERATED ROOT PASSWORD')
+newpass=$(docker logs "$cid"  2>&1 | grep 'GENERATED ROOT PASSWORD')
 # trim up until passwod
 newpass=${newpass#*GENERATED ROOT PASSWORD: }
 mariadbclient -u root -p"${newpass}" -e 'select current_user()'
@@ -329,17 +336,17 @@ tzcount=$(mariadbclient --skip-column-names -B -u root -e "SELECT COUNT(*) FROM 
 # note uses previous instance
 echo -e "Test: default configuration items are present\n"
 arg_expected=0
-docker exec -i $cid my_print_defaults --mysqld |
+docker exec -i "$cid" my_print_defaults --mysqld |
 	{
-	while read line
+	while read -r line
 	do
 		case $line in
 		--skip-host-cache|--skip-name-resolve)
-			echo $line found
+			echo "$line" found
 			(( arg_expected++ )) || : ;;
 		esac
 	done
-	[ $arg_expected -eq 2 ] || die "expected both skip-host-cache and skip-name-resolve"
+	[ "$arg_expected" -eq 2 ] || die "expected both skip-host-cache and skip-name-resolve"
 }
 killoff
 
@@ -370,13 +377,82 @@ if [ -n "$debarch" ]
 then
 	echo -e "Test: jemalloc preload\n"
 	runandwait -e LD_PRELOAD="/usr/lib/$debarch-linux-gnu/libjemalloc.so.1 /usr/lib/$debarch-linux-gnu/libjemalloc.so.2" -e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1 "${image}"
-	docker exec -i $cid gosu mysql /bin/grep 'jemalloc' /proc/1/maps || die "expected to preload jemalloc"
+	docker exec -i "$cid" gosu mysql /bin/grep 'jemalloc' /proc/1/maps || die "expected to preload jemalloc"
 
 
 	killoff
 else
 	echo -e "Test: jemalloc skipped - unknown arch '$architecture'\n"
 fi
+
+	;&
+	mariadbupgrade)
+	docker volume rm m57 || echo "m57 already cleaned"
+	docker volume create m57
+	docker pull docker.io/library/mysql:5.7
+	runandwait -v m57:/var/lib/mysql:Z -e MYSQL_INITDB_SKIP_TZINFO=1 -e MYSQL_ROOT_PASSWORD=bob docker.io/library/mysql:5.7
+	# clean shutdown required
+	mariadbclient -u root -pbob -e "set global innodb_fast_shutdown=0;SHUTDOWN"
+	while docker exec "$cid" ls -a /proc; do
+		sleep 1
+	done
+
+	runandwait -e MARIADB_AUTO_UPGRADE=1 -v m57:/var/lib/mysql:Z "${image}"
+	
+	version=$(mariadbclient --skip-column-names -B -u root -pbob -e "SELECT VERSION()")
+
+	docker exec "$cid" ls -la /var/lib/mysql/system_mysql_backup_unknown_version.sql.zst || die "hopeing for backup file"
+
+	echo "Did the upgrade run?"
+	docker logs "$cid" 2>&1 | grep -A 15 'Starting mariadb-upgrade' || die "missing upgrade message"
+	echo
+
+	docker exec "$cid" ls -la /var/lib/mysql/
+
+	echo "Final upgrade info reflects current version?"
+	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
+	echo
+
+	upgradeversion=$(docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info)
+	# note VERSION() is longer
+	[[ $version =~ ^${upgradeversion} ]] || die "upgrade version didn't match"
+
+	echo "fix version to 5.x"
+	docker exec "$cid" sed -i -e 's/[0-9]*\(.*\)/5\1/' /var/lib/mysql/mysql_upgrade_info
+	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info
+	killoff
+
+	runandwait -e MARIADB_AUTO_UPGRADE=1 -v m57:/var/lib/mysql:Z "${image}"
+
+	echo "Did the upgrade run?"
+	docker logs "$cid" 2>&1 | grep -A 15 'Starting mariadb-upgrade' || die "missing upgrade from prev"
+	echo
+
+	echo "data dir"
+	docker exec "$cid" ls -la /var/lib/mysql/
+	echo
+
+	echo "Is the right backup file there?"
+	docker exec "$cid" ls -la /var/lib/mysql/system_mysql_backup_5."${upgradeversion#*.}".sql.zst || die "missing backup"
+	echo
+
+	echo "Final upgrade info reflects current version?"
+	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
+	echo
+
+	echo "Fixing back to 0 minor version"
+	docker exec "$cid" sed -i -e 's/[0-9]*-\(MariaDB\)/0-\1/' /var/lib/mysql/mysql_upgrade_info
+	upgradeversion=$(docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info)
+	killoff
+
+	runandwait -e MARIADB_AUTO_UPGRADE=1 -v m57:/var/lib/mysql:Z "${image}"
+	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info
+	newupgradeversion=$(docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info)
+	[ "$upgradeversion" = "$newupgradeversion" ] || die "upgrade versions from mysql_upgrade_info should match"
+       	docker logs "$cid" 2>&1 | grep -C 5 'MariaDB upgrade not required' || die 'should not have upgraded'
+
+	killoff
+	docker volume rm m57
 
 # Insert new tests above by copying the comments below
 #	;&

@@ -64,6 +64,8 @@ _is_sourced() {
 # process initializer files, based on file extensions
 docker_process_init_files() {
 	# mysql here for backwards compatibility "${mysql[@]}"
+	# ShellCheck: mysql appears unused. Verify use (or export if used externally)
+	# shellcheck disable=SC2034
 	mysql=( docker_process_sql )
 
 	echo
@@ -78,6 +80,8 @@ docker_process_init_files() {
 					"$f"
 				else
 					mysql_note "$0: sourcing $f"
+					# ShellCheck can't follow non-constant source. Use a directive to specify location.
+					# shellcheck disable=SC1090
 					. "$f"
 				fi
 				;;
@@ -116,7 +120,7 @@ mysql_get_config() {
 
 # Do a temporary startup of the MariaDB server, for init purposes
 docker_temp_server_start() {
-	"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" --wsrep_on=OFF &
+	"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" --wsrep_on=OFF --skip-log-bin &
 	mysql_note "Waiting for server startup"
 	# only use the root password if the database has already been initializaed
 	# so that it won't try to fill in a password file when it hasn't been set yet
@@ -146,7 +150,7 @@ docker_temp_server_stop() {
 
 # Verify that the minimally required password settings are set for new databases.
 docker_verify_minimum_env() {
-	if [ -z "$MARIADB_ROOT_PASSWORD" -a -z "$MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" -a -z "$MARIADB_RANDOM_ROOT_PASSWORD" ]; then
+	if [ -z "$MARIADB_ROOT_PASSWORD" ] && [ -z "$MARIADB_ALLOW_EMPTY_ROOT_PASSWORD" ] && [ -z "$MARIADB_RANDOM_ROOT_PASSWORD" ]; then
 		mysql_error $'Database is uninitialized and password option is not specified\n\tYou need to specify one of MARIADB_ROOT_PASSWORD, MARIADB_ALLOW_EMPTY_ROOT_PASSWORD and MARIADB_RANDOM_ROOT_PASSWORD'
 	fi
 }
@@ -168,6 +172,18 @@ docker_create_db_directories() {
 	fi
 }
 
+_mariadb_version() {
+        local mariaVersion="${MARIADB_VERSION##*:}"
+        mariaVersion="${mariaVersion%%[-+~]*}"
+	echo -n "${mariaVersion}-MariaDB"
+}
+
+_mariadb_fake_upgrade_info() {
+	if [ ! -f "${DATADIR}"/mysql/mysql_upgrade_info ]; then
+		_mariadb_version > "${DATADIR}"/mysql_upgrade_info
+	fi
+}
+
 # initializes the database directory
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
@@ -177,7 +193,8 @@ docker_init_database_dir() {
 		installArgs+=( --skip-test-db )
 	fi
 	# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
-	mysql_install_db "${installArgs[@]}" "${@:2}" --default-time-zone=SYSTEM --enforce-storage-engine=
+	mysql_install_db "${installArgs[@]}" "${@:2}" --default-time-zone=SYSTEM --enforce-storage-engine= --skip-log-bin
+	_mariadb_fake_upgrade_info
 	mysql_note "Database files initialized"
 }
 
@@ -225,10 +242,9 @@ docker_exec_client() {
 #    ie: docker_process_sql --database=mydb <<<'INSERT ...'
 #    ie: docker_process_sql --dont-use-mysql-root-password --database=mydb <my-file.sql
 docker_process_sql() {
-	passfileArgs=()
 	if [ '--dont-use-mysql-root-password' = "$1" ]; then
 		shift
-		MYSQL_PWD= docker_exec_client "$@"
+		MYSQL_PWD='' docker_exec_client "$@"
 	else
 		MYSQL_PWD=$MARIADB_ROOT_PASSWORD docker_exec_client "$@"
 	fi
@@ -247,23 +263,8 @@ docker_sql_escape_string_literal() {
 docker_setup_db() {
 	# Load timezone info into database
 	if [ -z "$MARIADB_INITDB_SKIP_TZINFO" ]; then
-		{
-			# Aria in 10.4+ is slow due to "transactional" (crash safety)
-			# https://jira.mariadb.org/browse/MDEV-23326
-			# https://github.com/docker-library/mariadb/issues/262
-			local tztables=( time_zone time_zone_leap_second time_zone_name time_zone_transition time_zone_transition_type )
-			for table in "${tztables[@]}"; do
-				echo "/*!100400 ALTER TABLE $table TRANSACTIONAL=0 */;"
-			done
-
-			# sed is for https://bugs.mysql.com/bug.php?id=20545
-			mysql_tzinfo_to_sql /usr/share/zoneinfo \
-				| sed 's/Local time zone must be set--see zic manual page/FCTY/'
-
-			for table in "${tztables[@]}"; do
-				echo "/*!100400 ALTER TABLE $table TRANSACTIONAL=1 */;"
-			done
-		} | docker_process_sql --dont-use-mysql-root-password --database=mysql
+		mysql_tzinfo_to_sql --skip-write-binlog /usr/share/zoneinfo \
+			| docker_process_sql --dont-use-mysql-root-password --database=mysql
 		# tell docker_process_sql to not use MYSQL_ROOT_PASSWORD since it is not set yet
 	fi
 	# Generate random root password
@@ -287,6 +288,7 @@ docker_setup_db() {
 		EOSQL
 	fi
 
+	mysql_note "Securing system users (equivalent to running mysql_secure_installation)"
 	# tell docker_process_sql to not use MARIADB_ROOT_PASSWORD since it is just now being set
 	# --binary-mode to save us from the semi-mad users go out of their way to confuse the encoding.
 	docker_process_sql --dont-use-mysql-root-password --database=mysql --binary-mode <<-EOSQL
@@ -331,6 +333,78 @@ docker_setup_db() {
 	fi
 }
 
+# backup the mysql database
+docker_mariadb_backup_system()
+{
+	if [ -n "$MARIADB_DISABLE_UPGRADE_BACKUP" ] \
+		&& [ "$MARIADB_DISABLE_UPGRADE_BACKUP" = 1 ]; then
+		mysql_note "MariaDB upgrade backup disabled due to \$MARIADB_DISABLE_UPGRADE_BACKUP=1 setting"
+		return
+	fi
+	local backup_db="system_mysql_backup_unknown_version.sql.zst"
+	local oldfullversion="unknown_version"
+	if [ -r "$DATADIR"/mysql_upgrade_info ]; then
+		read -r -d '' oldfullversion < "$DATADIR"/mysql_upgrade_info || true
+		if [ -n "$oldfullversion" ]; then
+			backup_db="system_mysql_backup_${oldfullversion}.sql.zst"
+		fi
+	fi
+
+	mysql_note "Backing up system database to $backup_db"
+	if ! mysqldump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
+		mysql_error "Unable backup system database for upgrade from $oldfullversion."
+	fi
+	mysql_note "Backing up complete"
+}
+
+# perform mariadb-upgrade
+# backup the mysql database if this is a major upgrade
+docker_mariadb_upgrade() {
+	if [ -z "$MARIADB_AUTO_UPGRADE" ] \
+		|| [ "$MARIADB_AUTO_UPGRADE" = 0 ]; then
+		mysql_note "MariaDB upgrade (mysql_upgrade) required, but skipped due to \$MARIADB_AUTO_UPGRADE setting"
+		return
+	fi
+	mysql_note "Starting temporary server"
+	docker_temp_server_start "$@" --skip-grant-tables
+	mysql_note "Temporary server started."
+
+	docker_mariadb_backup_system
+
+	mysql_note "Starting mariadb-upgrade"
+	mysql_upgrade --upgrade-system-tables || true # permission denied fixed in Jan 2022 release?
+	# _mariadb_fake_upgrade_info Possibly fixed by MDEV-27068
+        _mariadb_fake_upgrade_info
+	mysql_note "Finished mariadb-upgrade"
+
+	# docker_temp_server_stop needs authentication since
+	# upgrade ended in FLUSH PRIVILEGES
+	mysql_note "Stopping temporary server"
+	killall "$0"
+	while killall -0 "$0" ; do sleep 1; done
+	mysql_note "Temporary server stopped"
+}
+
+
+_check_if_upgrade_is_needed() {
+	if [ ! -f "$DATADIR"/mysql_upgrade_info ]; then
+		mysql_note "MariaDB upgrade information missing, assuming required"
+		return 0
+	fi
+	local mariadbVersion
+	mariadbVersion="$(_mariadb_version)"
+	IFS='.-' read -ra newversion <<<"$mariadbVersion"
+	IFS='.-' read -ra oldversion < "$DATADIR"/mysql_upgrade_info || true
+
+	if [[ ${#newversion[@]} -lt 2 ]] || [[ ${#oldversion[@]} -lt 2 ]] \
+		|| [[ ${oldversion[0]} -lt ${newversion[0]} ]] \
+		|| [[ ${oldversion[0]} -eq ${newversion[0]} && ${oldversion[1]} -lt ${newversion[1]} ]]; then
+		return 0
+	fi
+	mysql_note "MariaDB upgrade not required"
+	return 1
+}
+
 # check arguments for an option that would cause mysqld to stop
 # return true if there is one
 _mysql_want_help() {
@@ -351,6 +425,7 @@ _main() {
 		set -- mysqld "$@"
 	fi
 
+	#ENDOFSUBSTITIONS
 	# skip setup if they aren't running mysqld or want an option that stops mysqld
 	if [ "$1" = 'mariadbd' ] || [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MariaDB Server ${MARIADB_VERSION} started."
@@ -363,7 +438,7 @@ _main() {
 		# If container is started as root user, restart as dedicated mysql user
 		if [ "$(id -u)" = "0" ]; then
 			mysql_note "Switching to dedicated user 'mysql'"
-			exec gosu mysql "$BASH_SOURCE" "$@"
+			exec gosu mysql "${BASH_SOURCE[0]}" "$@"
 		fi
 
 		# there's no database, so it needs to be initialized
@@ -389,6 +464,10 @@ _main() {
 			echo
 			mysql_note "MariaDB init process done. Ready for start up."
 			echo
+		# MDEV-27636 mariadb_upgrade --check-if-upgrade-is-needed cannot be run offline
+		#elif mysql_upgrade --check-if-upgrade-is-needed; then
+		elif _check_if_upgrade_is_needed; then
+			docker_mariadb_upgrade "$@"
 		fi
 	fi
 	exec "$@"

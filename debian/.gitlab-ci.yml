@@ -25,8 +25,8 @@ buildx-baseimage:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f sid/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f bullseye/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" . -f sid/Dockerfile
     - echo "Trigger node image rebuild"
     - curl -X POST -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
     - echo "Trigger jre image rebuild"

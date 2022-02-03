@@ -22,10 +22,10 @@ web:
     host: 0.0.0.0
   database:
     # can also set absolute path here
-    location: /home/debian/scrutiny/config/scrutiny.db
+    location: /scrutiny/scrutiny.db
   src:
     frontend:
-      path: /home/debian/scrutiny/web
+      path: /scrutiny/web
 
 disks:
   include:
@@ -36,7 +36,7 @@ disks:
 notify:
   level: 'warn' # 'warn' or 'error'
   urls:
-    #-  "discord://324893548648464384@testplexnotif"
+    #- "discord://324893548648464384@testplexnotif"
     #- "telegram://token@telegram?channels=channel-1[,channel-2,...]"
     #- "pushover://shoutrrr:apiToken@userKey/?devices=device1[,device2, ...]"
     #- "slack://[botname@]token-a/token-b/token-c"

@@ -16,7 +16,7 @@ buildx-10.5:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.5/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.5/Dockerfile.debian
   only:
     #refs:
     #  - master
@@ -40,7 +40,7 @@ buildx-10.6:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.6/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.6/Dockerfile.debian
   only:
     #refs:
     #  - master

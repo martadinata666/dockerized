@@ -1,8 +1,8 @@
 # vim:set ft=dockerfile:
-FROM ubuntu:%%SUITE%%
+FROM 192.168.0.2:5050/dedyms/debian:bullseye
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN groupadd -r mysql && useradd -r -g mysql mysql
+#RUN groupadd -r mysql && useradd -r -g mysql mysql
 
 # https://bugs.debian.org/830696 (apt uses gpgv by default in newer releases, rather than gpg)
 RUN set -ex; \
@@ -75,16 +75,16 @@ RUN set -ex; \
 	rm -fr "$GNUPGHOME"; \
 	apt-key list
 
-# bashbrew-architectures:%%ARCHES%%
-ARG MARIADB_MAJOR=%%MARIADB_MAJOR%%
+# bashbrew-architectures: amd64 arm64v8 ppc64le
+ARG MARIADB_MAJOR=10.7
 ENV MARIADB_MAJOR $MARIADB_MAJOR
-ARG MARIADB_VERSION=%%MARIADB_VERSION%%
+ARG MARIADB_VERSION=1:10.7.1+maria~bullseye
 ENV MARIADB_VERSION $MARIADB_VERSION
-# release-status:%%MARIADB_RELEASE_STATUS%%
+# release-status:RC
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
 # Allowing overriding of REPOSITORY, a URL that includes suite and component for testing and Enterprise Versions
-ARG REPOSITORY="http://archive.mariadb.org/mariadb-%%MARIADB_VERSION_BASIC%%/repo/ubuntu/ %%SUITE%% main"
+ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.7.1/repo/debian/ bullseye main"
 
 RUN set -e;\
 	echo "deb ${REPOSITORY}" > /etc/apt/sources.list.d/mariadb.list; \
@@ -107,14 +107,14 @@ RUN set -ex; \
 	apt-get install -y \
 		"mariadb-server=$MARIADB_VERSION" \
 # mariadb-backup is installed at the same time so that `mysql-common` is only installed once from just mariadb repos
-		%%BACKUP_PACKAGE%% \
+		mariadb-backup \
 		socat \
 	; \
 	rm -rf /var/lib/apt/lists/*; \
 # purge and re-create /var/lib/mysql with appropriate ownership
 	rm -rf /var/lib/mysql; \
 	mkdir -p /var/lib/mysql /var/run/mysqld; \
-	chown -R mysql:mysql /var/lib/mysql /var/run/mysqld; \
+	chown -R $CONTAINERUSER:$CONTAINERYSER /var/lib/mysql /var/run/mysqld; \
 # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
 	chmod 777 /var/run/mysqld; \
 # comment out a few problematic configuration values
@@ -132,8 +132,7 @@ RUN set -ex; \
 VOLUME /var/lib/mysql
 
 COPY docker-entrypoint.sh /usr/local/bin/
-RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
-
+USER $CONTAINERUSER
 EXPOSE 3306
-CMD ["mysqld"]
+CMD ["mariadbd"]
