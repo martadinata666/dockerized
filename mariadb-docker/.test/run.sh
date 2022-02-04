@@ -193,7 +193,7 @@ killoff
 	;&
 	secrets_via_file)
 
-echo -e "Test: Secrets _FILE vars shoud be same as env directly\n"
+echo -e "Test: Secrets _FILE vars should be same as env directly\n"
 
 secretdir=$(mktemp -d)
 chmod go+rx "${secretdir}"
@@ -409,6 +409,11 @@ fi
 
 	docker exec "$cid" ls -la /var/lib/mysql/
 
+	# TODO, disable further tests until git branch --contains 0fd4d6d3bb77b9072305f0b1d5bebfb914ad55cc
+	killoff
+	docker volume rm m57
+	exit 0
+	# ENDOFTODO
 	echo "Final upgrade info reflects current version?"
 	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
 	echo
@@ -438,6 +443,8 @@ fi
 
 	echo "Final upgrade info reflects current version?"
 	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
+	upgradeversion=$(docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info)
+	[[ $version =~ ^${upgradeversion} ]] || die "upgrade version didn't match current version"
 	echo
 
 	echo "Fixing back to 0 minor version"

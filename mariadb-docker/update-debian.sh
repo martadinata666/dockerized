@@ -105,7 +105,7 @@ for version in "${versions[@]}"; do
 		backup="$backup-$version"
 	fi
 
-	cp docker-entrypoint.sh "$version/"
+	cp docker-entrypoint.sh healthcheck.sh "$version/"
 	sed -i \
 		-e 's!%%MARIADB_VERSION%%!'"$fullVersion"'!g' \
 		-e 's!%%MARIADB_VERSION_BASIC%%!'"$mariaVersion"'!g' \

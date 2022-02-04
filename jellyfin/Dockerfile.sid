@@ -38,7 +38,7 @@ COPY --from=web-builder /dist /jellyfin/jellyfin-web
 EXPOSE 8096
 USER $CONTAINERUSER
 VOLUME /cache /config /media
-ENTRYPOINT ["./jellyfin/jellyfin", \
+ENTRYPOINT ["/usr/bin/tini","-g","--","./jellyfin/jellyfin", \
     "--datadir", "/config", \
     "--cachedir", "/cache", \
     "--ffmpeg", "/usr/lib/jellyfin-ffmpeg/ffmpeg"]

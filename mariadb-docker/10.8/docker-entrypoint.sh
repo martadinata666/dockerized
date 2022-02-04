@@ -120,7 +120,8 @@ mysql_get_config() {
 
 # Do a temporary startup of the MariaDB server, for init purposes
 docker_temp_server_start() {
-	"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" --wsrep_on=OFF --skip-log-bin &
+	"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" --wsrep_on=OFF --skip-log-bin \
+		--loose-innodb_buffer_pool_load_at_startup=0 --loose-innodb_buffer_pool_dump_at_shutdown=0 &
 	mysql_note "Waiting for server startup"
 	# only use the root password if the database has already been initializaed
 	# so that it won't try to fill in a password file when it hasn't been set yet
@@ -166,9 +167,9 @@ docker_create_db_directories() {
 
 	if [ "$user" = "0" ]; then
 		# this will cause less disk access than `chown -R`
-		find "$DATADIR" \! -user mysql -exec chown mysql '{}' +
+		find "$DATADIR" \! -user mysql -exec chown mysql: '{}' +
 		# See https://github.com/MariaDB/mariadb-docker/issues/363
-		find "${SOCKET%/*}" -maxdepth 0 \! -user mysql -exec chown mysql '{}' \;
+		find "${SOCKET%/*}" -maxdepth 0 \! -user mysql -exec chown mysql: '{}' \;
 	fi
 }
 
@@ -179,7 +180,7 @@ _mariadb_version() {
 }
 
 _mariadb_fake_upgrade_info() {
-	if [ ! -f "${DATADIR}"/mysql/mysql_upgrade_info ]; then
+	if [ ! -f "${DATADIR}"/mysql_upgrade_info ]; then
 		_mariadb_version > "${DATADIR}"/mysql_upgrade_info
 	fi
 }
@@ -191,6 +192,9 @@ docker_init_database_dir() {
 	if { mariadb-install-db --help || :; } | grep -q -- '--skip-test-db'; then
 		# 10.3+
 		installArgs+=( --skip-test-db )
+	else
+		# 10.2 only
+		installArgs+=( --skip-auth-anonymous-user )
 	fi
 	# "Other options are passed to mariadbd." (so we pass all "mysqld" arguments directly here)
 	mariadb-install-db "${installArgs[@]}" "${@:2}" --default-time-zone=SYSTEM --enforce-storage-engine= --skip-log-bin
@@ -298,15 +302,12 @@ docker_setup_db() {
                 -- we need the SQL_MODE NO_BACKSLASH_ESCAPES mode to be clear for the password to be set
 		SET @@SESSION.SQL_MODE=REPLACE(@@SESSION.SQL_MODE, 'NO_BACKSLASH_ESCAPES', '');
 
-		DELETE FROM mysql.user WHERE user NOT IN ('mysql.sys', 'mariadb.sys', 'mysqlxsys', 'root') OR host NOT IN ('localhost') ;
-		SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${rootPasswordEscaped}') ;
-		-- 10.1: https://github.com/MariaDB/server/blob/d925aec1c10cebf6c34825a7de50afe4e630aff4/scripts/mysql_secure_installation.sh#L347-L365
-		-- 10.5: https://github.com/MariaDB/server/blob/00c3a28820c67c37ebbca72691f4897b57f2eed5/scripts/mysql_secure_installation.sh#L351-L369
-		DELETE FROM mysql.db WHERE Db='test' OR Db='test\_%' ;
+		DROP USER IF EXISTS root@'127.0.0.1', root@'::1';
+		EXECUTE IMMEDIATE CONCAT('DROP USER IF EXISTS root@\'', @@hostname,'\'');
 
-		GRANT ALL ON *.* TO 'root'@'localhost' WITH GRANT OPTION ;
-		FLUSH PRIVILEGES ;
+		SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${rootPasswordEscaped}') ;
 		${rootCreate}
+		-- pre-10.3
 		DROP DATABASE IF EXISTS test ;
 	EOSQL
 
@@ -367,6 +368,7 @@ docker_mariadb_upgrade() {
 	fi
 	mysql_note "Starting temporary server"
 	docker_temp_server_start "$@" --skip-grant-tables
+	local pid=$!
 	mysql_note "Temporary server started."
 
 	docker_mariadb_backup_system
@@ -380,9 +382,20 @@ docker_mariadb_upgrade() {
 	# docker_temp_server_stop needs authentication since
 	# upgrade ended in FLUSH PRIVILEGES
 	mysql_note "Stopping temporary server"
-	killall "$0"
-	while killall -0 "$0" ; do sleep 1; done
+	kill "$pid"
+	while killall -0 "$pid" ; do
+		sleep 1
+	done > /dev/null
 	mysql_note "Temporary server stopped"
+
+	local aria_control="$DATADIR"/aria_log_control
+	if [ -f "$aria_control" ]; then
+		mysql_note "Ensuring temporary server process really gone by locking $aria_control"
+		until flock --exclusive --wait 2 -n 9 9<"$aria_control"; do
+			mysql_note "Waiting 2 more seconds ..."
+		done
+		sleep 2
+	fi
 }
 
 
