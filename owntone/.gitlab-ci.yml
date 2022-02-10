@@ -3,7 +3,7 @@ variables:
   GITHUB_REPO_NAME: "owntone/owntone-server"
   DEV: ""
 
-buildx-git:
+buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build

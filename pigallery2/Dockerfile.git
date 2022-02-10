@@ -1,35 +1,38 @@
+### RELEASE PATH
+#FROM 192.168.0.2:5050/dedyms/pigallery2:build AS ziprelease
+
 ### FFMPEG
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
 #-----------------BUILDER-----------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:14-dev AS builder
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
+ARG DATE
 ENV NODE_ENV=production
-ARG RELEASE
-RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev unzip && ln -sf /usr/bin/python3 /usr/bin/python
+RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
 WORKDIR /home/$CONTAINERUSER
-#COPY --from=ziprelease --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/pigallery2-master/release /home/$CONTAINERUSER/pigallery2
+#COPY --from=ziprelease --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/pigallery2/release /home/$CONTAINERUSER/pigallery2
+RUN curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -L pigallery2.zip && \
+    unzip pigallery2.zip -d pigallery2
 USER $CONTAINERUSER
-RUN curl -o $HOME/release.zip -L https://github.com/bpatrik/pigallery2/releases/download/$RELEASE/pigallery2-release.zip && unzip $HOME/release.zip -d $HOME/pigallery2 && ls -al $HOME/pigallery2 
-WORKDIR $HOME/pigallery2
-RUN npm install --only=prod --no-optional
+WORKDIR /home/$CONTAINERUSER/pigallery2
+RUN npm -d install --only=prod --no-optional
 
 #-----------------MAIN--------------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:14
-ARG RELEASE
-ARG PIGALLERY2_RELEASE=$RELEASE
+FROM 192.168.0.2:5050/dedyms/node:lts
+RUN apt update && apt install -y --no-install-recommends netcat wget && apt clean && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production \
     # overrides only the default value of the settings (the actualy value can be overwritten through config.json)
-    default-Server-Database-dbFolder=$HOME/pigallery2/data/db \
-    default-Server-Media-folder=$HOME/pigallery2/data/images \
-    default-Server-Media-tempFolder=$HOME/pigallery2/data/tmp \
-    # flagging dockerized environment
+    default-Server-Database-dbFolder=/home/$CONTAINERUSER/pigallery2/data/db \
+    default-Server-Media-folder=/home/$CONTAINERUSER/pigallery2/data/images \
+    default-Server-Media-tempFolder=/home/$CONTAINERUSER/pigallery2/data/tmp \
+    # flagging dockerized environemnt
     PI_DOCKER=true
 EXPOSE 80
-RUN apt update && apt install -y --no-install-recommends wget && apt clean && rm -rf /var/lib/apt/lists/*
 COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/pigallery2 /home/$CONTAINERUSER/pigallery2
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin /home/$CONTAINERUSER/.local/bin
+COPY wait-for /usr/local/bin/wait-for
 WORKDIR /home/$CONTAINERUSER/pigallery2
 USER $CONTAINERUSER
 RUN mkdir -p /home/$CONTAINERUSER/pigallery2/data/config && \
@@ -42,4 +45,4 @@ HEALTHCHECK --interval=40s --timeout=30s --retries=3 --start-period=60s \
   http://localhost:80/heartbeat || exit 1
 # after a extensive job (like video converting), pigallery calls gc, to clean up everthing as fast as possible
 # Exec form entrypoint is need otherwise (using shell form) ENV variables are not properly passed down to the app
-CMD ["node", "./src/backend/index", "--expose-gc",  "--config-path=./data/config/config.json"]
+CMD wait-for $DB_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config/config.json --Server-Database-mysql-host=$DB_HOST --Server-Database-mysql-username=$DB_USER --Server-Database-mysql-password=$DB_PASSWORD --Server-Database-mysql-database=$DB_NAME

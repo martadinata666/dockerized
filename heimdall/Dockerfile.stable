@@ -12,13 +12,17 @@ RUN wget https://github.com/martadinata666/heimdall-update/releases/download/$RE
     ls -al && \
     unzip release.zip -d /var/www/html/ && \
     ls -al /var/www/html && \
-    rm release.zip
-RUN pwd && ls -al /var/www/html/
+    rm release.zip && \
+    rm -rf public/storage && \
+    php artisan db:seed && \
+    php artisan storage:link
+#RUN pwd && ls -al /var/www/html/
+
 
 FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
-COPY --from=cache --chown=$CONTAINERUSER:$CONTAINERUSER /var/www/html/ /var/www/html/
+COPY --from=cache --chown=$CONTAINERUSER:$CONTAINERUSER /var/www/html /var/www/html
 RUN ls -al /var/www/html
 COPY default.conf /etc/nginx/conf.d/default.conf
 USER $CONTAINERUSER

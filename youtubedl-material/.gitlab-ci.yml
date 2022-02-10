@@ -1,5 +1,9 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/youtubedl-material"
+  FF_USE_FASTZIP: "true" # enable fastzip - a faster zip implementation that also supports level configuration.
+  ARTIFACT_COMPRESSION_LEVEL: default # can also be set to fastest, fast, slow and slowest. If just enabling fastzip is not enough try setting this to fastest or fast.
+  CACHE_COMPRESSION_LEVEL: default # same as above, but for caches
+  TRANSFER_METER_FREQUENCY: 5s
 
 buildx-git:
   # Official docker image.

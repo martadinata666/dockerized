@@ -1,4 +1,5 @@
 FROM 192.168.0.2:5050/dedyms/owntone-server:dev AS tukang
+RUN apt update && apt install -y --no-install-recommends git
 USER $CONTAINERUSER
 ARG RELEASE
 RUN git clone -b $RELEASE https://github.com/owntone/owntone-server.git $HOME/owntone-src
@@ -18,15 +19,17 @@ RUN autoreconf -i && \
     make && \
     make install
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:5050/dedyms/debian:sid
 ENV PATH="$HOME/.local/sbin:$PATH"
 ARG RELEASE
 ENV OWNTONE_RELEASE=$RELEASE
-RUN apt update && apt install -y --no-install-recommends antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
+RUN echo 'deb http://deb.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list && \
+  apt update && apt install -y --no-install-recommends antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
   libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \
   libmxml-dev libgcrypt20-dev libavahi-client-dev zlib1g-dev \
-  libevent-dev libplist-dev libsodium-dev libjson-c-dev libwebsockets-dev \
+  libevent-dev libplist-dev libsodium-dev libjson-c-dev \
   libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev && \
+  apt install -y --no-install-recommends -t experimental libwebsockets-dev && \
   apt remove -y --purge *-dev && \
   apt install -y libavfilter7 libavformat58 libavcodec58 avahi-daemon libnss-mdns && \
   apt clean && \ 

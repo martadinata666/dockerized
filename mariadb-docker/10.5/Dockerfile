@@ -78,13 +78,21 @@ RUN set -ex; \
 # bashbrew-architectures: amd64 arm64v8 ppc64le
 ARG MARIADB_MAJOR=10.5
 ENV MARIADB_MAJOR $MARIADB_MAJOR
+<<<<<<< HEAD
 ARG MARIADB_VERSION=1:10.5.13+maria~bullseye
+=======
+ARG MARIADB_VERSION=1:10.5.14+maria~focal
+>>>>>>> 2937a9bd36ac208e8322c8564f069b10261749f8
 ENV MARIADB_VERSION $MARIADB_VERSION
 # release-status:Stable
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
 # Allowing overriding of REPOSITORY, a URL that includes suite and component for testing and Enterprise Versions
+<<<<<<< HEAD
 ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.5.13/repo/debian/ bullseye main"
+=======
+ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.5.14/repo/ubuntu/ focal main"
+>>>>>>> 2937a9bd36ac208e8322c8564f069b10261749f8
 
 RUN set -e;\
 	echo "deb ${REPOSITORY}" > /etc/apt/sources.list.d/mariadb.list; \

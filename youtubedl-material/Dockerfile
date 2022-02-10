@@ -3,6 +3,15 @@ USER $CONTAINERUSER
 WORKDIR $HOME
 RUN git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
 
+
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS backend
+USER $CONTAINERUSER
+WORKDIR $HOME/youtubedl-material
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/backend ./backend
+WORKDIR $HOME/youtubedl-material/backend
+RUN npm -d install --prod && ls -al
+
+
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS frontend
 RUN npm -d install -g @angular/cli && rm -rf $HOME/.npm && rm -rf $HOME/.config
 USER $CONTAINERUSER
@@ -15,13 +24,6 @@ COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/tsconfig.js
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/src ./src
 RUN ng build --prod && ls -al
 
-
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS backend
-USER $CONTAINERUSER
-WORKDIR $HOME/youtubedl-material
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/backend ./backend
-WORKDIR $HOME/youtubedl-material/backend
-RUN npm -d install --prod && ls -al
 
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 

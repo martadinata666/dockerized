@@ -1,26 +1,114 @@
+stages:
+ - create-release-zip
+ - create-release
+ - create-git
+ - create-stable
+
 variables:
  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/pigallery2"
  GITHUB_REPO_NAME: "bpatrik/pigallery2"
+ PLATFORM_TEST: linux/amd64
+ PLATFORM: linux/arm64,linux/amd64
+ ZIP_NAME: "pigallery2"
+ RELEASE: "build"
 
-buildx-release:
+create-release-zip:
+   # Use the official docker image.
+  #image: 192.168.0.2:5050/dedyms/pigallery2:build
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: create-release-zip
+  before_script:
+  script:
+    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git $HOME/pigallery2
+    - cd $HOME/pigallery2
+    - cat package.json
+    - sed '153,154d' package.json
+    - npm install -d --save-prod --omit=optional mysql2@latest
+    - npm install -d --save-prod --omit=optional sharp@0.30.1 
+    - npm install -d gulp
+    - npm run -d create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static --languanges=en
+    - zip -9 -r ${ZIP_NAME}.zip release/
+    - echo $PACKAGE_REGISTRY_URL
+    - export DATE=$(date +%Y%m%d)
+    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+    - ls -al
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
+  only:
+    refs:
+      - schedules
+
+create-release:
+  # Caution, as of 2021-02-02 these assets links require a login, see:
+  # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
+  stage: create-release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  #rules:
+  #  - if: $CI_COMMIT_SHA
+  script:
+    - export DATE=$(date +%Y%m%d)
+    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+    - |
+      release-cli create --name "Release $DATE" --tag-name $DATE \
+        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
+        #\        --assets-link "{\"name\":\"${LINUX_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}\"}"
+  only:
+    - schedules
+
+
+#build-create-release:
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: build
+#  before_script:
+#    - export RELEASE="build"
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform $PLATFORM_TEST -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.build
+#  only:
+#    refs:
+#      - schedules
+#      - master
+#    changes:
+#      - Dockerfile.build
+
+buildx-git:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: create-git
+  before_script:
+    - export RELEASE="git"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - export DATE=$(date +%Y%m%d)
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --build-arg DATE=$DATE --build-arg VERSION=$RELEASE --platform $PLATFORM_TEST -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
+  only:
+    refs:
+      - schedules
+
+create-stable:
   cache: []
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: create-stable
   before_script:
-    - apk add curl jq
+#    - apk add curl jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-with-buildx:sid
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --build-arg VERSION=$RELEASE --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE". -f Dockerfile
+    - docker buildx build --push --build-arg RELEASE=$RELEASE --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   only:
-    changes:
-      - Dockerfile
+    - triggers
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.

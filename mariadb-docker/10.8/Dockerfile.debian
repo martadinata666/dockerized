@@ -80,6 +80,7 @@ ARG MARIADB_MAJOR=10.8
 ENV MARIADB_MAJOR $MARIADB_MAJOR
 ARG MARIADB_VERSION=1:10.8.0+maria~bullseye
 ENV MARIADB_VERSION $MARIADB_VERSION
+ENV MARIADB_INITDB_SKIP_TZINFO=1
 # release-status:Alpha
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
@@ -132,7 +133,8 @@ RUN set -ex; \
 VOLUME /var/lib/mysql
 
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
-COPY docker-entrypoint-nfs.sh /usr/local/bin/docker-entrypoint.sh
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN ln -s /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
 USER $CONTAINERUSER
 #ENTRYPOINT ["docker-entrypoint.sh"]
 ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/usr/local/bin/docker-entrypoint.sh"]
