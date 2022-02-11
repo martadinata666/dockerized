@@ -1,6 +1,3 @@
-### RELEASE PATH
-#FROM 192.168.0.2:5050/dedyms/pigallery2:build AS ziprelease
-
 ### FFMPEG
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
@@ -10,12 +7,9 @@ FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
 ARG DATE
 ENV NODE_ENV=production
 RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
-WORKDIR /home/$CONTAINERUSER
-#COPY --from=ziprelease --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/pigallery2/release /home/$CONTAINERUSER/pigallery2
-RUN curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -L pigallery2.zip && \
+RUN curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
     unzip pigallery2.zip -d pigallery2
-USER $CONTAINERUSER
-WORKDIR /home/$CONTAINERUSER/pigallery2
+WORKDIR pigallery2
 RUN npm -d install --only=prod --no-optional
 
 #-----------------MAIN--------------------
@@ -30,7 +24,7 @@ ENV NODE_ENV=production \
     # flagging dockerized environemnt
     PI_DOCKER=true
 EXPOSE 80
-COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/pigallery2 /home/$CONTAINERUSER/pigallery2
+COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER /pigallery2 /home/$CONTAINERUSER/pigallery2
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin /home/$CONTAINERUSER/.local/bin
 COPY wait-for /usr/local/bin/wait-for
 WORKDIR /home/$CONTAINERUSER/pigallery2
