@@ -2,7 +2,10 @@ FROM 192.168.0.2:5050/dedyms/php-fpm:8.0-debian
 ENV HOME=/home/debian
 # install apache and generate ssl, and ca-certificates
 USER root
-RUN apt update && apt install -y --no-install-recommends apache2 ssl-cert ca-certificates curl supervisor && apt clean && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y --no-install-recommends apache2 ssl-cert ca-certificates curl supervisor gcc libc6-dev python3-dev python3-pip bash && \
+    pip3 install yacron && \
+    apt remove -y --purge gcc libc6-dev python3-dev && \
+    apt clean && rm -rf /var/lib/apt/lists/*
 
 # add user to ssl-cert, for read ssl-certs
 RUN usermod --append --groups ssl-cert $CONTAINERUSER

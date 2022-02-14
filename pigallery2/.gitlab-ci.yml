@@ -34,6 +34,8 @@ create-release-zip:
     - echo $PACKAGE_REGISTRY_URL
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
   artifacts:
     paths:
       - pigallery2/release/
@@ -55,8 +57,8 @@ create-release:
     - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
     - |
       release-cli create --name "Release $DATE" --tag-name $DATE \
-        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
-        #\        --assets-link "{\"name\":\"${LINUX_AMD64_BINARY}\",\"url\":\"${PACKAGE_REGISTRY_URL}/${LINUX_AMD64_BINARY}\"}"
+        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"\        
+        --assets-link "{\"name\":\"${ZIP_NAME}-${DATE}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip\"}"
   only:
     - schedules
 

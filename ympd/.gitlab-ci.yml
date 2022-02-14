@@ -28,6 +28,8 @@ buildx-stable:
       - schedules
     changes:
       - Dockerfile
+      - mpd.conf
+      - icecast.xml
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
