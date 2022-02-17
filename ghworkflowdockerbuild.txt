@@ -21,7 +21,7 @@ create-release:
         run: npm run create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static --force-opt-packages
       - uses: actions/upload-artifact@v2
         with:
-          name: pigallery2-release
+          name: appname-release
           path: release
   build-docker-amd64arm64:
     runs-on: [ ubuntu-latest ]
@@ -38,8 +38,8 @@ create-release:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: pigallery2-release
-          path: pigallery2-release
+          name: appname-release
+          path: appname-release
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -59,7 +59,7 @@ create-release:
           file: docker/${{ matrix.container }}/Dockerfile.build
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: bpatrik/pigallery2:experimental-${{ matrix.container }}
+          tags: username/appname:experimental-${{ matrix.container }}
       - name: Build and push nightly on new master commit
         if: ${{ startsWith(steps.vars.outputs.type , 'head') &&  !github.event.issue.pull_request && github.ref == 'refs/heads/master' }}
         uses: docker/build-push-action@v2
@@ -68,7 +68,7 @@ create-release:
           file: docker/${{ matrix.container }}/Dockerfile.build
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: bpatrik/pigallery2:nightly-${{ matrix.container }}
+          tags: username/appname:nightly-${{ matrix.container }}
       - name: Build and push release on new Tag
         if: ${{ startsWith(steps.vars.outputs.type , 'tag') &&  !github.event.issue.pull_request }}
         uses: docker/build-push-action@v2
@@ -78,9 +78,9 @@ create-release:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            bpatrik/pigallery2:nightly-${{ matrix.container }}
-            bpatrik/pigallery2:${{ steps.vars.outputs.tag}}-${{matrix.container}}
-            bpatrik/pigallery2:latest-${{matrix.container}}
+            username/appname:nightly-${{ matrix.container }}
+            username/appname:${{ steps.vars.outputs.tag}}-${{matrix.container}}
+            username/appname:latest-${{matrix.container}}
   build-docker-all-platforms:
     runs-on: [ ubuntu-latest ]
     needs: [ create-release ]
@@ -96,8 +96,8 @@ create-release:
         uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
-          name: pigallery2-release
-          path: pigallery2-release
+          name: appname-release
+          path: appname-release
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -117,7 +117,7 @@ create-release:
           file: docker/${{ matrix.container }}/Dockerfile.build
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: bpatrik/pigallery2:experimental-${{ matrix.container }}
+          tags: username/appname:experimental-${{ matrix.container }}
       - name: Build and push nightly on new master commit
         if: ${{ startsWith(steps.vars.outputs.type , 'head') &&  !github.event.issue.pull_request && github.ref == 'refs/heads/master' }}
         uses: docker/build-push-action@v2
@@ -126,7 +126,7 @@ create-release:
           file: docker/${{ matrix.container }}/Dockerfile.build
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: bpatrik/pigallery2:nightly-${{ matrix.container }}
+          tags: username/appname:nightly-${{ matrix.container }}
       - name: Build and push release on new Tag
         if: ${{ startsWith(steps.vars.outputs.type , 'tag') &&  !github.event.issue.pull_request }}
         uses: docker/build-push-action@v2
@@ -136,6 +136,6 @@ create-release:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: |
-            bpatrik/pigallery2:nightly-${{ matrix.container }}
-            bpatrik/pigallery2:${{ steps.vars.outputs.tag }}
-            bpatrik/pigallery2:latest
+            username/appname:nightly-${{ matrix.container }}
+            username/appname:${{ steps.vars.outputs.tag }}
+            username/appname:latest

@@ -1,0 +1,15 @@
+FROM node:14.18.0-bullseye-slim AS tukang
+RUN apt update && apt install -y --no-install-recommends git libvips-dev libtool zip unzip git wget build-essential ca-certificates && \
+    npm -g install pnpm
+USER node
+RUN git clone --depth=1 -b develop https://github.com/martadinata666/Reactive-Resume.git /home/node/reactive-resume
+WORKDIR /home/node/reactive-resume
+RUN pnpm -d install
+
+FROM node:14.18.0-bullseye-slim
+RUN apt update && apt install -y --no-install-recommends libvips42 && apt clean && rm -rf /var/lib/apt/lists/*
+COPY --from=tukang --chown=node:node /home/node/reactive-resume /home/node/reactive-resume
+WORKDIR /home/node/reactive-resume
+USER node
+EXPOSE 8000
+CMD ["pnpm","run","start"]

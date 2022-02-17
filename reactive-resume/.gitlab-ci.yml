@@ -2,37 +2,54 @@ variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/reactive-resume"
   DEV: ""
 
-buildx-develop:
-  # Official docker image.
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  #services:
-  #  - docker:dind
+stages:
+#  - buildx-develop
+  - build-static
+  - docker-buildx-static
+  - dev
+
+#buildx-develop:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: buildx-develop
+#  #services:
+#  #  - docker:dind
+#  before_script:
+#    - export RELEASE="develop"
+#    - export DATE=$(date +%Y%m%d)
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+#  only:
+#    refs:
+#      - master
+#    changes:
+#      - Dockerfile
+
+build-static:
+  image: 192.168.0.2:5050/dedyms/reactive-resume:develop
+  stage: build-static
   before_script:
-    - export RELEASE="develop"
     - export DATE=$(date +%Y%m%d)
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - cp -r /home/debian/reactive-resume reactive-resume
+    - cd reactive-resume && ls -aln
+    - pnpm -d run build
   only:
     refs:
       - master
-      - schedules
-    changes:
-      - Dockerfile
+  artifacts:
+      paths:
+        - reactive-resume/public
 
-
-buildx-static:
-  # Official docker image.
+buildx-static-docker-image:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  needs: ["buildx-develop"]
-  #services:
-  #  - docker:dind
+  stage: docker-buildx-static
+  dependencies: ["build-static"]
   before_script:
     - export RELEASE="static"
     - export DATE=$(date +%Y%m%d)
@@ -42,36 +59,31 @@ buildx-static:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg FIREBASE_APIKEY=$FIREBASE_APIKEY --build-arg FIREBASE_APPID=$FIREBASE_APPDID --build-arg FIREBASE_AUTHDOMAIN=$FIREBASE_AUTHDOMAIN --build-arg FIREBASE_DATABASEURL=$FIREBASE_DATABASEURL --build-arg FIREBASE_MESSAGINGSENDERID=$FIREBASE_MESSAGINGSENDERID --build-arg FIREBASE_PROJECTID=$FIREBASE_PROJECTID --build-arg FIREBASE_STORAGEBUCKET=$FIREBASE_STORAGEBUCKET --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.static
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.static
   only:
-    refs:
-      - master
-      - schedules
     changes:
       - Dockerfile.static
+      - .gitlab-ci.yml
 
-
-buildx-dev:
-  # Official docker image.
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  #services:
-  #  - docker:dind
-  before_script:
-    - export RELEASE="dev"
-    - export DATE=$(date +%Y%m%d)
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
-  only:
-    variables:
-      - $DEV == "true"
-
-
+#buildx-dev:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: buildx-develop
+#  #services:
+#  #  - docker:dind
+#  before_script:
+#    - export RELEASE="dev"
+#    - export DATE=$(date +%Y%m%d)
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+#  only:
+#    variables:
+#      - $DEV == "true"
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.

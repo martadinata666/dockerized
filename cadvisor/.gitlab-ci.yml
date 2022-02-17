@@ -22,6 +22,8 @@ buildx:
   only:
     changes:
       - Dockerfile
+    variables:
+      - $RELEASE != "git"
 
 
 buildx-git:
@@ -43,6 +45,8 @@ buildx-git:
   only:
     changes:
       - Dockerfile.git
+    variables:
+      - $RELEASE == "git"
 
 buildx-dev:
   # Official docker image.

@@ -3,7 +3,9 @@ RUN apt update && apt install -y ssl-cert
 
 FROM 192.168.0.2:5050/dedyms/php-fpm:8-alpine
 USER root
-RUN apk add --no-cache openssl curl ca-certificates && \
+RUN apk add --no-cache openssl curl ca-certificates gcc py3-pip python3-dev musl-dev && \
+    pip3 install yacron && \
+    apk del gcc python3-dev musl-dev && \
     printf "%s%s%s%s\n" \
     "@nginx " \
     "http://nginx.org/packages/mainline/alpine/v" \
