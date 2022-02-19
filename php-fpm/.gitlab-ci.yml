@@ -1,85 +1,78 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/php-fpm"
 
-buildx-8.0-alpine:
+stages:
+  - build-php
+  - trigger-apache-nginx
+
+buildx-7.4:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: build-php
   before_script:
-    - export RELEASE="8.0-alpine"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build . -f 8.0/Dockerfile.8.0-alpine --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
+    - docker buildx build . -f 7.4/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:7.4" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:7.4"
   only:
     refs:
       - master
       - schedules
     changes:
-      - 8.0/Dockerfile.8.0-alpine
+      - 7.4/Dockerfile.debian
 
-buildx-8.0-debian:
+buildx-8.0:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: build-php
   before_script:
-    - export RELEASE="8.0-debian"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build . -f 8.0/Dockerfile.8.0-debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+    - docker buildx build . -f 8.0/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:8.0" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.0"
   only:
     refs:
       - master
       - schedules
     changes:
-      - 8.0/Dockerfile.8.0-debian
+      - 8.0/Dockerfile.debian
 
-#buildx-7.4:
+#buildx-8.1:
 #  # Official docker image.
 #  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
 #  stage: build
 #  before_script:
-#    - export RELEASE="7.4-alpine"
-#    - export RELEASE1="alpine"
 #    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 #    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
 #  script:
 #    - docker buildx create --use --config buildx-config.toml
 #    - docker buildx inspect --bootstrap
-#    - docker buildx build -f Dockerfile.7.4-alpine --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$RELEASE1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE1" .
+#    - docker buildx build . -f 8.1/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:8.1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.1"
+#    - echo "Trigger apache image rebuild"
+#    - curl -X POST -F token=$APACHE_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
+#    - echo "Trigger nginx image rebuild"
+#    - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
 #  only:
 #    refs:
 #      - master
 #      - schedules
 #    changes:
-#      - 7.4/Dockerfile.7.4-alpine
+#      - 8.1/Dockerfile.debian
 
-#buildx-7.3:
-  # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: build
-#  services:
-#    - docker:dind
-#  before_script:
-#    - export RELEASE="7.3-alpine"
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build -f Dockerfile.7.3-alpine --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" .
-#  only:
-#    refs:
-#      - master
-#      - schedules
-#    changes:
-#      - Dockerfile.7.3-alpine
+trigger-apache-nginx:
+  image: 192.168.0.2:5050/dedyms/debian:latest
+  stage: trigger-apache-nginx
+  script:
+    - echo "Trigger apache image rebuild"
+    - curl -X POST -F token=$APACHE_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
+    - echo "Trigger nginx image rebuild"
+    - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
+  only:
+    - triggers

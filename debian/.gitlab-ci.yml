@@ -12,7 +12,6 @@ stages:
 
 buildx-baseimage:
   cache: {}
-  # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build-base
   before_script:
@@ -24,25 +23,15 @@ buildx-baseimage:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" . -f sid/Dockerfile
-    - echo "Trigger node image rebuild"
-    - curl -X POST -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
-    - echo "Trigger jre image rebuild"
-    - curl -X POST -F token=$JRE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/38/trigger/pipeline
-    - echo "Trigger apache image rebuild"
-    - curl -X POST -F token=$APACHE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
-    - echo "Trigger nginx image rebuild"
-    - curl -X POST -F token=$NGINX_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" . -f sid/Dockerfile
   except:
     - schedules
   only:
     - triggers
 
 buildx-vaapi:
-  cache: {}
-  # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build-vaapi
   before_script:
@@ -54,20 +43,13 @@ buildx-vaapi:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:vaapi" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:vaapi" . -f bullseye/Dockerfile.vaapi
-  #except:
-  #  - schedules
   only:
-    #variables:
-    #  - $SCHEDULE_TYPE == "vaapi"
     refs:
       - master
-      - schedules
     changes:
       - bullseye/Dockerfile.vaapi
 
 buildx-base-dev:
-  cache: {}
-  # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build-base-dev
   before_script:
@@ -79,13 +61,16 @@ buildx-base-dev:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f bullseye/Dockerfile.dev
-  #except:
-  #  - schedules
+    - echo "Trigger node image rebuild"
+    - curl -X POST -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
+    - echo "Trigger jre image rebuild"
+    - curl -X POST -F token=$JRE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/38/trigger/pipeline
+    #- echo "Trigger apache image rebuild"
+    #- curl -X POST -F token=$APACHE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
+    #- echo "Trigger nginx image rebuild"
+    #- curl -X POST -F token=$NGINX_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
   only:
-    #variables:
-    #  - $SCHEDULE_TYPE == "vaapi"
     refs:
       - master
-      - schedules
     changes:
       - bullseye/Dockerfile.dev

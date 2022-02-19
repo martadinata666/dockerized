@@ -12,7 +12,8 @@ buildx-git:
   stage: build
   before_script:
     #- apk add curl jq
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases" | jq -r 'first(.[] | select(.tag_name | contains("1.2"))) | .tag_name')
     - echo $RELEASE
     - export MATUIRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_MATUI_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $MATUIRELEASE

@@ -2,7 +2,7 @@ FROM debian:bullseye-slim
 ARG USER=debian
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
+ENV LANGUAGE en_US.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CONTAINERUSER=$USER
 ENV TZ=Asia/Jakarta
@@ -20,8 +20,7 @@ RUN apt update && \
     echo "Defaults        lecture=always" >> /etc/sudoers && \
     echo "Defaults        lecture_file=/etc/sudo_lecture.txt" >> /etc/sudoers && \
     groupadd $USER && \
-    groupadd -g 139 render && \
-    useradd -u 1000 -g $USER -m -d /home/$USER -s /bin/bash -G video,render -p $(echo $USER | openssl passwd -1 -stdin) $USER && \
+    useradd -u 1000 -g $USER -m -d /home/$USER -s /bin/bash -p $(echo $USER | openssl passwd -1 -stdin) $USER && \
     adduser $USER sudo && \
     mkdir -p /home/$CONTAINERUSER/.local/bin && \
     mkdir -p /home/$CONTAINERUSER/.local/lib && \

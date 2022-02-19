@@ -45,11 +45,11 @@ file_env() {
     unset "$fileVar"
 }
 
-#if expr "$1" : "apache" 1>/dev/null; then
-#    if [ -n "${APACHE_DISABLE_REWRITE_IP+x}" ]; then
-#        a2disconf remoteip
-#    fi
-#fi
+if expr "$1" : "apache" 1>/dev/null; then
+    if [ -n "${APACHE_DISABLE_REWRITE_IP+x}" ]; then
+        a2disconf remoteip
+    fi
+fi
 
 if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "$1" = "supervisord" ] || [ "${NEXTCLOUD_UPDATE:-0}" -eq 1 ]; then
 
@@ -60,7 +60,7 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "$1" = "supervi
             file_env REDIS_HOST_PASSWORD
             echo 'session.save_handler = redis'
             # check if redis host is an unix socket path
-            if [ "${REDIS_HOST:0:1}" = "/" ]; then
+            if [ "$(echo "$REDIS_HOST" | cut -c1-1)" = "/" ]; then
               if [ -n "${REDIS_HOST_PASSWORD+x}" ]; then
                 echo "session.save_path = \"unix://${REDIS_HOST}?auth=${REDIS_HOST_PASSWORD}\""
               else

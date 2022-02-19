@@ -11,16 +11,24 @@ ENV PHP_UPLOAD_LIMIT 3000M
 USER root
 
 # Fetch notify_push
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
-        mv notify-push /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
-        mv notify-push /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
+RUN case ${TARGETPLATFORM} in \
+         "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
+         "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
+    esac \
+    && curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-${NOTIFY_PUSH_ARCH}-unknown-linux-musl && \ 
+    mv notify-push /usr/local/bin/notify-push
+
+
+#RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+#        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
+#        mv notify-push /usr/local/bin/notify-push && \
+#        chmod +x /usr/local/bin/notify-push; \
+#    fi;
+#RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+#        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
+#        mv notify-push /usr/local/bin/notify-push && \
+#        chmod +x /usr/local/bin/notify-push; \
+#    fi;
 
 RUN set -ex; \
     \
@@ -29,7 +37,6 @@ RUN set -ex; \
         rsync \
         bzip2 \
         iproute2 \
-        busybox-static \
         libldap-common \
     ; \
     apt autoremove -y --purge; \

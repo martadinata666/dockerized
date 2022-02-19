@@ -10,7 +10,8 @@ RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev 
 RUN curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
     unzip pigallery2.zip -d pigallery2
 WORKDIR pigallery2
-RUN npm -d install --only=prod --no-optional
+#RUN npm -d install --only=prod --no-optional
+RUN npm ci --prod
 
 #-----------------MAIN--------------------
 #-----------------------------------------

@@ -2,6 +2,7 @@
 variables:
   RELEASE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/nginx"
+  FPM: ""
 
 buildx-mainline:
   # Official docker image.
@@ -17,6 +18,8 @@ buildx-mainline:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f mainline/Dockerfile
   only:
+    variables:
+      - $FPM == ""
     refs:
       - master
       - schedules
@@ -39,6 +42,8 @@ buildx-stable:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f stable/Dockerfile.stable
   only:
+    variables:
+      - $FPM == ""
     refs:
       - master
       - schedules
@@ -62,6 +67,8 @@ buildx-fpm8:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f fpm/Dockerfile.fpm
   only:
+    variables:
+      - $FPM == "true"
     refs:
       - master
       - schedules
@@ -70,7 +77,6 @@ buildx-fpm8:
       - fpm/default.conf
       - fpm/nginx.conf
       - fpm/supervisor/supervisord.conf
-
 
 
 buildx-fpm7:
@@ -87,6 +93,8 @@ buildx-fpm7:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f fpm/Dockerfile.fpm7
   only:
+    variables:
+      - $FPM == "true"
     refs:
       - master
       - schedules

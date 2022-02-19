@@ -1,4 +1,4 @@
-FROM php:8.0.13-fpm
+FROM php:8.0.16-fpm
 ENV TZ=Asia/Jakarta
 # Set default user
 ARG USER=debian
