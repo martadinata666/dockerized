@@ -8,7 +8,6 @@ USER $CONTAINERUSER
 RUN git clone --depth=1 https://github.com/bpatrik/pigallery2.git $HOME/pigallery2
 WORKDIR $HOME/pigallery2
 RUN sed '153,154d' package.json 
-    npm install -d --save-prod --omit=optional mysql@latest && \
-    npm install -d --save-prod --omit=optional sharp@0.30.1 && \
+    npm install -d --save-prod --omit=optional mysql2@latest && \
     npm install -d gulp && \
     npm run -d create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static --languanges=en

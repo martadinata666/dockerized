@@ -41,18 +41,15 @@ RUN set -ex; \
     ; \
     apt autoremove -y --purge; \
     apt clean; \
-    rm -rf /var/lib/apt/lists/*; \
-    \
-    mkdir -p /var/spool/cron/crontabs; \
-    echo '*/5 * * * * php -f /var/www/html/cron.php' > /var/spool/cron/crontabs/debian
+    rm -rf /var/lib/apt/lists/*
 
 RUN { \
         echo 'opcache.enable=1'; \
-        echo 'opcache.interned_strings_buffer=8'; \
+        echo 'opcache.interned_strings_buffer=32'; \
         echo 'opcache.max_accelerated_files=10000'; \
         echo 'opcache.memory_consumption=512'; \
         echo 'opcache.save_comments=1'; \
-        echo 'opcache.revalidate_freq=1'; \
+        echo 'opcache.revalidate_freq=5'; \
     } > /usr/local/etc/php/conf.d/opcache-recommended.ini; \
     \
     echo 'apc.enable_cli=1' >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini; \

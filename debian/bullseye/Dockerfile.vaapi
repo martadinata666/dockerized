@@ -3,21 +3,9 @@ FROM 192.168.0.2:5050/dedyms/debian:bullseye
 ARG TARGETARCH
 ARG GMMLIB_VERSION=22.0.0
 ARG IGC_VERSION=1.0.9933
-ARG NEO_VERSION=22.04.22286
-ARG LEVEL_ZERO_VERSION=1.2.22286
+ARG NEO_VERSION=22.05.22297
+ARG LEVEL_ZERO_VERSION=1.3.22297
 
-# echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list && \
-RUN apt update && apt install --no-install-recommends -y ca-certificates gnupg wget apt-transport-https \
-    && wget -O - https://repo.jellyfin.org/jellyfin_team.gpg.key | apt-key add - \
-    && echo "deb [arch=$( dpkg --print-architecture )] https://repo.jellyfin.org/debian bullseye main" | tee /etc/apt/sources.list.d/jellyfin.list \
-    && apt-get update \
-    && apt install --no-install-recommends --no-install-suggests -y mesa-va-drivers jellyfin-ffmpeg \
-    && ln -s /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg \
-    && ln -s /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe \
-    && apt-get remove gnupg apt-transport-https -y \
-    && apt-get clean autoclean -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
 # Intel VAAPI Tone mapping dependencies:
 # Prefer NEO to Beignet since the latter one doesn't support Comet Lake or newer for now.
 # Do not use the intel-opencl-icd package from repo since they will not build with RELEASE_WITH_REGKEYS enabled.
@@ -34,4 +22,19 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         cd .. && \
         rm -rf intel-compute-runtime; \
     fi;
+
+
+# echo "deb http://deb.debian.org/debian buster-backports main" >> /etc/apt/sources.list && \
+RUN apt update && apt install --no-install-recommends -y ca-certificates gnupg wget apt-transport-https \
+    && wget -O - https://repo.jellyfin.org/jellyfin_team.gpg.key | apt-key add - \
+    && echo "deb [arch=$( dpkg --print-architecture )] https://repo.jellyfin.org/debian bullseye main" | tee /etc/apt/sources.list.d/jellyfin.list \
+    && apt-get update \
+    && apt install --no-install-recommends --no-install-suggests -y mesa-va-drivers jellyfin-ffmpeg \
+    && ln -s /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg \
+    && ln -s /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe \
+    && apt-get remove gnupg apt-transport-https -y \
+    && apt-get clean autoclean -y \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
 CMD ["bash"]
