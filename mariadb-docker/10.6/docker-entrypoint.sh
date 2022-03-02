@@ -122,6 +122,8 @@ mysql_get_config() {
 docker_temp_server_start() {
 	"$@" --skip-networking --default-time-zone=SYSTEM --socket="${SOCKET}" --wsrep_on=OFF --skip-log-bin \
 		--loose-innodb_buffer_pool_load_at_startup=0 &
+	declare -g MARIADB_PID
+	MARIADB_PID=$!
 	mysql_note "Waiting for server startup"
 	# only use the root password if the database has already been initializaed
 	# so that it won't try to fill in a password file when it hasn't been set yet
@@ -179,12 +181,6 @@ _mariadb_version() {
 	echo -n "${mariaVersion}-MariaDB"
 }
 
-_mariadb_fake_upgrade_info() {
-	if [ ! -f "${DATADIR}"/mysql_upgrade_info ]; then
-		_mariadb_version > "${DATADIR}"/mysql_upgrade_info
-	fi
-}
-
 # initializes the database directory
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
@@ -201,7 +197,6 @@ docker_init_database_dir() {
 		--default-time-zone=SYSTEM --enforce-storage-engine= --skip-log-bin \
 		--loose-innodb_buffer_pool_load_at_startup=0 \
 		--loose-innodb_buffer_pool_dump_at_shutdown=0
-	_mariadb_fake_upgrade_info
 	mysql_note "Database files initialized"
 }
 
@@ -298,7 +293,7 @@ docker_setup_db() {
 	local mysqlAtLocalhost=
 	local mysqlAtLocalhostGrants=
 	# Install mysql@localhost user
-	if [ -n "$MARIADB_MYSQL_LOCALHOST_USER" ] || [ -n "$MARIADB_MYSQL_LOCALHOST_GRANTS" ]; then
+	if [ -n "$MARIADB_MYSQL_LOCALHOST_USER" ]; then
 		local pw=
 		pw="$(pwgen --numerals --capitalize --symbols --remove-chars="'\\" -1 32)"
 		# MDEV-24111 before MariaDB-10.4 cannot create unix_socket user directly auth with simple_password_check
@@ -311,10 +306,8 @@ docker_setup_db() {
 		ALTER USER mysql@localhost IDENTIFIED VIA unix_socket;
 		EOSQL
 		if [ -n "$MARIADB_MYSQL_LOCALHOST_GRANTS" ]; then
-			if [[ "$MARIADB_MYSQL_LOCALHOST_GRANTS" = ALL* ]] || \
-			   [[ "$MARIADB_MYSQL_LOCALHOST_GRANTS" = *UPDATE* ]] || \
-			   [[ "$MARIADB_MYSQL_LOCALHOST_GRANTS" = *INSERT* ]]; then
-				mysql_warn "ALL/INSERT/UPDATE privileges ON *.* TO mysql@localhost facilitates privilege escalation, recommending limiting to required privileges"
+			if [ "$MARIADB_MYSQL_LOCALHOST_GRANTS" != USAGE ]; then
+				mysql_warn "Excessive privileges ON *.* TO mysql@localhost facilitates risks to the confidentiality, integrity and availability of data stored"
 			fi
 			mysqlAtLocalhostGrants="GRANT ${MARIADB_MYSQL_LOCALHOST_GRANTS} ON *.* TO mysql@localhost;";
 		fi
@@ -398,35 +391,22 @@ docker_mariadb_upgrade() {
 	fi
 	mysql_note "Starting temporary server"
 	docker_temp_server_start "$@" --skip-grant-tables \
-		--loose-innodb_buffer_pool_dump_at_shutdown=0
-	local pid=$!
+		--loose-innodb_buffer_pool_dump_at_shutdown=0 \
+		--skip-slave-start
 	mysql_note "Temporary server started."
 
 	docker_mariadb_backup_system
 
 	mysql_note "Starting mariadb-upgrade"
-	mariadb-upgrade --upgrade-system-tables || true # permission denied fixed in Jan 2022 release?
-	# _mariadb_fake_upgrade_info Possibly fixed by MDEV-27068
-        _mariadb_fake_upgrade_info
+	mariadb-upgrade --upgrade-system-tables
 	mysql_note "Finished mariadb-upgrade"
 
 	# docker_temp_server_stop needs authentication since
 	# upgrade ended in FLUSH PRIVILEGES
 	mysql_note "Stopping temporary server"
-	kill "$pid"
-	while killall -0 "$pid" ; do
-		sleep 1
-	done > /dev/null
+	kill "$MARIADB_PID"
+	wait "$MARIADB_PID"
 	mysql_note "Temporary server stopped"
-
-	local aria_control="$DATADIR"/aria_log_control
-	if [ -f "$aria_control" ]; then
-		mysql_note "Ensuring temporary server process really gone by locking $aria_control"
-		until flock --exclusive --wait 2 -n 9 9<"$aria_control"; do
-			mysql_note "Waiting 2 more seconds ..."
-		done
-		sleep 2
-	fi
 }
 
 

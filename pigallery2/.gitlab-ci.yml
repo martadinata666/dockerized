@@ -12,30 +12,43 @@ variables:
  ZIP_NAME: "pigallery2"
  RELEASE: "build"
 
+#default:
+#  image: 192.168.0.2:5050/dedyms/node:lts-dev
+
+
 create-release-zip:
    # Use the official docker image.
   #image: 192.168.0.2:5050/dedyms/pigallery2:build
   image: 192.168.0.2:5050/dedyms/node:lts-dev
   stage: create-release-zip
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - pigallery2/.pnpm-store/
+      - pigallery2/npm_cache/
+      - pigallery2/node_modules/
+      - pigallery2/.yarn-cache/
+    policy: pull-push
   before_script:
+    - pnpm config set store-dir .pnpm-store
+    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery
   script:
-    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2 
+    - cp -r pigallery/* pigallery2/
+    - ls -alh pigallery2/
     - cd pigallery2
-    - cat package.json
-    - sed '153,154d' package.json
-    - npm install -d --save-prod --omit=optional mysql2@latest
-    - npm install -d --save-prod --omit=optional sharp@0.30.1 
-    - cat package.json
-    - npm install -d gulp
-    - npm run -d create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static --languanges=en
+    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional mysql2@latest
+    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional jsdom@latest
+    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional sharp@0.30.2
+    - npm install -d -timeout=9999999 --cache npm_cache/ --no-audit --omit=optional gulp
+    - npm run -d--ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
     - zip -9 -r ${ZIP_NAME}.zip release/
     - export DATE=$(date +%Y%m%d)
     - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
     - echo $PACKAGE_REGISTRY_URL
     - |
       curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
   artifacts:
     paths:
       - pigallery2/release/
@@ -56,9 +69,8 @@ create-release:
     - export DATE=$(date +%Y%m%d)
     - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
     - |
-      release-cli create --name "Release $DATE" --tag-name $DATE \
-        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"\        
-        --assets-link "{\"name\":\"${ZIP_NAME}-${DATE}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip\"}"
+      release-cli create --name "Release $DATE" --tag-name $CI_COMMIT_SHORT_SHA \
+        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
   only:
     - schedules
 
@@ -72,6 +84,7 @@ create-docker-image-git:
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - export DATE=$(date +%Y%m%d)
+    #- DATE="a26747ad"
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --build-arg DATE=$DATE --build-arg VERSION=$RELEASE --platform $PLATFORM_TEST -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile.git

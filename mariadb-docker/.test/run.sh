@@ -149,7 +149,7 @@ killoff
 
 echo -e "Test: MYSQL_RANDOM_ROOT_PASSWORD, needs to satisify minimium complexity of simple-password-check plugin\n"
 
-runandwait -e MYSQL_RANDOM_ROOT_PASSWORD=1 -e MARIADB_MYSQL_LOCALHOST_GRANTS="RELOAD, PROCESS, LOCK TABLES" "${image}" --plugin-load-add=simple_password_check
+runandwait -e MYSQL_RANDOM_ROOT_PASSWORD=1 -e MARIADB_MYSQL_LOCALHOST_USER=1 -e MARIADB_MYSQL_LOCALHOST_GRANTS="RELOAD, PROCESS, LOCK TABLES" "${image}" --plugin-load-add=simple_password_check
 pass=$(docker logs "$cid" | grep 'GENERATED ROOT PASSWORD' 2>&1)
 # trim up until passwod
 pass=${pass#*GENERATED ROOT PASSWORD: }
@@ -430,7 +430,7 @@ fi
 	runandwait -v m57:/var/lib/mysql:Z -e MYSQL_INITDB_SKIP_TZINFO=1 -e MYSQL_ROOT_PASSWORD=bob docker.io/library/mysql:5.7
 	# clean shutdown required
 	mariadbclient -u root -pbob -e "set global innodb_fast_shutdown=0;SHUTDOWN"
-	while docker exec "$cid" ls -a /proc; do
+	while docker exec "$cid" ls -lad /proc/1; do
 		sleep 1
 	done
 
@@ -446,11 +446,6 @@ fi
 
 	docker exec "$cid" ls -la /var/lib/mysql/
 
-	# TODO, disable further tests until git branch --contains 0fd4d6d3bb77b9072305f0b1d5bebfb914ad55cc
-	killoff
-	docker volume rm m57
-	exit 0
-	# ENDOFTODO
 	echo "Final upgrade info reflects current version?"
 	docker exec "$cid" cat /var/lib/mysql/mysql_upgrade_info || die "missing mysql_upgrade_info on install"
 	echo
@@ -498,6 +493,18 @@ fi
 	killoff
 	docker volume rm m57
 
+	;&
+	encryption)
+
+	echo -e "Test: Startup using encryption \n"
+	runandwait -v "${dir}"/encryption_conf/:/etc/mysql/conf.d/ -v "${dir}"/encryption:/etc/encryption/ -v "${dir}"/initenc:/docker-entrypoint-initdb.d/ \
+		-e MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1 -e MARIADB_DATABASE=bob -e MARIADB_USER=bob -e MARIADB_PASSWORD=hope "${image}"
+	mariadbclient -u root -e 'SELECT * FROM information_schema.innodb_tablespaces_encryption' || die 'Failed to start container'
+
+
+	cnt=$(mariadbclient --skip-column-names -B -u root -e 'SELECT COUNT(*) FROM information_schema.innodb_tablespaces_encryption')
+	[ "$cnt" -gt 0 ] || die 'Failed to initialize encryption on initialization'
+	killoff
 # Insert new tests above by copying the comments below
 #	;&
 #	THE_TEST_NAME)

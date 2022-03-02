@@ -1,11 +1,8 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
 WORKDIR /src
-RUN apt update && apt install -y --no-install-recommends build-essential cmake libmpdclient-dev libssl-dev unzip
+RUN apt update && apt install -y --no-install-recommends cmake libmpdclient-dev libssl-dev
 #ADD https://github.com/notandy/ympd/archive/master.zip master.zip
-RUN git clone --depth=1  https://github.com/SuperBFG7/ympd.git /src/
-#ADD https://github.com/martadinata666/ympd-1/archive/refs/heads/master.zip master.zip
-#RUN unzip master.zip -d /src/
-#WORKDIR /src/
+RUN git clone --depth=1 https://github.com/martadinata666/ympd.git /src/
 RUN cmake /src/ && \
     make
 

@@ -1,9 +1,9 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin-vue"
 
-#stages:
-#  - cache
-#  - extract
+stages:
+  - build-js
+  - dockerize
 
 #buildx-build:
 #  # Official docker image.
@@ -25,10 +25,32 @@ variables:
 #    changes:
 #      - static/Dockerfile.build
 
-buildx-static:
+build-static-js:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-js
+  before_script:
+    - export HISTORY_ROUTER_MODE=1
+    - export IS_STABLE=0
+    # Set environment variables
+    - export HISTORY_ROUTER_MODE=$HISTORY_ROUTER_MODE
+    - export  NUXT_ENV_COMMIT=""
+  script:
+    - git clone --depth=1 https://github.com/jellyfin/jellyfin-vue.git jellyfin-vue
+    - cd jellyfin-vue
+    - npm -d ci --no-audit
+    - npm -d run build
+  artifacts:
+    paths:
+      - jellyfin-vue/frontend/dist
+  only:
+    changes:
+      - static/Dockerfile.ci
+
+dockerize:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: dockerize
+  needs: ["build-static-js"]
   #services:
   #  - docker:dind
   before_script:
@@ -40,10 +62,10 @@ buildx-static:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f static/Dockerfile.static
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f static/Dockerfile.ci
   only:
     refs:
       - master
       - schedules
     changes:
-      - static/Dockerfile.static
+      - static/Dockerfile.ci

@@ -6,38 +6,45 @@ FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
 ARG DATE
 ENV NODE_ENV=production
-RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
-RUN curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
+#RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
+RUN npm -g install npm && \
+    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
     unzip pigallery2.zip -d pigallery2
 WORKDIR pigallery2
-#RUN npm -d install --only=prod --no-optional
-RUN npm ci --prod
+RUN npm -d install --only=prod --no-optional
+#RUN npm ci --prod
 
 #-----------------MAIN--------------------
 #-----------------------------------------
 FROM 192.168.0.2:5050/dedyms/node:lts
 RUN apt update && apt install -y --no-install-recommends netcat wget && apt clean && rm -rf /var/lib/apt/lists/*
-ENV NODE_ENV=production \
-    # overrides only the default value of the settings (the actualy value can be overwritten through config.json)
-    default-Server-Database-dbFolder=/home/$CONTAINERUSER/pigallery2/data/db \
-    default-Server-Media-folder=/home/$CONTAINERUSER/pigallery2/data/images \
-    default-Server-Media-tempFolder=/home/$CONTAINERUSER/pigallery2/data/tmp \
-    # flagging dockerized environemnt
-    PI_DOCKER=true
+ENV NODE_ENV=production
+ENV Server-Media-folder=/images
+ENV Server-Media-tempFolder=/tmp
+ENV Server-Database-type=mysql
+ENV Server-Preview-Sorting=[4]
+ENV PI_DOCKER=true
+ENV MYSQL_HOST=localhost
+ENV MYSQL_PORT=3306
+ENV MYSQL_DATABASE=pigallery2
+ENV MYSQL_USERNAME=pigallery2
+ENV MYSQL_PASSWORD=pigallery2
 EXPOSE 80
 COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER /pigallery2 /home/$CONTAINERUSER/pigallery2
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin /home/$CONTAINERUSER/.local/bin
+RUN mkdir -p /home/$CONTAINERUSER/pigallery2/data && \
+    mkdir -p /images && \
+    mkdir -p /tmp && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER /tmp /images /home/$CONTAINERUSER/pigallery2/data
 COPY wait-for /usr/local/bin/wait-for
 WORKDIR /home/$CONTAINERUSER/pigallery2
 USER $CONTAINERUSER
-RUN mkdir -p /home/$CONTAINERUSER/pigallery2/data/config && \
-    mkdir -p /home/$CONTAINERUSER/pigallery2/data/db && \
-    mkdir -p /home/$CONTAINERUSER/pigallery2/data/images && \
-    mkdir -p /home/$CONTAINERUSER/pigallery2/data/tmp
-VOLUME ["/home/$CONTAINERUSER/pigallery2/data/config", "/home/$CONTAINERUSER/pigallery2/data/db", "/home/$CONTAINERUSER/pigallery2/data/images", "/home/$CONTAINERUSER/pigallery2/data/tmp"]
+VOLUME ["/home/$CONTAINERUSER/pigallery2/data", "/images", "/tmp"]
 HEALTHCHECK --interval=40s --timeout=30s --retries=3 --start-period=60s \
   CMD wget --quiet --tries=1 --no-check-certificate --spider \
   http://localhost:80/heartbeat || exit 1
 # after a extensive job (like video converting), pigallery calls gc, to clean up everthing as fast as possible
 # Exec form entrypoint is need otherwise (using shell form) ENV variables are not properly passed down to the app
-CMD wait-for $DB_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config/config.json --Server-Database-mysql-host=$DB_HOST --Server-Database-mysql-username=$DB_USER --Server-Database-mysql-password=$DB_PASSWORD --Server-Database-mysql-database=$DB_NAME
+#CMD wait-for $DB_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config/config.json --Server-Database-mysql-host=$DB_HOST --Server-Database-mysql-username=$DB_USER --Server-Database-mysql-password=$DB_PASSWORD --Server-Database-mysql-database=$DB_NAME
+CMD ["node", "./src/backend/index", "--expose-gc", "--config-path=./data/config.json"]
+

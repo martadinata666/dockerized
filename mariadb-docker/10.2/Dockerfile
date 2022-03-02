@@ -1,8 +1,8 @@
 # vim:set ft=dockerfile:
-FROM 192.168.0.2:5050/dedyms/debian:buster
+FROM ubuntu:bionic
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-#RUN groupadd -r mysql && useradd -r -g mysql mysql
+RUN groupadd -r mysql && useradd -r -g mysql mysql
 
 # https://bugs.debian.org/830696 (apt uses gpgv by default in newer releases, rather than gpg)
 RUN set -ex; \
@@ -75,24 +75,16 @@ RUN set -ex; \
 	rm -fr "$GNUPGHOME"; \
 	apt-key list
 
-# bashbrew-architectures: amd64
+# bashbrew-architectures: amd64 arm64v8 ppc64le
 ARG MARIADB_MAJOR=10.2
 ENV MARIADB_MAJOR $MARIADB_MAJOR
-<<<<<<< HEAD
-ARG MARIADB_VERSION=10.2.22+maria~buster
-=======
-ARG MARIADB_VERSION=1:10.2.42+maria~bionic
->>>>>>> 2937a9bd36ac208e8322c8564f069b10261749f8
+ARG MARIADB_VERSION=1:10.2.43+maria~bionic
 ENV MARIADB_VERSION $MARIADB_VERSION
 # release-status:Stable
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
 # Allowing overriding of REPOSITORY, a URL that includes suite and component for testing and Enterprise Versions
-<<<<<<< HEAD
-ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.2.22/repo/debian/ buster main"
-=======
-ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.2.42/repo/ubuntu/ bionic main"
->>>>>>> 2937a9bd36ac208e8322c8564f069b10261749f8
+ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.2.43/repo/ubuntu/ bionic main"
 
 RUN set -e;\
 	echo "deb ${REPOSITORY}" > /etc/apt/sources.list.d/mariadb.list; \
@@ -118,11 +110,13 @@ RUN set -ex; \
 		mariadb-backup-10.2 \
 		socat \
 	; \
+# Temporary work around for MDEV-27980, closes #417
+	sed --follow-symlinks -i -e 's/--loose-disable-plugin-file-key-management//' /usr/bin/mysql_install_db ; \
 	rm -rf /var/lib/apt/lists/*; \
 # purge and re-create /var/lib/mysql with appropriate ownership
 	rm -rf /var/lib/mysql; \
 	mkdir -p /var/lib/mysql /var/run/mysqld; \
-	chown -R $CONTAINERUSER:$CONTAINERYSER /var/lib/mysql /var/run/mysqld; \
+	chown -R mysql:mysql /var/lib/mysql /var/run/mysqld; \
 # ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
 	chmod 777 /var/run/mysqld; \
 # comment out a few problematic configuration values
@@ -143,6 +137,6 @@ COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
-USER $CONTAINERUSER
+
 EXPOSE 3306
 CMD ["mysqld"]

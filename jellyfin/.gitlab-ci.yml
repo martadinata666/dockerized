@@ -45,6 +45,8 @@ buildx-dev-dotnet:
       - master
     changes:
       - Dockerfile.dev-dotnet
+    variables:
+      - $DEV == "true"
 
 buildx-dev-web:
   # Official docker image.

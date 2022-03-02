@@ -3,6 +3,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt update && apt install -y --no-install-recommends nodejs && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \
+    npm install -g npm && \
     npm install -g yarn && \
     npm install -g pnpm && \
     rm -rf $HOME/.config
