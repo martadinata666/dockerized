@@ -8,6 +8,7 @@ oauthtoken.txt
 quayiologin.txt
 slackwebhook.txt
 telegrambot.txt
+gitlab-runner/.git
 */.git
 */..git
 */.zcache
