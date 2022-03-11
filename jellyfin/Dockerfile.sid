@@ -1,11 +1,11 @@
 ARG DOTNET_VERSION=6.0
 
-FROM 192.168.0.2:5050/dedyms/jellyfin:dev-web as web-builder
-ARG JELLYFIN_WEB_VERSION=master
-RUN curl -L https://github.com/jellyfin/jellyfin-web/archive/${JELLYFIN_WEB_VERSION}.tar.gz | tar zxf - \
- && cd jellyfin-web-* \
- && npm ci --no-audit --unsafe-perm \
- && mv dist /dist
+#FROM 192.168.0.2:5050/dedyms/jellyfin:dev-web as web-builder
+#ARG JELLYFIN_WEB_VERSION=master
+#RUN curl -L https://github.com/jellyfin/jellyfin-web/archive/${JELLYFIN_WEB_VERSION}.tar.gz | tar zxf - \
+# && cd jellyfin-web-* \
+# && npm ci --no-audit --unsafe-perm \
+# && mv dist /dist
 
 FROM 192.168.0.2:5050/dedyms/jellyfin:dev-dotnet as builder
 RUN git clone --depth=1 https://github.com/jellyfin/jellyfin.git /repo
@@ -24,8 +24,8 @@ ARG DEBIAN_FRONTEND="noninteractive"
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(Native-GPU-Support)
 ENV NVIDIA_DRIVER_CAPABILITIES="compute,video,utility"
-RUN mkdir -p /cache /config /media \
-    && chmod 777 /cache /config /media
+RUN mkdir -p /cache /config \
+    && chown -R $CONTAINERUSER:$CONTAINERUSER /cache /config
 
 #ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 ENV LC_ALL en_US.UTF-8
@@ -33,12 +33,13 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 
 COPY --from=builder /jellyfin /jellyfin
-COPY --from=web-builder /dist /jellyfin/jellyfin-web
+#COPY --from=web-builder /dist /jellyfin/jellyfin-web
+COPY jellyfin-web/dist /jellyfin/jellyfin-web
 
 EXPOSE 8096
 USER $CONTAINERUSER
-VOLUME /cache /config /media
-ENTRYPOINT ["/usr/bin/tini","-g","--","./jellyfin/jellyfin", \
+VOLUME /cache /config
+ENTRYPOINT ["./jellyfin/jellyfin", \
     "--datadir", "/config", \
     "--cachedir", "/cache", \
     "--ffmpeg", "/usr/lib/jellyfin-ffmpeg/ffmpeg"]

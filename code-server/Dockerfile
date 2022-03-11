@@ -1,6 +1,6 @@
-FROM 192.168.0.2:5050/dedyms/node:14 as tukang
-ARG RELEASE=v4.0.2
-ARG TARRELEASE=4.0.2
+FROM 192.168.0.2:5050/dedyms/node:lts as tukang
+ARG RELEASE
+ARG TARRELEASE
 ARG TARGETARCH=amd64
 ENV CODE_SERVER_VERSION=$RELEASE
 # environment settings

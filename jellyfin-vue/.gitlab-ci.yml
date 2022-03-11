@@ -1,5 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin-vue"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
 
 stages:
   - build-js
@@ -28,7 +30,15 @@ stages:
 build-static-js:
   image: 192.168.0.2:5050/dedyms/node:lts-dev
   stage: build-js
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+    policy: pull-push
   before_script:
+    - pnpm config set store-dir .pnpm-store
     - export HISTORY_ROUTER_MODE=1
     - export IS_STABLE=0
     # Set environment variables
@@ -37,7 +47,7 @@ build-static-js:
   script:
     - git clone --depth=1 https://github.com/jellyfin/jellyfin-vue.git jellyfin-vue
     - cd jellyfin-vue
-    - npm -d ci --no-audit
+    - npm -d -timeout=9999999 ci --no-audit
     - npm -d run build
   artifacts:
     paths:
@@ -45,9 +55,11 @@ build-static-js:
   only:
     changes:
       - static/Dockerfile.ci
+      - .gitlab-ci.yml
 
 dockerize:
   # Official docker image.
+  cache: []
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerize
   needs: ["build-static-js"]

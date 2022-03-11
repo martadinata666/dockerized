@@ -1,16 +1,19 @@
 stages:
- - create-release-zip
- - create-release
- - create-git-docker-image
- - create-stable-docker-image
+  - create-release-zip
+  - create-release
+  - create-git-docker-image
+  - create-stable-docker-image
 
 variables:
- CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/pigallery2"
- GITHUB_REPO_NAME: "bpatrik/pigallery2"
- PLATFORM_TEST: linux/amd64
- PLATFORM: linux/arm64,linux/amd64
- ZIP_NAME: "pigallery2"
- RELEASE: "build"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/pigallery2"
+  GITHUB_REPO_NAME: "bpatrik/pigallery2"
+  PLATFORM_TEST: linux/amd64
+  PLATFORM: linux/arm64,linux/amd64
+  ZIP_NAME: "pigallery2"
+  RELEASE: "build"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
 
 #default:
 #  image: 192.168.0.2:5050/dedyms/node:lts-dev
@@ -24,22 +27,19 @@ create-release-zip:
   cache: 
     key: "$CI_COMMIT_REF_SLUG"
     paths:
-      - pigallery2/.pnpm-store/
-      - pigallery2/npm_cache/
-      - pigallery2/node_modules/
-      - pigallery2/.yarn-cache/
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
     policy: pull-push
   before_script:
     - pnpm config set store-dir .pnpm-store
-    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery
+    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2
   script:
-    - cp -r pigallery/* pigallery2/
-    - ls -alh pigallery2/
     - cd pigallery2
-    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional mysql2@latest
-    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional jsdom@latest
-    - npm install -d -timeout=9999999 --cache npm_cache/ --save-prod --no-audit --omit-optional sharp@0.30.2
-    - npm install -d -timeout=9999999 --cache npm_cache/ --no-audit --omit=optional gulp
+    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional mysql2@latest
+    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional jsdom@latest
+    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional sharp@0.30.2
+    - npm install -d -timeout=9999999 --no-audit --omit=optional gulp
     - npm run -d--ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
     - zip -9 -r ${ZIP_NAME}.zip release/
     - export DATE=$(date +%Y%m%d)
@@ -59,6 +59,7 @@ create-release-zip:
     #  - .gitlab-ci.yml
 
 create-release:
+  cache: []
   # Caution, as of 2021-02-02 these assets links require a login, see:
   # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
   stage: create-release

@@ -1,11 +1,47 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin"
   DEV: ""
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+stages:
+  - build-web
+  - buildx-docker-image-git
+  - other
+
+create-web:
+  image: 192.168.0.2:5050/dedyms/jellyfin:dev-web
+  stage: build-web
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    #- pnpm config set store-dir .pnpm-store
+    - git clone --depth=1 https://github.com/jellyfin/jellyfin-web.git jellyfin-web
+  script:
+    - cd jellyfin-web
+    - npm -d -timeout=9999999 ci --no-audit --unsafe-perm
+    - ls -alh ./
+  artifacts:
+    paths:
+      - jellyfin-web/dist
+  only:
+    refs:
+      - master
+    variables:
+      - $DEV == ""
+    #changes:
+    #  - .gitlab-ci.yml
+
 
 buildx-git:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: buildx-docker-image-git
   #services:
   #  - docker:dind
   before_script:
@@ -23,12 +59,14 @@ buildx-git:
       - master
     changes:
       - Dockerfile.sid
+    variables:
+      - $DEV == ""
 
 
 buildx-dev-dotnet:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: other
   #services:
   #  - docker:dind
   before_script:
@@ -51,7 +89,7 @@ buildx-dev-dotnet:
 buildx-dev-web:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: other
   #services:
   #  - docker:dind
   before_script:

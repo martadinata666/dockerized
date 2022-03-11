@@ -3,7 +3,19 @@ ARG VERSION
 RUN apt update && apt install -y --no-install-recommends wget
 USER $CONTAINERUSER
 WORKDIR $HOME
-RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
+ARG TARGETARCH
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+       wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && \ 
+       chmod +x ./stash-linux; \
+    fi;
+
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+       wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux-arm64v8 && \
+       mv stash-linux-arm64v8 stash-linux && \
+       chmod +x ./stash-linux; \
+    fi;
+
+#RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
 
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
