@@ -10,7 +10,7 @@ RUN mkdir -p $HOME/duplicati
 WORKDIR $HOME/duplicati
 RUN mkdir -p $HOME/duplicati && \
     mkdir -p $HOME/duplicati/data && \
-    curl -o duplicati.zip -L $RELEASELINK && \
+    curl -o duplicati.zip -L ${RELEASELINK} && \
     unzip ./duplicati.zip -d ./ && \
     rm duplicati.zip && \
     ls -al
@@ -18,7 +18,7 @@ RUN mkdir -p $HOME/duplicati && \
 
 FROM 192.168.0.2:5050/dedyms/mono:latest
 ARG RELEASE
-ENV DUPLICATI_VERSION=$RELEASE
+ENV DUPLICATI_VERSION=${RELEASE}
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/duplicati $HOME/duplicati
 USER $CONTAINERUSER
 VOLUME $HOME/duplicati/data

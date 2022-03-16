@@ -1,25 +1,32 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:alpine AS cache
+FROM 192.168.0.2:5050/dedyms/php-fpm:7.4 AS cache
 ARG TOKEN
 ARG RELEASE
 WORKDIR /var/www/html/
 ENV COMPOSER_MEMORY_LIMIT=3G
 USER root
-RUN apk add --no-cache curl unzip wget
+RUN apt update && \
+    apt install -y --no-install-recommends git ca-certificates curl
 # ./composer config -a github-oauth.github.com $TOKEN && \
+#RUN wget https://github.com/martadinata666/heimdall-update/releases/download/$RELEASE/release.zip && \
+#composer config -a github-oauth.github.com $TOKEN && \     
 USER $CONTAINERUSER
-RUN wget https://github.com/martadinata666/heimdall-update/releases/download/$RELEASE/release.zip && \ 
-    pwd && \
-    ls -al && \
-    unzip release.zip -d /var/www/html/ && \
+RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.git /var/www/html && \
+    rm -rf ./.git && \
+    curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./composer.phar && \
+    mv ./composer.phar ./composer && \
+    chmod +x ./composer && \
+    rm -rf vendor/ && \
+    ./composer update && \     
+    ./composer install --prefer-dist --no-dev --no-interaction && \     
+    ./composer clear-cache && \
+    rm -rf ./composer && \
     ls -al /var/www/html && \
-    rm release.zip && \
     rm -rf public/storage && \
     php artisan db:seed && \
     php artisan storage:link
-#RUN pwd && ls -al /var/www/html/
 
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
 COPY --from=cache --chown=$CONTAINERUSER:$CONTAINERUSER /var/www/html /var/www/html

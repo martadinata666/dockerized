@@ -8,7 +8,8 @@ buildx-10.5:
   #services:
   #  - docker:dind
   before_script:
-    - export RELEASE="10.5"
+    - export STATIC_RELEASE="10.5"
+    - export RELEASE=$(grep -m1 "MARIADB_VERSION" 10.5/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1)
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -16,7 +17,12 @@ buildx-10.5:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.5/Dockerfile.debian
+    - docker buildx build --push --platform linux/arm64,linux/amd64 
+      -t "$CI_REGISTRY_IMAGE:$STATIC_RELASE" 
+      -t "$CI_REGISTRY_IMAGE:$RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" . 
+      -f 10.5/Dockerfile.debian
   only:
     #refs:
     #  - master
@@ -32,7 +38,8 @@ buildx-10.6:
   #services:
   #  - docker:dind
   before_script:
-    - export RELEASE="10.6"
+    - export STATIC_RELEASE="10.6"
+    - export RELEASE=$(grep -m1 "MARIADB_VERSION" 10.6/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -40,7 +47,14 @@ buildx-10.6:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f 10.6/Dockerfile.debian
+    - docker buildx build --push --platform linux/arm64,linux/amd64 
+      -t "$CI_REGISTRY_IMAGE" 
+      -t "$CI_REGISTRY_IMAGE:$STATIC_RELEASE" 
+      -t "$CI_REGISTRY_IMAGE:$RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" . 
+      -f 10.6/Dockerfile.debian
   only:
     #refs:
     #  - master

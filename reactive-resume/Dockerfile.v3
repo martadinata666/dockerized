@@ -1,0 +1,28 @@
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+ARG RELEASE=v3.2.5
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+WORKDIR /reactiveresume
+RUN pnpm install --frozen-lockfile && \
+    pnpm prepare --unsafe-perm
+RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" server/package.json | cut -c30-35) && \
+    echo $PLAYWRIGHT_VERSION && \
+    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install chromium && \
+    rm -rf /ms-playwright/firefox*
+
+FROM 192.168.0.2:5050/dedyms/node:lts
+ARG RELEASE=v3.2.5
+ENV REACTIVE_RESUME_VERSION=$RELEASE
+ARG PLAYWRIGHT_VERSION
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+RUN echo 'deb http://deb.debian.org/debian bullseye non-free' > /etc/apt/sources.list.d/non-free.list
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume /home/debian/reactiveresume
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /ms-playwright /ms-playwright
+RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" /home/debian/reactiveresume/server/package.json | cut -c30-35) && \
+    echo $PLAYWRIGHT_VERSION && \
+    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium
+WORKDIR $HOME/reactiveresume
+USER $CONTAINERUSER
+CMD ["pnpm","dev"]

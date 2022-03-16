@@ -3,20 +3,22 @@ FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
 #-----------------BUILDER-----------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
+FROM 192.168.0.2:5050/dedyms/node:14-dev AS builder
 ARG DATE
 ENV NODE_ENV=production
 #RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
-RUN npm -g install npm && \
-    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
-    unzip pigallery2.zip -d pigallery2
+COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin /usr/local/bin
+#RUN npm -g install npm && \
+#    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
+#    unzip pigallery2.zip -d pigallery2
+COPY pigallery2/release pigallery2
 WORKDIR pigallery2
 RUN npm -d install --only=prod --no-optional
 #RUN npm ci --prod
 
 #-----------------MAIN--------------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:5050/dedyms/node:14
 RUN apt update && apt install -y --no-install-recommends netcat wget && apt clean && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 ENV Server-Media-folder=/images

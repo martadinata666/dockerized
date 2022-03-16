@@ -6,6 +6,7 @@ stages:
 
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/pigallery2"
+  TYPE: ""
   GITHUB_REPO_NAME: "bpatrik/pigallery2"
   PLATFORM_TEST: linux/amd64
   PLATFORM: linux/arm64,linux/amd64
@@ -22,7 +23,7 @@ variables:
 create-release-zip:
    # Use the official docker image.
   #image: 192.168.0.2:5050/dedyms/pigallery2:build
-  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  image: 192.168.0.2:5050/dedyms/node:14-dev
   stage: create-release-zip
   cache: 
     key: "$CI_COMMIT_REF_SLUG"
@@ -33,49 +34,67 @@ create-release-zip:
     policy: pull-push
   before_script:
     - pnpm config set store-dir .pnpm-store
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 999999999
     - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2
   script:
     - cd pigallery2
-    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional mysql2@latest
-    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional jsdom@latest
-    - npm install -d -timeout=9999999 --save-prod --no-audit --omit-optional sharp@0.30.2
-    - npm install -d -timeout=9999999 --no-audit --omit=optional gulp
-    - npm run -d--ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
-    - zip -9 -r ${ZIP_NAME}.zip release/
-    - export DATE=$(date +%Y%m%d)
-    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
-    - echo $PACKAGE_REGISTRY_URL
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
+    - sed '151, 152d' package.json
+    #- pnpm install
+    #- pnpm install jquery@"1.9.1 - 3"
+    #- pnpm install tslib@">=2.0.0 <3.0.0"
+    #- pnpm insttall popper.js@^1.16.1
+    #- pnpm install add mysql2
+    - npm install -d --save-prod --no-audit --omit-optional mysql2@latest
+    - npm install -d --save-prod --no-audit --omit-optional jsdom@latest
+    - npm install -d --save-prod --no-audit --omit-optional sharp@0.30.3
+    - npm install -d --no-audit --omit=optional gulp
+    #- yarn add --ignore-engines mysql2@latest
+    #- yarn add --ignore-engines jsdom@latest
+    #- yarn add --ignore-engines sharp@0.30.2
+    - npm run -d --ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
+    #- yarn --ignore-engines create-release
+    #- zip -9 -r ${ZIP_NAME}.zip release/
+    #- export DATE=$(date +%Y%m%d)
+    #- export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+    #- echo $PACKAGE_REGISTRY_URL
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
     #- |
     #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
   artifacts:
     paths:
       - pigallery2/release/
   only:
-    refs:
-      - schedules
+    #refs:
+    #  - schedules
     #changes:
     #  - .gitlab-ci.yml
+    variables:
+      - $TYPE == "git"
 
-create-release:
-  cache: []
+#create-release:
+#  cache: []
   # Caution, as of 2021-02-02 these assets links require a login, see:
   # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
-  stage: create-release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
+#  stage: create-release
+#  image: registry.gitlab.com/gitlab-org/release-cli:latest
   #rules:
   #  - if: $CI_COMMIT_SHA
-  script:
-    - export DATE=$(date +%Y%m%d)
-    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
-    - |
-      release-cli create --name "Release $DATE" --tag-name $CI_COMMIT_SHORT_SHA \
-        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
-  only:
-    - schedules
+#  script:
+#    - export DATE=$(date +%Y%m%d)
+#    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+#    - |
+#      release-cli create --name "Release $DATE" --tag-name $CI_COMMIT_SHORT_SHA \
+#        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
+#  only:
+#    #- schedules
+#    variables:
+#      - $TYPE == "git"
 
 create-docker-image-git:
+  cache: []
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: create-git-docker-image
   before_script:
@@ -90,11 +109,12 @@ create-docker-image-git:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --build-arg DATE=$DATE --build-arg VERSION=$RELEASE --platform $PLATFORM_TEST -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile.git
   only:
-    refs:
-      - schedules
-      - master
-    changes:
-      - Dockerfile.git
+    #refs:
+    #  - master
+    #changes:
+    #  - Dockerfile.git
+    variables:
+      - $TYPE == "git"
 
 create-docker-image-stable:
   cache: []
@@ -113,7 +133,8 @@ create-docker-image-stable:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --build-arg RELEASE=$RELEASE --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   only:
-    - triggers
+    variables:
+      - $TYPE == "stable"
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.

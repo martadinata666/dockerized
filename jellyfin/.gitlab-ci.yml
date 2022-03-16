@@ -1,6 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin"
   DEV: ""
+  TYPE: ""
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
 
@@ -30,10 +31,10 @@ create-web:
     paths:
       - jellyfin-web/dist
   only:
-    refs:
-      - master
+    #refs:
+    #  - master
     variables:
-      - $DEV == ""
+      - $DEV == "git"
     #changes:
     #  - .gitlab-ci.yml
 
@@ -60,7 +61,7 @@ buildx-git:
     changes:
       - Dockerfile.sid
     variables:
-      - $DEV == ""
+      - $DEV == "git"
 
 
 buildx-dev-dotnet:
@@ -84,7 +85,7 @@ buildx-dev-dotnet:
     changes:
       - Dockerfile.dev-dotnet
     variables:
-      - $DEV == "true"
+      - $DEV == "dev-dotnet" || $DEV == "dev-both"
 
 buildx-dev-web:
   # Official docker image.
@@ -107,4 +108,4 @@ buildx-dev-web:
     changes:
       - Dockerfile.dev-web
     variables:
-      - $DEV=="true"
+      - $DEV == "dev-web" || $DEV == "dev-both"
