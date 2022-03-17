@@ -12,6 +12,8 @@ RUN apt update && \
 USER $CONTAINERUSER
 RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.git /var/www/html && \
     rm -rf ./.git && \
+    git clone --depth=1 https://github.com/linuxserver/Heimdall-Apps.git /var/www/html/app/SupportedApps && \
+    rm -rf ./app/SupportedApps/.git && \
     curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./composer.phar && \
     mv ./composer.phar ./composer && \
     chmod +x ./composer && \
@@ -26,7 +28,7 @@ RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.gi
     php artisan storage:link
 
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
 COPY --from=cache --chown=$CONTAINERUSER:$CONTAINERUSER /var/www/html /var/www/html

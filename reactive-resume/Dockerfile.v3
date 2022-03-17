@@ -22,7 +22,9 @@ COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume /home/
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /ms-playwright /ms-playwright
 RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" /home/debian/reactiveresume/server/package.json | cut -c30-35) && \
     echo $PLAYWRIGHT_VERSION && \
-    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium
+    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR $HOME/reactiveresume
 USER $CONTAINERUSER
 CMD ["pnpm","dev"]

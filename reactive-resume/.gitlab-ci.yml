@@ -1,57 +1,18 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/reactive-resume"
+  GITHUB_REPO_NAME: "AmruthPillai/Reactive-Resume"  
   DEV: ""
 
 stages:
-#  - buildx-develop
-  - build-static
-  - docker-buildx-static
-  - dev
+  - build
 
-#buildx-develop:
-#  # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: buildx-develop
-#  #services:
-#  #  - docker:dind
-#  before_script:
-#    - export RELEASE="develop"
-#    - export DATE=$(date +%Y%m%d)
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use --config buildx-config.toml
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-#  only:
-#    refs:
-#      - master
-#    changes:
-#      - Dockerfile
 
-build-static:
-  image: 192.168.0.2:5050/dedyms/reactive-resume:develop
-  stage: build-static
-  before_script:
-    - export DATE=$(date +%Y%m%d)
-  script:
-    - cp -r /home/debian/reactive-resume reactive-resume
-    - cd reactive-resume && ls -aln
-    - pnpm -d run build
-  only:
-    refs:
-      - master
-  artifacts:
-      paths:
-        - reactive-resume/public
-
-buildx-static-docker-image:
+buildx-v3:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: docker-buildx-static
-  dependencies: ["build-static"]
+  stage: build
   before_script:
-    - export RELEASE="static"
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE    
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -59,11 +20,44 @@ buildx-static-docker-image:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.static
+    - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.v3
   only:
     changes:
-      - Dockerfile.static
-      - .gitlab-ci.yml
+      - Dockerfile.v3
+
+#build-static:
+#  image: 192.168.0.2:5050/dedyms/reactive-resume:develop
+#  stage: build-static
+#  before_script:
+#    - export DATE=$(date +%Y%m%d)
+#  script:
+#    - cp -r /home/debian/reactive-resume reactive-resume
+#    - cd reactive-resume && ls -aln
+#    - pnpm -d run build
+#  only:
+#    refs:
+#      - master
+#  artifacts:
+#      paths:
+#        - reactive-resume/public
+
+#buildx-static-docker-image:
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: docker-buildx-static
+#  dependencies: ["build-static"]
+#  before_script:
+#    - export RELEASE="static"
+#    - export DATE=$(date +%Y%m%d)
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.static
+#  only:
+#    changes:
+#      - Dockerfile.static
 
 #buildx-dev:
 #  # Official docker image.

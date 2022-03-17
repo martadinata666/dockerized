@@ -4,7 +4,7 @@ ARG TARGETARCH
 ARG BUILDX_VERSION
 RUN curl -L \
   --output /docker-buildx \
-  "https://github.com/docker/buildx/releases/download/v$BUILDX_VERSION/buildx-v$BUILDX_VERSION.linux-$TARGETARCH"
+  "https://github.com/docker/buildx/releases/download/$BUILDX_VERSION/buildx-$BUILDX_VERSION.linux-$TARGETARCH"
 RUN chmod a+x /docker-buildx
 
 FROM docker:latest

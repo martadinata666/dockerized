@@ -3,7 +3,7 @@ variables:
   RELEASE: ""
   DEV: ""
 
-buildx:
+buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
@@ -23,7 +23,7 @@ buildx:
     changes:
       - Dockerfile
     variables:
-      - $RELEASE != "git"
+      - $RELEASE != "git" && $DEV != "true"
 
 
 buildx-git:
@@ -41,7 +41,7 @@ buildx-git:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64,linux/arm/v7 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
+    - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
   only:
     changes:
       - Dockerfile.git
@@ -66,7 +66,7 @@ buildx-dev:
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7,linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
   only:
     variables:
-      - $DEV=="true"
+      - $DEV == "true"
     changes:
       - Dockerfile.dev
 

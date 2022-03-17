@@ -1,17 +1,17 @@
 # Builder
 FROM golang:1.17-bullseye
 ARG TARGETARCH
-ARG VERSION=$VERSION
-ENV CADVISOR_VERSION=$VERSION
+#ARG VERSION=$VERSION
+#ENV CADVISOR_VERSION=$VERSION
 
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
       apt update && \
-      apt install -y --no-install-recommmeds git dmsetup libipmctl-dev libpfm4-dev && \
+      apt install -y --no-install-recommends git dmsetup libipmctl-dev libpfm4-dev && \
       apt clean && rm -rf /var/lib/apt/lists/*; \
     fi;
 
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
       apt update && \
-      apt install -y --no-install-recommmeds git dmsetup && \
+      apt install -y --no-install-recommends git dmsetup && \
       apt clean && rm -rf /var/lib/apt/lists/*; \
     fi;

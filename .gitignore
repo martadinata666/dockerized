@@ -13,6 +13,8 @@ telegrambot.txt
 */..git
 */.zcache
 */update.sh
+*/update-git.sh
+*/update-dev.sh
 */updatelocal.sh
 */trigger.sh
 .zcache

@@ -1,7 +1,7 @@
 FROM 192.168.0.2:5050/dedyms/node:lts as tukang
 ARG RELEASE
 ARG TARRELEASE
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 ENV CODE_SERVER_VERSION=$RELEASE
 # environment settings
 #RUN apt update && \
@@ -29,7 +29,7 @@ ENV CODE_SERVER_VERSION=$RELEASE
 #	/tmp/* \
 #	/var/lib/apt/lists/* \
 #	/var/tmp/*
-RUN apt update && apt insall -y --no-install-recommends git && apt clean && rm -rf /var/lib/apt/*
+RUN apt update && apt install -y --no-install-recommends git && apt clean && rm -rf /var/lib/apt/*
 RUN curl -fL https://github.com/cdr/code-server/releases/download/$RELEASE/code-server-$TARRELEASE-linux-$TARGETARCH.tar.gz \
     | tar -C /usr/local/lib -xzv && \
     mv /usr/local/lib/code-server-$TARRELEASE-linux-$TARGETARCH /usr/local/lib/code-server && \

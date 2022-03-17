@@ -9,8 +9,8 @@ RUN usermod --append --groups ssl-cert $CONTAINERUSER
 # copy needed files to enable user apache
 COPY envvars /etc/apache2/envvars
 COPY ports.conf /etc/apache2/ports.conf
-COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
-COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
+COPY fcgid/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY fcgid/000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY remoteip.conf /etc/apache2/conf-available/remoteip.conf
 
 # enabling mod and sites

@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.0
+FROM 192.168.0.2:5050/dedyms/php-fpm:7.4
 ENV HOME=/home/debian
 # install apache and generate ssl, and ca-certificates
 USER root
@@ -14,8 +14,8 @@ RUN usermod --append --groups ssl-cert $CONTAINERUSER
 # copy needed files to enable user apache
 COPY envvars /etc/apache2/envvars
 COPY ports.conf /etc/apache2/ports.conf
-COPY 000-default-fpm.conf /etc/apache2/sites-available/000-default.conf
-COPY 000-default-ssl-fpm.conf /etc/apache2/sites-available/000-default-ssl.conf
+COPY fpm/000-default-fpm.conf /etc/apache2/sites-available/000-default.conf
+COPY fpm/000-default-ssl-fpm.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY remoteip.conf /etc/apache2/conf-available/remoteip.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/debian/supervisor
 # enabling mod and sites
