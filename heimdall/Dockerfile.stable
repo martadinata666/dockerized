@@ -5,10 +5,9 @@ WORKDIR /var/www/html/
 ENV COMPOSER_MEMORY_LIMIT=3G
 USER root
 RUN apt update && \
-    apt install -y --no-install-recommends git ca-certificates curl
-# ./composer config -a github-oauth.github.com $TOKEN && \
-#RUN wget https://github.com/martadinata666/heimdall-update/releases/download/$RELEASE/release.zip && \
-#composer config -a github-oauth.github.com $TOKEN && \     
+    apt install -y --no-install-recommends git ca-certificates curl && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
 RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.git /var/www/html && \
     rm -rf ./.git && \

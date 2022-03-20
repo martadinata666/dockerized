@@ -1,30 +1,35 @@
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
-ARG RELEASE=v3.2.5
+ARG RELEASE
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+#RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+COPY reactive-resume /reactiveresume
 WORKDIR /reactiveresume
-RUN pnpm install --frozen-lockfile && \
-    pnpm prepare --unsafe-perm
-RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" server/package.json | cut -c30-35) && \
+RUN npm set-script prepare "" && \
+    pnpm install -F server --frozen-lockfile --prod && \
+    pnpm install -F client --frozen-lockfile --prod && \
+    PLAYWRIGHT_VERSION=$(grep -m1 "playwright" server/package.json | cut -c30-35) && \
     echo $PLAYWRIGHT_VERSION && \
     pnpx --yes playwright@${PLAYWRIGHT_VERSION} install chromium && \
     rm -rf /ms-playwright/firefox*
 
 FROM 192.168.0.2:5050/dedyms/node:lts
-ARG RELEASE=v3.2.5
+ARG RELEASE
 ENV REACTIVE_RESUME_VERSION=$RELEASE
+ENV NODE_ENV=development
 ARG PLAYWRIGHT_VERSION
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN echo 'deb http://deb.debian.org/debian bullseye non-free' > /etc/apt/sources.list.d/non-free.list
-COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume /home/debian/reactiveresume
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /ms-playwright /ms-playwright
-RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" /home/debian/reactiveresume/server/package.json | cut -c30-35) && \
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume $HOME/reactiveresume
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor $HOME/supervisor
+RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" $HOME/reactiveresume/server/package.json | cut -c30-35) && \
     echo $PLAYWRIGHT_VERSION && \
     pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium && \
+    apt install -y --no-install-recommends supervisor && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR $HOME/reactiveresume
 USER $CONTAINERUSER
-CMD ["pnpm","dev"]
+CMD ["supervisord","-c","/home/debian/supervisor/supervisord.conf"]

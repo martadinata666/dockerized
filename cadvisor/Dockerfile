@@ -10,4 +10,4 @@ RUN make build
 # Image for usage
 FROM 192.168.0.2:5050/dedyms/debian:latest
 COPY --from=builder /go/src/github.com/google/cadvisor/cadvisor /usr/bin/cadvisor
-ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/bin/cadvisor","-logtostderr","-docker_only"]
+ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/bin/cadvisor","-logtostderr","-docker_only=true"]

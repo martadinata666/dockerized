@@ -2,14 +2,58 @@ variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/reactive-resume"
   GITHUB_REPO_NAME: "AmruthPillai/Reactive-Resume"  
   DEV: ""
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  GITHUB_REPO_NAME: "AmruthPillai/Reactive-Resume"
 
 stages:
-  - build
+  - build-js
+  - dockerized
+
+build-js:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-js
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - pnpm config set store-dir $CI_PROJECT_DIR/.pnpm-store
+    - export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    - export NODE_ENV=development
+    - apt update && apt install -y --no-install-recommends git jq curl
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
+  script:
+    - cd reactive-resume
+    - pnpm install --frozen-lockfile
+    - pnpm build
+    - rm -rf node_modules/
+    - rm -rf ./.git
+    - rm -rf ./.github
+    - rm -rf ./.husky
+    - rm -rf ./.vscode
+    - rm -rf docs/
+    - rm -rf app/
+    - rm -rf scripts/*
+    - rm -rf Docker*
+    - rm -rf docker*
+  artifacts:
+    paths:
+      - reactive-resume/
+  only:
+    changes:
+      - Dockerfile.v3
 
 
-buildx-v3:
+buildx-docker-v3:
+  cache: []
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: dockerized
   before_script:
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE    

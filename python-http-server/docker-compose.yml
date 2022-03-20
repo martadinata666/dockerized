@@ -1,8 +1,0 @@
-version: "3.5"
-services:
-  app:
-    image: python-http-server:latest
-    volumes:
-      - ./data:/data
-    ports:
-      - 25000:8000

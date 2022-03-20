@@ -28,6 +28,20 @@ buildx-stable:
     changes:
       - Dockerfile
 
+
+#remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
+#localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")
+#if [[ ! $remoteVersion == $localVersion ]]; then
+#  echo "Updating to commit $remoteVersion"
+#  curl --request PUT --header "PRIVATE-TOKEN: $PAT_TOKEN" \
+#     --header "Content-Type: application/json" \
+#     --data '{"branch": "master", "author_email": "update@bocki.bot", "author_name": "Update Bot",
+#       "content": "'"$remoteVersion"'", "commit_message": "Update to '$remoteVersion'"}' \
+#     "https://gitlab.com/api/v4/projects/19217373/repository/files/version"
+#else
+#  echo "Up to date"
+#fi
+
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
 #    TARGETOS - OS component of TARGETPLATFORM
