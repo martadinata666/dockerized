@@ -12,6 +12,8 @@ telegrambot.txt
 */.git
 */..git
 */.zcache
+gitlab-portainer-token.txt
+gitlab*.txt
 */update.sh
 */update-git.sh
 */update-dev.sh
