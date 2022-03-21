@@ -17,7 +17,7 @@ buildx-baseimage:
   stage: build-base
   before_script:
     - export DATE=$(date +%Y%m%d)
-    - apk add --no-cache curl
+    #- apk add --no-cache curl
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
@@ -66,14 +66,18 @@ buildx-base-dev:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f bullseye/Dockerfile.dev
-    - echo "Trigger node image rebuild"
-    - curl -X POST -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
-    - echo "Trigger jre image rebuild"
-    - curl -X POST -F token=$JRE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/38/trigger/pipeline
-    #- echo "Trigger apache image rebuild"
-    #- curl -X POST -F token=$APACHE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
-    #- echo "Trigger nginx image rebuild"
-    #- curl -X POST -F token=$NGINX_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
+    - echo "Trigger NODE image rebuild"
+    - curl -X POST --fail -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/37/trigger/pipeline
+    #- echo "Trigger jre image rebuild"
+    #- curl -X POST --fail -F token=$JRE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/38/trigger/pipeline
+    - echo "Trigger APACHE image rebuild"
+    - curl -X POST --fail -F token=$APACHE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/39/trigger/pipeline
+    - echo "Trigger NGINX image rebuild"
+    - curl -X POST --fail -F token=$NGINX_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
+    - echo "Trigger PING build"
+    - curl -X POST --fail -F token=$PING_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/90/trigger/pipeline
+    - echo "Trigger IPERF3 build"
+    - curl -X POST --fail -F token=$IPERF3_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/42/trigger/pipeline
   only:
     refs:
       - master

@@ -13,6 +13,10 @@ buildx-stable:
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
+    - docker --version
+    - buildkitd --version
+    - buildctl --version
+    - docker buildx version
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
@@ -20,7 +24,7 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
     - curl -X POST -F token=$BUILDX_TOKEN -F "ref=master" http://192.168.0.2:10000/api/v4/projects/48/trigger/pipeline
   only:
     refs:

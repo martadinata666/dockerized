@@ -3,6 +3,8 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG TARGETARCH
 ARG RELEASE
 ENV DOCKERVERSION=$RELEASE
+ENV DOCKER_TLS_CERTDIR=/certs
+ENV DOCKER_CLI_EXPERIMENTAL=enabled
 
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz && \
@@ -15,7 +17,9 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
         tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 -C /usr/local/bin docker/docker && \
         rm docker-${DOCKERVERSION}.tgz; \
     fi;
-
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["bash"]
 #RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
 #    && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 -C /usr/local/bin docker/docker \
 #    && rm docker-${DOCKERVERSION}.tgz

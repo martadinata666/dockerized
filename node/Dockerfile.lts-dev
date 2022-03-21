@@ -6,5 +6,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     npm install -g npm && \
     npm install -g yarn && \
     npm install -g pnpm && \
+    ln -s /usr/bin/eatmydata /usr/local/bin/node && \
     rm -rf $HOME/.config
 CMD ["/bin/bash"]

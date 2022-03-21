@@ -10,7 +10,8 @@ ENV HOME=/home/$CONTAINERUSER
 ENV PATH="/home/$CONTAINERUSER/.local/bin:/home/$CONTAINERUSER/.local/lib:/home/$CONTAINERUSER/.local/lib:$PATH"
 COPY bullseye/sudo_lecture.txt /etc/sudo_lecture.txt
 RUN apt update && \
-    apt upgrade -y && \
+    apt install -y eatmydata && \
+    ln -s /usr/bin/eatmydata /usr/local/bin/apt && \
     apt install -y --no-install-recommends openssl sudo ca-certificates tzdata curl tini ncdu locales && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \

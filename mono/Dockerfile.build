@@ -1,0 +1,15 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev AS builder
+ENV PREFIX=/opt/mono
+RUN apt update && \
+    apt install --no-install-recommends -y git autoconf libtool libtool-bin \
+                                           automake build-essential gettext cmake \
+                                           python
+RUN git clone --depth=1 https://github.com/mono/mono.git mono
+WORKDIR /mono
+RUN ./autogen.sh --prefix=$PREFIX && \
+    make && \
+    make install
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ENV PATH=/opt/mono/bin:/opt/mono:$PATH
+COPY --from=builder /opt/mono /opt/mono
