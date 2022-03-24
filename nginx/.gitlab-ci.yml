@@ -28,29 +28,29 @@ buildx-mainline:
       - mainline/default.conf
       - mainline/nginx.conf
 
-buildx-stable:
-  # Official docker image.
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  before_script:
-    - export RELEASE="stable"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f stable/Dockerfile.stable
-  only:
-    variables:
-      - $FPM == ""
-    refs:
-      - master
-      - schedules
-    changes:
-      - stable/Dockerfile.stable
-      - stable/default.conf
-      - stable/nginx.conf
+#buildx-stable:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: build
+#  before_script:
+#    - export RELEASE="stable"
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f stable/Dockerfile.stable
+#  only:
+#    variables:
+#      - $FPM == ""
+#    refs:
+#      - master
+#      - schedules
+#    changes:
+#      - stable/Dockerfile.stable
+#      - stable/default.conf
+#      - stable/nginx.conf
 
 
 buildx-fpm8:
@@ -66,6 +66,9 @@ buildx-fpm8:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f fpm/Dockerfile.fpm
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     variables:
       - $FPM == "true"
@@ -79,28 +82,28 @@ buildx-fpm8:
       - fpm/supervisor/supervisord.conf
 
 
-buildx-fpm7:
-  # Official docker image.
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  before_script:
-    - export RELEASE="mainline-fpm7"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f fpm/Dockerfile.fpm7
-  only:
-    variables:
-      - $FPM == "true"
-    refs:
-      - master
-      - schedules
-    changes:
-      - fpm/Dockerfile.fpm7
-      - fpm/default.conf
-      - fpm/nginx.conf
-      - fpm/supervisor/supervisord.conf
+#buildx-fpm7:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: build
+#  before_script:
+#    - export RELEASE="mainline-fpm7"
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f fpm/Dockerfile.fpm7
+#  only:
+#    variables:
+#      - $FPM == "true"
+#    refs:
+#      - master
+#      - schedules
+#    changes:
+#      - fpm/Dockerfile.fpm7
+#      - fpm/default.conf
+#      - fpm/nginx.conf
+#      - fpm/supervisor/supervisord.conf
 

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM golang:1.17.3-alpine3.13 as builder
 ARG RELEASE
 RUN apk --no-cache add git alpine-sdk

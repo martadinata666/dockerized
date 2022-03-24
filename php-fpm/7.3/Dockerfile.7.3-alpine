@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 # Buster binfmt bump
 FROM php:7.3-fpm-alpine
 ENV TZ=Asia/Jakarta

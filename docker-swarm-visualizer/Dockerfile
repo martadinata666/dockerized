@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
 #RUN git clone --depth=1 https://github.com/yandeu/docker-swarm-visualizer.git /docker-swarm-visualizer
 RUN git clone --depth=1 https://github.com/martadinata666/docker-swarm-visualizer.git /docker-swarm-visualizer

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM archlinux:latest
 ENV CONTAINERUSER=arch
 ENV HOME=/home/$CONTAINERUSER

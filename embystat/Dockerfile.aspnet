@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 ARG REPO=mcr.microsoft.com/dotnet/runtime
 FROM $REPO:3.1.21-bullseye-slim
 # Official tag 3.1.21-bullseye-slim, 3.1-bullseye-slim

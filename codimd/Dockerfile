@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 # Build webpack
 FROM 192.168.0.2:5050/dedyms/codimd:dev AS frontend
 RUN git clone -b develop --depth=1 https://github.com/hackmdio/codimd.git /codimd

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 # Builder
 FROM 192.168.0.2:5050/dedyms/cadvisor:dev as builder
 ARG VERSION=$VERSION

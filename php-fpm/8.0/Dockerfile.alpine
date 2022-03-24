@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM php:8.0.13-fpm-alpine
 ENV TZ=Asia/Jakarta
 # Ton of additional modules

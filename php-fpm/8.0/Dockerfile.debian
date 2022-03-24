@@ -1,4 +1,5 @@
-FROM php:8.0.16-fpm
+#syntax=docker/dockerfile:1.4
+FROM php:8.0.17-fpm
 ENV TZ=Asia/Jakarta
 # Set default user
 ARG USER=debian

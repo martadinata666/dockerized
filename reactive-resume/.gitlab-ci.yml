@@ -42,6 +42,9 @@ build-js:
     - rm -rf scripts/*
     - rm -rf Docker*
     - rm -rf docker*
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   artifacts:
     paths:
       - reactive-resume/
@@ -65,6 +68,9 @@ buildx-docker-v3:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.v3
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     changes:
       - Dockerfile.v3

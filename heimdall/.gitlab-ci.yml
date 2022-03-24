@@ -42,6 +42,9 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg RELEASE=$RELEASE --build-arg TOKEN="$GITHUB_OAUTH_TOKEN" --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASETAG"  -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASETAG" . -f Dockerfile.stable
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:  
     refs:
       - master   

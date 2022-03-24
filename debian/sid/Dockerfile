@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM debian:sid-slim
 ARG USER=debian
 ENV LC_ALL en_US.UTF-8

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 ARG DOTNET_VERSION=6.0
 
 #FROM 192.168.0.2:5050/dedyms/jellyfin:dev-web as web-builder

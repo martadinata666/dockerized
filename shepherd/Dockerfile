@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM docker
 
 ENV SLEEP_TIME='5m'

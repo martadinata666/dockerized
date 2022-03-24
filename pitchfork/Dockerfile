@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM 192.168.0.2:5050/dedyms/apache2:fcgid AS tukang
 WORKDIR /var/www/html
 USER root

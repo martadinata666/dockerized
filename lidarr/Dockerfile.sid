@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM registry.gitlab.com/dedyms/sid-slim:latest AS tukang
 WORKDIR /home/$CONTAINERUSER
 ARG RELEASE

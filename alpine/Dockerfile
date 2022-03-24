@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM alpine:edge
 RUN echo http://mirror.math.princeton.edu/pub/alpinelinux/edge/testing/ >> /etc/apk/repositories && apk add --no-cache nano sudo libuser shadow ca-certificates 
 ARG USER=alpine

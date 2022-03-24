@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 # Get ssl autogeneration by using debian then copy to nginx alpine
 FROM 192.168.0.2:5050/dedyms/debian:latest AS sslgenerator
 RUN apt update && apt install -y ssl-cert

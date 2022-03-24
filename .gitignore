@@ -16,6 +16,7 @@ gitlab-portainer-token.txt
 gitlab*.txt
 */update.sh
 */update-git.sh
+*/update-fpm.sh
 */update-dev.sh
 */updatelocal.sh
 */trigger.sh

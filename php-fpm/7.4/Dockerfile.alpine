@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM php:7.4.26-fpm-alpine
 ENV TZ=Asia/Jakarta
 # Add ton modules

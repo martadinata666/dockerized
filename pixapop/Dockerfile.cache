@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM registry.gitlab.com/dedyms/php-fpm:alpine AS builder
 USER root
 RUN apk add git nodejs npm && npm install -g yarn

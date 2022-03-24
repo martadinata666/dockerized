@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM 192.168.0.2:5050/dedyms/debian:sid AS tukang
 RUN echo 'deb http://deb.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list && \
   apt update && apt install -y --no-install-recommends build-essential git autotools-dev autoconf automake libtool gettext gawk \

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 ### FFMPEG
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 

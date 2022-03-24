@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM registry.gitlab.com/dedyms/pixapop:cache AS cache
 
 FROM registry.gitlab.com/dedyms/nginx:mainline

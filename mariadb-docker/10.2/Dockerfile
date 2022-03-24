@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 # vim:set ft=dockerfile:
 FROM ubuntu:bionic
 

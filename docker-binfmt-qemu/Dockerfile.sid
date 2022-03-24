@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile:1.4
 FROM debian:sid-slim
 RUN echo 'deb http://deb.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list && \
     apt-get update && \

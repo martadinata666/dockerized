@@ -14,6 +14,7 @@ buildx-stable:
     #- echo $RELEASE
     - export RELEASE="bullseye"
     - export DATE=$(date +%Y%m%d)
+    - export DOCKER_BUILDKIT=1
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
