@@ -1,6 +1,6 @@
 variables:
-  CI_DOCKERHUB_REGISTRY_IMAGE: ""
-  GITHUB_REPO_NAME: "user/appname"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/diskover-ce"
+  GITHUB_REPO_NAME: "diskoverdata/diskover-community"
 
 buildx-stable:
   # Official docker image.
@@ -18,13 +18,12 @@ buildx-stable:
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml
-    #- docker buildx create --append --name nginx-builder node-arm64
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
     - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   after_script:
     - docker buildx stop
-    - docker buildx rm -f
+    - docker buildx rm
   only:
     refs:
       - master

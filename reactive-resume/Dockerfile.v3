@@ -33,4 +33,5 @@ RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" $HOME/reactiveresume/server/packa
     rm -rf /var/lib/apt/lists/*
 WORKDIR $HOME/reactiveresume
 USER $CONTAINERUSER
+VOLUME ["/home/debian/reactiveresume/server/dist/assets"]
 CMD ["supervisord","-c","/home/debian/supervisor/supervisord.conf"]

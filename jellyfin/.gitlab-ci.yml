@@ -27,6 +27,9 @@ create-web:
     - cd jellyfin-web
     - npm -d -timeout=9999999 ci --no-audit --unsafe-perm
     - ls -alh ./
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   artifacts:
     paths:
       - jellyfin-web/dist
@@ -55,6 +58,9 @@ buildx-git:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/amd64  -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$DATE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$DATE" . -f Dockerfile.sid
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     refs:
       - master
@@ -79,6 +85,9 @@ buildx-dev-dotnet:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev-dotnet
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     refs:
       - master
@@ -102,6 +111,9 @@ buildx-dev-web:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev-web
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     refs:
       - master
