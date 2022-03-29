@@ -40,6 +40,7 @@ RUN ls -al && \
 
 #FROM registry.gitlab.com/dedyms/php-fpm:alpine
 FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
+ENV HOME=/home/$CONTAINERUSER
 # Install php ldap extension
 #RUN apt-get update && \
 #        apt-get install -y libldap2-dev
@@ -50,13 +51,13 @@ FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
 # Copy existing application directory contents
 COPY --from=builder /usr/local /usr/local
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=builder /etc/diskover/config.yaml /etc/diskover/config.yaml
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=builder /diskover/diskover $HOME/diskover
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER crawl.sh $HOME/diskover/crawl.sh
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=builder /diskover/diskover /diskover
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER crawl.sh /diskover/crawl.sh
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=vendor --chown=$CONTAINERUSER:$CONTAINERUSER /diskover-community/diskover-web /var/www/html
-COPY --from=vendor --chown=$CONTAINERUSER:$CONTAINERUSER /tmp/vendor/ /var/www/html/vendor/
+COPY --from=vendor --chown=$CONTAINERUSER:$CONTAINERUSER /tmp/vendor /var/www/html/vendor
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER Constants.php /var/www/html/src/diskover/Constants.php
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER yacron.yml $HOME/supervisor/yacron.yml
-WORKDIR $HOME/diskover
+WORKDIR /diskover
 VOLUME ["/var/www/html/database"]
 USER $CONTAINERUSER
