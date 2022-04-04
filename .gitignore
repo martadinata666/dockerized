@@ -18,6 +18,7 @@ gitlab*.txt
 */update-git.sh
 */update-fpm.sh
 */update-dev.sh
+*/update-stable.sh
 */updatelocal.sh
 */trigger.sh
 .zcache
