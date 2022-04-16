@@ -31,7 +31,9 @@ build-js:
   script:
     - cd reactive-resume
     - pnpm install --frozen-lockfile
-    - pnpm build
+    - pnpm -F schema build
+    - pnpm -F server build
+    - pnpm -F client build
     - rm -rf node_modules/
     - rm -rf ./.git
     - rm -rf ./.github
@@ -42,9 +44,6 @@ build-js:
     - rm -rf scripts/*
     - rm -rf Docker*
     - rm -rf docker*
-  after_script:
-    - docker buildx stop
-    - docker buildx rm
   artifacts:
     paths:
       - reactive-resume/

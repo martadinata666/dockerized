@@ -12,7 +12,7 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG RELEASE
 ENV GLANCES_RELEASE=$RELEASE
 RUN apt update && \
-     apt install -y --no-install-recommends python3-setuptools python3-psutil python3-minimal curl lm-sensors wireless-tools iputils-ping && \
+     apt install -y --no-install-recommends python3-setuptools python3-psutil python3-minimal curl lm-sensors wireless-tools iputils-ping python3-dateutil && \
     rm -rf /var/lib/apt/lists/*
 ENV WEBPORT=61208
 ENV ADDITIONAL_OPT=-d

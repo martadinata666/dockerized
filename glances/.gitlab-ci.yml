@@ -9,7 +9,7 @@ buildx-stable:
   #services:
   #  - docker:dind
   before_script:
-    - apk add curl jq
+#    - apk add curl jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
