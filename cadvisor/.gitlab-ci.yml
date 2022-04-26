@@ -1,7 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/cadvisor"
+  TYPE: ""
   RELEASE: ""
-  DEV: ""
 
 buildx-stable:
   # Official docker image.
@@ -19,11 +19,14 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     changes:
       - Dockerfile
     variables:
-      - $RELEASE != "git" && $DEV != "true"
+      - $TYPE == "stable" || $RELEASE != ""
 
 
 buildx-git:
@@ -42,11 +45,14 @@ buildx-git:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     changes:
       - Dockerfile.git
     variables:
-      - $RELEASE == "git"
+      - $TYPE == "git"
 
 buildx-dev:
   # Official docker image.
@@ -64,9 +70,12 @@ buildx-dev:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/arm/v7,linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     variables:
-      - $DEV == "true"
+      - $TYPE == "dev"
     changes:
       - Dockerfile.dev
 

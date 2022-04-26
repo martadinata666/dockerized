@@ -18,9 +18,11 @@ ENV CADVISOR_VERSION=master
 #RUN apt update && apt install --no-install-recommends tini && apt clean && rm -rf /var/lib/apt/lists/*
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
         apt update && \
-        apt install -y --no-install-recommends libpfm4 libipmctl4 && \
+        apt install -y --no-install-recommends libpfm4 libipmctl4 wget && \
         apt clean && \
         rm -rf /var/lib/apt/lists/*; \
     fi;
 COPY --from=builder /go/src/github.com/google/cadvisor/cadvisor /usr/bin/cadvisor
-ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/bin/cadvisor","-logtostderr","-docker_only"]
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz || exit 1
+ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/bin/cadvisor","-logtostderr"]

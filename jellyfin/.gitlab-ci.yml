@@ -27,9 +27,9 @@ create-web:
     - cd jellyfin-web
     - npm -d -timeout=9999999 ci --no-audit --unsafe-perm
     - ls -alh ./
-  after_script:
-    - docker buildx stop
-    - docker buildx rm
+  #after_script:
+  #  - docker buildx stop
+  #  - docker buildx rm
   artifacts:
     paths:
       - jellyfin-web/dist
