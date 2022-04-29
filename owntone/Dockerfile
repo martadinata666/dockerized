@@ -20,12 +20,11 @@ RUN autoreconf -i && \
     make && \
     make install
 
-FROM 192.168.0.2:5050/dedyms/debian:sid
+FROM 192.168.0.2:5050/dedyms/debian:latest
 ENV PATH="$HOME/.local/sbin:$PATH"
 ARG RELEASE
 ENV OWNTONE_RELEASE=$RELEASE
-RUN echo 'deb http://deb.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list && \
-  apt update && apt install -y --no-install-recommends antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
+RUN apt update && apt install -y --no-install-recommends antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
   libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \
   libmxml-dev libgcrypt20-dev libavahi-client-dev zlib1g-dev \
   libevent-dev libplist-dev libsodium-dev libjson-c-dev \

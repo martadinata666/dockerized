@@ -21,6 +21,9 @@ buildx:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --build-arg RELEASE=$RELEASE --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     refs:
       - master

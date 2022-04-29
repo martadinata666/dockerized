@@ -1,5 +1,5 @@
 stages:
-#  - composer
+  - build-ui
 #  - admin
   - dockerize
 
@@ -11,35 +11,9 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
   
-#fetch-composer-deps:
-#  image: 192.168.0.2:5050/dedyms/php-fpm:7.4
-#  stage: composer
-#  cache:
-#    key: "$CI_COMMIT_REF_SLUG"
-#    paths:
-#      - .pnpm-store/
-#      - .npm-cache/
-#      - .yarn-cache/
-#      - vendor/
-#    policy: pull-push
-#  before_script:
-    #- apt update
-    #- apt install -y --no-install-recommends git ca-certificates curl wget
-    #- git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
-#  script:
-#    - curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./web/composer.phar
-#    - cd web
-#    - php ./composer.phar install
-#  artifacts:
-#    paths:
-#      - web/
-#  only:
-#    refs:
-#      - master
-
 #build-themes-admin-ui:
 #  image: 192.168.0.2:5050/dedyms/node:lts-dev
-#  stage: admin
+#  stage: build-ui
 #  cache:
 #    key: "$CI_COMMIT_REF_SLUG"
 #    paths:
@@ -55,20 +29,20 @@ variables:
 #    - npm config set fetch-retry-maxtimeout 99999999 
 #    - git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
 #  script:
-#    - cd $CI_PROJECT_DIR/web
+#    - cd web
 #    - npm -d install
 #    - npm -d install -g gulp-cli @quasar/cli
-#    - cd $CI_PROJECT_DIR/web/modules/AdminPanelWebclient/vue
+#    - cd web/modules/AdminPanelWebclient/vue
 #    - npm -d install
-#    - cd $CI_PROJECT_DIR/web
+#    - cd ../../../
 #    - gulp styles --themes Default,DeepForest,Funny,Sand
 #    - gulp js:min
-#    - cd $CI_PROJECT_DIR/web/modules/AdminPanelWebclient/vue
+#    - cd web/modules/AdminPanelWebclient/vue
 #    - npm -d run build-production
-#    - cd $CI_PROJECT_DIR/web
-#    - rm -rf $CI_PROJECT_DIR/web/system/.git
-#    - rm -rf $CI_PROJECT_DIR/web/node_modules/
-#    - rm -rf $CI_PROJECT_DIR/web/modules/AdminPanelWebclient/vue/node_modules
+#    - cd ../../../
+#    - rm -rf web/system/.git
+#    - rm -rf web/node_modules/
+#    - rm -rf web/modules/AdminPanelWebclient/vue/node_modules
 #  artifacts:
 #    paths:
 #      - web/

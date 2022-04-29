@@ -1,5 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:7.4 AS composer
-WORKDIR /var/www/html
+FROM 192.168.0.2:5050/dedyms/php-fpm:8.0 AS composer
 ENV COMPOSER_MEMORY_LIMIT=3G
 USER root
 RUN apt update && \
@@ -7,6 +6,8 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER web /var/www/html
+WORKDIR /var/www/html
 RUN pwd && \
     git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git /var/www/html && \
     rm -rf ./.git && \
@@ -23,7 +24,10 @@ RUN pwd && \
 FROM 192.168.0.2:5050/dedyms/node:lts-dev as ui
 COPY --from=composer --chown=root:root /var/www/html /webmail
 WORKDIR /webmail
-RUN npm -d install && \
+RUN npm config set fetch-retries 100 && \
+    npm config set fetch-retry-mintimeout 99999999 && \
+    npm config set fetch-retry-maxtimeout 99999999 && \
+    npm -d install && \
     npm -d install -g gulp-cli @quasar/cli && \
     cd modules/AdminPanelWebclient/vue && \
     npm -d install && \
@@ -34,7 +38,8 @@ RUN npm -d install && \
     npm -d run build-production && \
     rm -rf /webmail/system/.git /webmail/node_modules /webmail/modules/AdminPanelWebclient/vue/node_modules
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
+FROM 192.168.0.2:5050/dedyms/apache:fpm
 COPY --from=ui --chown=$CONTAINERUSER:$CONTAINERUSER /webmail /var/www/html
 USER $CONTAINERUSER
+RUN rm /var/www/html/index.html
 VOLUME ["/var/www/html/data"]

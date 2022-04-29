@@ -1,14 +1,11 @@
 #syntax=docker/dockerfile:1.4
-FROM 192.168.0.2:5050/dedyms/debian:sid AS tukang
-RUN echo 'deb http://deb.debian.org/debian experimental main' > /etc/apt/sources.list.d/experimental.list && \
-  apt update && apt install -y --no-install-recommends build-essential git autotools-dev autoconf automake libtool gettext gawk \
+FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+RUN apt update && apt install -y --no-install-recommends build-essential git autotools-dev autoconf automake libtool gettext gawk \
   gperf antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
   libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \
   libasound2-dev libmxml-dev libgcrypt20-dev libavahi-client-dev zlib1g-dev \
   libevent-dev libplist-dev libsodium-dev libjson-c-dev \
-  libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev libc6-dev
-RUN apt install -y -t experimental libwebsockets-dev && \
-  apt clean && \
+  libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev libc6-dev libwebsockets-dev && \
   rm -rf /var/lib/apt/lists/*
 
 #RUN 
