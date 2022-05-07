@@ -25,10 +25,10 @@ RUN echo 'deb http://deb.debian.org/debian bullseye non-free' > /etc/apt/sources
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /ms-playwright /ms-playwright
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume $HOME/reactiveresume
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor $HOME/supervisor
-RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" $HOME/reactiveresume/server/package.json | cut -c30-35) && \
-    echo $PLAYWRIGHT_VERSION && \
-    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium && \
-    apt install -y --no-install-recommends supervisor && \
+RUN apt update && \
+    apt install -y --no-install-recommends supervisor libatk1.0-0 libglib2.0-0 libnss3 libatk-bridge2.0-0 libcups2 \
+                                           libdrm2 libdbus-1-3 libxkbcommon0 libxcomposite1 libxdamage1 libxext6 \
+                                           libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR $HOME/reactiveresume
