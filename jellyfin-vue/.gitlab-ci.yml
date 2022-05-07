@@ -55,11 +55,9 @@ build-static-js:
   only:
     changes:
       - static/Dockerfile.ci
-      - .gitlab-ci.yml
 
 dockerize:
   # Official docker image.
-  cache: []
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerize
   needs: ["build-static-js"]
@@ -75,6 +73,9 @@ dockerize:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f static/Dockerfile.ci
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     refs:
       - master
