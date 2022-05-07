@@ -1,14 +1,63 @@
 variables:
-  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/youtubedl-material"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/youtubedl-material"
   FF_USE_FASTZIP: "true" # enable fastzip - a faster zip implementation that also supports level configuration.
   ARTIFACT_COMPRESSION_LEVEL: default # can also be set to fastest, fast, slow and slowest. If just enabling fastzip is not enough try setting this to fastest or fast.
   CACHE_COMPRESSION_LEVEL: default # same as above, but for caches
   TRANSFER_METER_FREQUENCY: 5s
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+
+stages:
+  - frontend
+  - dockerize
+
+build-frontend:
+   # Use the official docker image.
+  #image: 192.168.0.2:5050/dedyms/pigallery2:build
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: frontend
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - pnpm config set store-dir .pnpm-store
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 999999999
+    - git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+    - npm -d install -g @angular/cli
+  script:
+    - cd ytdl
+    - npm -d install
+    - ng build --configuration production
+    - ls -al
+    #- yarn --ignore-engines create-release
+    #- zip -9 -r ${ZIP_NAME}.zip release/
+    #- export DATE=$(date +%Y%m%d)
+    #- export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+    #- echo $PACKAGE_REGISTRY_URL
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
+  artifacts:
+    paths:
+      - ytdl/backend/public/
+  only:
+    #refs:
+    #  - master
+    changes:
+      - Dockerfile
 
 buildx-git:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: dockerize
   before_script:
     - export RELEASE="git"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
@@ -18,10 +67,11 @@ buildx-git:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
-    refs:
-      - master
-      - schedules
+    #refs:
+    #  - master
     changes:
       - Dockerfile
-      - default.json

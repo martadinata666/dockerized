@@ -2,6 +2,7 @@
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
 USER $CONTAINERUSER
 WORKDIR $HOME
+#RUN git clone --depth=1 https://github.com/martadinata666/YoutubeDL-Material.git ytdl
 RUN git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
 
 
@@ -13,17 +14,17 @@ WORKDIR $HOME/youtubedl-material/backend
 RUN npm -d install --prod && ls -al
 
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS frontend
-RUN npm -d install -g @angular/cli && rm -rf $HOME/.npm && rm -rf $HOME/.config
-USER $CONTAINERUSER
-WORKDIR $HOME/youtubedl-material
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/package.json package.json
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/package-lock.json package-lock.json
-RUN npm install && ls -al
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/angular.json angular.json
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/tsconfig.json tsconfig.json
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/src ./src
-RUN ng build --prod && ls -al
+#FROM 192.168.0.2:5050/dedyms/node:lts-dev AS frontend
+#RUN npm -d install -g @angular/cli && rm -rf $HOME/.npm && rm -rf $HOME/.config
+#USER $CONTAINERUSER
+#WORKDIR $HOME/youtubedl-material
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/package.json package.json
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/package-lock.json package-lock.json
+#RUN npm install && ls -al
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/angular.json angular.json
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/tsconfig.json tsconfig.json
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/src ./src
+#RUN ng build --prod && ls -al
 
 
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
@@ -40,7 +41,7 @@ RUN apt update && \
 USER $CONTAINERUSER
 WORKDIR $HOME/youtubedl-material
 COPY --from=backend --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/youtubedl-material/backend $HOME/youtubedl-material
-COPY --from=frontend --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/youtubedl-material/backend/public $HOME/youtubedl-material/public
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER ytdl/backend/public $HOME/youtubedl-material/public
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/.local/bin $HOME/.local/bin
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER default.json $HOME/youtubedl-material/appdata/default.json
 RUN mkdir -p $HOME/youtubedl-material/audio $HOME/youtubedl-material/video
