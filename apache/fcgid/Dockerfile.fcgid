@@ -29,5 +29,5 @@ RUN mkdir -p $HOME/apache2 && \
 USER $CONTAINERUSER
 WORKDIR /var/www/html
 VOLUME /var/www/html
-VOLUME $HOME/apache2
+STOPSIGNAL SIGWINCH
 CMD ["apache2ctl", "-DFOREGROUND"]

@@ -2,7 +2,7 @@
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
 FROM 192.168.0.2:5050/dedyms/apache:fpm
-ARG TARGETARCH
+ARG TARGETPLATFORM
 ARG NEXTCLOUD_VERSION
 ARG PUSH_VERSION
 ENV PHP_MEMORY_LIMIT 2048M
@@ -12,29 +12,29 @@ ENV PHP_UPLOAD_LIMIT 3000M
 USER root
 
 # Fetch notify_push
-#RUN case ${TARGETPLATFORM} in \
-#         "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
-#         "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
-#    esac \
-#    && curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-${NOTIFY_PUSH_ARCH}-unknown-linux-musl && \ 
-#    mv notify-push /usr/local/bin/notify-push
+RUN case ${TARGETPLATFORM} in \
+         "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
+         "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
+    esac \
+    && curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-${NOTIFY_PUSH_ARCH}-unknown-linux-musl && \ 
+    mv notify-push /usr/local/bin/notify-push
 
 
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
-        mv notify-push /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
-        mv notify-push /usr/local/bin/notify-push && \
-        chmod +x /usr/local/bin/notify-push; \
-    fi;
+#RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+#        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
+#        mv notify-push /usr/local/bin/notify-push && \
+#        chmod +x /usr/local/bin/notify-push; \
+#    fi;
+#RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+#        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
+#        mv notify-push /usr/local/bin/notify-push && \
+#        chmod +x /usr/local/bin/notify-push; \
+#    fi;
 
 RUN set -ex; \
     \
     apt update; \
-    apt install -y --no-install-recommends python3-pip \
+    apt install -y --no-install-recommends \
         rsync \
         bzip2 \
         iproute2 \
