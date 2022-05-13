@@ -5,7 +5,8 @@ ARG TARGETARCH
 USER $CONTAINERUSER
 RUN mkdir -p /home/$CONTAINERUSER/scrutiny/config && \
     mkdir -p /home/$CONTAINERUSER/scrutiny/web && \
-    mkdir -p /home/$CONTAINERUSER/scrutiny/bin
+    mkdir -p /home/$CONTAINERUSER/scrutiny/bin && \
+    mkdir -p /home/$CONTAINERUSER/scrutiny/data
 WORKDIR /home/$CONTAINERUSER/scrutiny
 COPY scrutiny.yaml /home/$CONTAINERUSER/scrutiny/config/scrutiny.yaml
 ADD --chown=$CONTAINERUSER:$CONTAINERUSER https://github.com/AnalogJ/scrutiny/releases/download/$RELEASE/scrutiny-web-linux-$TARGETARCH /home/$CONTAINERUSER/scrutiny/bin
@@ -20,6 +21,6 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG RELEASE
 ENV SCRUTINY_VERSION=$RELEASE
 USER $CONTAINERUSER
-COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/scrutiny /scrutiny
-VOLUME /scrutiny
-CMD /scrutiny/bin/scrutiny-web-linux start
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/scrutiny /opt/scrutiny
+VOLUME /opt/scrutiny/data
+CMD /opt/scrutiny/bin/scrutiny-web-linux start

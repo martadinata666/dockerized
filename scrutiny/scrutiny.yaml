@@ -20,22 +20,26 @@ web:
   listen:
     port: 8080
     host: 0.0.0.0
+    basepath: ''
+
   database:
     # can also set absolute path here
-    location: /scrutiny/scrutiny.db
+    location: /opt/scrutiny/data/scrutiny.db
+
   src:
     frontend:
-      path: /scrutiny/web
+      path: /opt/scrutiny/web
 
-disks:
-  include:
-    # - /dev/sda
-  exclude:
-    # - /dev/sdb
+  influxdb:
+    host: db
+    port: 8086
+    token: 'scrutinytoken'
+    org: 'scrutinyorg'
+    bucket: 'scrutiny'
 
-notify:
-  level: 'warn' # 'warn' or 'error'
-  urls:
+#notify:
+#  level: 'warn' # 'warn' or 'error'
+#  urls:
     #- "discord://324893548648464384@testplexnotif"
     #- "telegram://token@telegram?channels=channel-1[,channel-2,...]"
     #- "pushover://shoutrrr:apiToken@userKey/?devices=device1[,device2, ...]"
