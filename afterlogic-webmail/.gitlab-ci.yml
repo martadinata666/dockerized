@@ -1,6 +1,6 @@
 stages:
+  - composer
   - build-ui
-#  - admin
   - dockerize
 
 variables:
@@ -10,6 +10,11 @@ variables:
   PLATFORM: linux/arm64,linux/amd64
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+#fetch-composer-depths:
+#  image: 192.168.0.2:5050/dedyms/php-fpm:8
+#  stage: composer
+  
   
 #build-themes-admin-ui:
 #  image: 192.168.0.2:5050/dedyms/node:lts-dev
