@@ -49,5 +49,5 @@ HEALTHCHECK --interval=40s --timeout=30s --retries=3 --start-period=60s \
 # after a extensive job (like video converting), pigallery calls gc, to clean up everthing as fast as possible
 # Exec form entrypoint is need otherwise (using shell form) ENV variables are not properly passed down to the app
 #CMD wait-for $DB_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config/config.json --Server-Database-mysql-host=$DB_HOST --Server-Database-mysql-username=$DB_USER --Server-Database-mysql-password=$DB_PASSWORD --Server-Database-mysql-database=$DB_NAME
-CMD ["node", "./src/backend/index", "--expose-gc", "--config-path=./data/config.json"]
+CMD ["node", "./src/backend/index", "--expose-gc", "--config-path=./data/config.json", "--Server-Media-folder=/images", "--Server-Media-tempFolder=/tmp", "--Server-Preview-Sorting=[4]"]
 

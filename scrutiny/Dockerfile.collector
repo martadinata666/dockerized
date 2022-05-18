@@ -15,5 +15,6 @@ RUN mkdir -p /scrutiny/collector
 COPY --from=fetcher /scrutiny-collector-metrics-linux-$TARGETARCH /scrutiny/collector/scrutiny-collector-metrics-linux
 COPY scrutiny.cron /etc/cron.d/scrutiny
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod 0644 /etc/cron.d/scrutiny
+RUN rm -f /etc/cron.daily/apt /etc/cron.daily/dpkg /etc/cron.daily/passwd && \
+    chmod 0644 /etc/cron.d/scrutiny
 ENTRYPOINT ["/entrypoint.sh"]
