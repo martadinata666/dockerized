@@ -1,6 +1,18 @@
 #syntax=docker/dockerfile:1.4
 FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
+FROM 192.168.0.2:5050/dedyms/debian:latest as notify
+# Fetch notify_push
+ARG TARGETPLATFORM
+ARG PUSH_VERSION
+RUN case ${TARGETPLATFORM} in \
+         "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
+         "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
+    esac \
+    && curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-${NOTIFY_PUSH_ARCH}-unknown-linux-musl && \ 
+    mv notify-push /usr/local/bin/notify-push && \
+    chmod +x /usr/local/bin/notify-push
+
 FROM 192.168.0.2:5050/dedyms/apache:fpm
 ARG TARGETPLATFORM
 ARG NEXTCLOUD_VERSION
@@ -10,15 +22,6 @@ ENV PHP_UPLOAD_LIMIT 3000M
 
 # Move to root to create things
 USER root
-
-# Fetch notify_push
-RUN case ${TARGETPLATFORM} in \
-         "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
-         "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
-    esac \
-    && curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-${NOTIFY_PUSH_ARCH}-unknown-linux-musl && \ 
-    mv notify-push /usr/local/bin/notify-push
-
 
 #RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 #        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
@@ -92,6 +95,7 @@ RUN set -ex; \
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/$CONTAINERUSER/supervisor
+COPY --from=notify --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/notify-push /usr/local/bin/notify-push
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
 COPY *.sh upgrade.exclude /
 
