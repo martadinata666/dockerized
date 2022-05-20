@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.0 AS cache
+FROM 192.168.0.2:5050/dedyms/php-fpm:7.4 AS cache
 ARG TOKEN
 ARG RELEASE
 WORKDIR /var/www/html/
@@ -28,9 +28,28 @@ RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.gi
     php artisan storage:link
 
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
+ENV PHP_MEMORY_LIMIT 2048M
+ENV PHP_UPLOAD_LIMIT 3000M
+USER root
+RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.interned_strings_buffer=32'; \
+        echo 'opcache.max_accelerated_files=10000'; \
+        echo 'opcache.memory_consumption=512'; \
+        echo 'opcache.save_comments=1'; \
+        echo 'opcache.revalidate_freq=5'; \
+    } > /usr/local/etc/php/conf.d/opcache-recommended.ini; \
+    \
+    echo 'apc.enable_cli=1' >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini; \
+    \
+    { \
+        echo 'memory_limit=${PHP_MEMORY_LIMIT}'; \
+        echo 'upload_max_filesize=${PHP_UPLOAD_LIMIT}'; \
+        echo 'post_max_size=${PHP_UPLOAD_LIMIT}'; \
+    } > /usr/local/etc/php/conf.d/heimdall.ini
 COPY --from=cache --chown=$CONTAINERUSER:$CONTAINERUSER /var/www/html /var/www/html
 RUN ls -al /var/www/html
 COPY default.conf /etc/nginx/conf.d/default.conf
