@@ -1,0 +1,9 @@
+FROM buildpack-deps:xenial as builder
+ARG RELEASE
+RUN apt update && \ 
+    apt install -y ruby gperf flex bison git python
+RUN git clone https://github.com/ariya/phantomjs.git /phantomjs
+WORKDIR /phantomjs
+RUN git checkout $RELEASE && \
+    git submodule init && \
+    git submodule update
