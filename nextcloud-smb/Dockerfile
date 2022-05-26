@@ -49,7 +49,7 @@ RUN set -ex; \
 
 RUN { \
         echo 'opcache.enable=1'; \
-        echo 'opcache.interned_strings_buffer=32'; \
+        echo 'opcache.interned_strings_buffer=64'; \
         echo 'opcache.max_accelerated_files=10000'; \
         echo 'opcache.memory_consumption=512'; \
         echo 'opcache.save_comments=1'; \

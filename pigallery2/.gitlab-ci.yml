@@ -41,10 +41,11 @@ create-release:
   script:
     - cd pigallery2
     #- sed '151, 152d' package.json
-    - npm install -d --save-prod --no-audit --omit-optional mysql2@latest
-    - npm install -d --save-prod --no-audit --omit-optional jsdom@latest
-    - npm install -d --save-prod --no-audit --omit-optional sharp@0.30.4
-    - npm install -d --no-audit --omit=optional gulp
+    - rm package-lock.json
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional mysql2@latest
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional jsdom@latest
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@0.30.5
+    - npm install -d --no-audit --no-optional --omit=optional gulp
     - npm run -d --ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
     #- yarn --ignore-engines create-release
     #- zip -9 -r ${ZIP_NAME}.zip release/

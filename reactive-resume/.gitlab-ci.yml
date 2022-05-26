@@ -27,7 +27,8 @@ build-js:
     - apt update && apt install -y --no-install-recommends git jq curl
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
-    - git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
+    #- git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
+    - git clone --depth=1 -b minio-s3-compability https://github.com/martadinata666/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
     - pnpm install --frozen-lockfile
@@ -57,7 +58,8 @@ buildx-docker-v3:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized
   before_script:
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE="git"
     - echo $RELEASE    
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY

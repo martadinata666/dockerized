@@ -43,10 +43,11 @@ build-static-js:
     - export IS_STABLE=0
     # Set environment variables
     - export HISTORY_ROUTER_MODE=$HISTORY_ROUTER_MODE
-    - export  NUXT_ENV_COMMIT=""
+    - export NUXT_ENV_COMMIT=""
   script:
     - git clone --depth=1 https://github.com/jellyfin/jellyfin-vue.git jellyfin-vue
     - cd jellyfin-vue
+    - export COMMIT_HASH=$(git rev-parse HEAD)
     - npm -d -timeout=9999999 ci --no-audit
     - npm -d run build
   artifacts:
