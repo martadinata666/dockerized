@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM php:8.0.17-fpm
+FROM php:8.0.19-fpm
 ENV TZ=Asia/Jakarta
 # Set default user
 ARG USER=debian
@@ -101,6 +101,6 @@ ENV CONTAINERUSER=$USER
 
 #RUN adduser --disabled-password --uid 1000 $CONTAINERUSER $CONTAINERUSER && chown fpm:fpm /var/www/html
 RUN groupadd $USER && useradd -u 1000 -g $USER -m -d /home/$USER -s /bin/bash -p $(echo $USER | openssl passwd -1 -stdin) $USER && chown $USER:$USER /var/www/html
-USER $CONTAINERUSER
+#USER $CONTAINERUSER
 VOLUME /var/www/html
 CMD ["php-fpm", "--nodaemonize"]

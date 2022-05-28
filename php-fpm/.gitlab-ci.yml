@@ -79,4 +79,8 @@ trigger-apache-nginx:
     - echo "Trigger nginx image rebuild"
     - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/40/trigger/pipeline
   only:
-    - triggers
+    refs:
+      - master
+      - schedules
+    changes:
+      - 8.0/Dockerfile.debian
