@@ -11,49 +11,73 @@ variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
 
-#fetch-composer-depths:
-#  image: 192.168.0.2:5050/dedyms/php-fpm:8
-#  stage: composer
-  
-  
-#build-themes-admin-ui:
-#  image: 192.168.0.2:5050/dedyms/node:lts-dev
-#  stage: build-ui
-#  cache:
-#    key: "$CI_COMMIT_REF_SLUG"
-#    paths:
-#      - .pnpm-store/
-#      - .npm-cache/
-#      - .yarn-cache/
-#      - vendor/
-#    policy: pull-push
-#  before_script:
-#    - pnpm config set store-dir .pnpm-store
-#    - npm config set fetch-retries 100
-#    - npm config set fetch-retry-mintimeout 99999999
-#    - npm config set fetch-retry-maxtimeout 99999999 
-#    - git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
-#  script:
-#    - cd web
-#    - npm -d install
-#    - npm -d install -g gulp-cli @quasar/cli
-#    - cd web/modules/AdminPanelWebclient/vue
-#    - npm -d install
-#    - cd ../../../
-#    - gulp styles --themes Default,DeepForest,Funny,Sand
-#    - gulp js:min
-#    - cd web/modules/AdminPanelWebclient/vue
-#    - npm -d run build-production
-#    - cd ../../../
-#    - rm -rf web/system/.git
-#    - rm -rf web/node_modules/
-#    - rm -rf web/modules/AdminPanelWebclient/vue/node_modules
-#  artifacts:
-#    paths:
-#      - web/
-#  only:
-#    refs:
-#      - master
+fetch-composer-depths:
+  image: 192.168.0.2:5050/dedyms/php-fpm:8.0
+  stage: composer
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+      - .composer-cache/
+    policy: pull-push
+  before_script:
+    - apt update
+    - apt install -y --no-install-recommends git ca-certificates curl
+    - git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
+  script:
+    - cd web
+    - curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./composer.phar
+    - chmod +x ./composer.phar
+    - ./composer.phar config -g cache-dir "$CI_PROJECT_DIR/.composer-cache"
+    - ./composer.phar install
+    - ls -al;
+    - rm ./composer.phar
+    - rm -rf ./.git
+  artifacts:
+    paths: 
+      - web/
+
+build-themes-admin-ui:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-ui
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+      - .composer-cache/
+    policy: pull-push
+  before_script:
+    - pnpm config set store-dir .pnpm-store
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 99999999 
+    #- git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
+  script:
+    - cd web
+    - ls -al;
+    - npm -d install
+    - npm -d install -g gulp-cli @quasar/cli
+    - cd ./modules/AdminPanelWebclient/vue
+    - npm -d install
+    - cd ../../../
+    - gulp styles --themes Default,DeepForest,Funny,Sand
+    - gulp js:min
+    - cd modules/AdminPanelWebclient/vue
+    - npm -d run build-production
+    - cd ../../../
+    - rm -rf ./system/.git
+    - rm -rf ./node_modules/
+    - rm -rf ./modules/AdminPanelWebclient/vue/node_modules
+  artifacts:
+    paths:
+      - web/
+  only:
+    refs:
+      - master
 
 create-docker-image:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
@@ -67,7 +91,7 @@ create-docker-image:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64,linux/arm64  -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$DATE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$DATE" . -f Dockerfile
+    - docker buildx build --push --platform linux/amd64,linux/arm64  -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$DATE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$DATE" . -f Dockerfile.ci
   after_script:
     - docker buildx stop
     - docker buildx rm

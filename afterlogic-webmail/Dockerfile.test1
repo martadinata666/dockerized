@@ -1,4 +1,0 @@
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER web /var/www/html
-USER $CONTAINERUSER
-VOLUME ["/var/www/html/data"]
