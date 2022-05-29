@@ -1,9 +1,10 @@
 # Build Pulseaudio for Pi
 
+## Notice $ and # , to know with privileges on.
 ### Clone repository
 #### As current stable v16.0 change pulse version `v16.0`
 
-```git clone --depht=1 -b pulse-version https://github.com/pulseaudio/pulseaudio.git```
+```$ git clone --depht=1 -b pulse-version https://github.com/pulseaudio/pulseaudio.git```
 
 ### Install build dependencies, here depedencies for headless. On GUI system may different.
 ```
@@ -14,6 +15,7 @@
 
 ### Run meson command
 ```
+$ cd pulseaudio
 $ meson build
 ```
 
