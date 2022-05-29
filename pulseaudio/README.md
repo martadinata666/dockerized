@@ -1,6 +1,7 @@
 # Build Pulseaudio for Pi
 
-## Notice $ and # , to know with privileges on.
+#### Notice $ and # , to know with privileges on.
+
 ### Clone repository
 #### As current stable v16.0 change pulse version `v16.0`
 
