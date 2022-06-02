@@ -17,7 +17,7 @@ RUN autoreconf -i && \
                 --without-alsa \
                 --disable-option-checking \
                 --disable-install-systemd && \
-    make && \
+    make -j6 && \
     make install
 
 FROM 192.168.0.2:5050/dedyms/debian:latest
@@ -28,8 +28,7 @@ RUN apt update && apt install -y --no-install-recommends antlr3 libantlr3c-dev l
   libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \
   libmxml-dev libgcrypt20-dev libavahi-client-dev zlib1g-dev \
   libevent-dev libplist-dev libsodium-dev libjson-c-dev \
-  libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev && \
-  apt install -y --no-install-recommends -t experimental libwebsockets-dev && \
+  libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev libwebsockets-dev && \
   apt remove -y --purge *-dev && \
   apt install -y libavfilter7 libavformat58 libavcodec58 avahi-daemon libnss-mdns && \
   apt clean && \ 

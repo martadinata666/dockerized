@@ -2,16 +2,39 @@ variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/mono"
   GITHUB_REPO_NAME: "user/appname"
 
+stages:
+  - fetch-repo
+  - docker-build
+
+get-source:
+  image: 192.168.0.2:5050/dedyms/debian:dev
+  stage: fetch-repo
+  before_script:
+    - echo $RELEASE
+    - apt update
+    - apt install -y --no-install-recommends tar aria2
+  script:
+    #- git clone --recursive --depth=1 -b mono-$RELEASE https://github.com/mono/mono.git
+    - aria2c -c -x 10 -s 10 https://download.mono-project.com/sources/mono/preview/mono-$RELEASE.tar.xz
+    - tar xf mono-6.12.0.181.tar.xz
+  artifacts:
+    paths:
+      - mono-$RELEASE
+  only:
+    changes:
+      - Dockerfile.build
+
+
 buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: docker-build
   #services:
   #  - docker:dind
   before_script:
     #- apk add curl jq
     #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
-    - export RELEASE="6.12.0.122"
+    #- export RELEASE="6.12.0.122"
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
@@ -21,13 +44,13 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.build
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
-    refs:
-      - master
-      - schedules
     changes:
-      - Dockerfile
+      - Dockerfile.build
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
