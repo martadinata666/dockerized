@@ -11,7 +11,8 @@
 ```
 # apt install --no-install-recommends libsndfile1-dev libspeexdsp-dev libtool libglib2.0-dev libjson-c-dev gettext libtdb-dev \
   libbluetooth-dev libsbc-dev ninja libdbus-1-dev meson libsoxr-dev libwebrtc-audio-processing-dev \
-  check libcap-dev libudev-dev libsamplerate0-dev libwrap0-dev xmltoman libasound2-dev
+  check libcap-dev libudev-dev libsamplerate0-dev libwrap0-dev xmltoman libasound2-dev libgstreamermm1.0-dev \
+  libice-dev libsm-dev libxtst-dev libsystemd-dev
 ```
 
 ### Run meson command
