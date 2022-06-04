@@ -12,8 +12,9 @@ buildx-stable:
   before_script:
     #- apk add curl jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases" | jq -r 'first(.[] | select(.tag_name | contains("canary"))) | .tag_name')
-    - export RELEASELINK=$(curl -s https://api.github.com/repos/duplicati/duplicati/releases/tags/"${RELEASE}" |jq -r '.assets[].browser_download_url' |grep -m1 zip)
     - echo $RELEASE
+    - export ZIPNAME=$(echo $RELEASE | cut -c 12-)
+    - export RELEASELINK=$(curl -s https://api.github.com/repos/duplicati/duplicati/releases/tags/"${RELEASE}" |jq -r '.assets[].browser_download_url' |grep ${ZIPNAME}.zip)
     - echo $RELEASELINK
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY

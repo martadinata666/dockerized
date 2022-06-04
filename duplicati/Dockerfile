@@ -20,6 +20,10 @@ RUN mkdir -p $HOME/duplicati && \
 FROM 192.168.0.2:5050/dedyms/mono:latest
 ARG RELEASE
 ENV DUPLICATI_VERSION=${RELEASE}
+RUN apt update && \
+    apt install -y --no-install-recommends libsqlite3-0 && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/duplicati $HOME/duplicati
 USER $CONTAINERUSER
 VOLUME $HOME/duplicati/data
