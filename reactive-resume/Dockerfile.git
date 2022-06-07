@@ -3,7 +3,9 @@ FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
 ARG RELEASE
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+# Any repo that need testing
+#RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+RUN git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git /reactiveresume
 COPY reactive-resume /reactiveresume
 WORKDIR /reactiveresume
 RUN npm set-script prepare "" && \

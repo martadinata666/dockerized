@@ -29,6 +29,7 @@ build-js:
     - echo $RELEASE
     - git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
     #- git clone --depth=1 -b minio-s3-compability https://github.com/martadinata666/Reactive-Resume.git reactive-resume
+    #- git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
     - pnpm install --frozen-lockfile
@@ -76,59 +77,72 @@ buildx-docker-v3:
     changes:
       - Dockerfile.v3
 
-#build-static:
-#  image: 192.168.0.2:5050/dedyms/reactive-resume:develop
-#  stage: build-static
-#  before_script:
-#    - export DATE=$(date +%Y%m%d)
-#  script:
-#    - cp -r /home/debian/reactive-resume reactive-resume
-#    - cd reactive-resume && ls -aln
-#    - pnpm -d run build
-#  only:
-#    refs:
-#      - master
-#  artifacts:
-#      paths:
-#        - reactive-resume/public
+build-js-git:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-js
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .pnpm-store/
+      - .npm-cache/
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - pnpm config set store-dir $CI_PROJECT_DIR/.pnpm-store
+    - pnpm config set auto-install-peers true
+    - export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+    - export NODE_ENV=development
+    - apt update && apt install -y --no-install-recommends git jq curl
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- echo $RELEASE
+    #- git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
+    #- git clone --depth=1 -b minio-s3-compability https://github.com/martadinata666/Reactive-Resume.git reactive-resume
+    - git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git reactive-resume
+  script:
+    - cd reactive-resume
+    - pnpm install --no-frozen-lockfile
+    - pnpm -F schema build
+    - pnpm -F server build
+    - pnpm -F client build
+    - rm -rf node_modules/
+    - rm -rf ./.git
+    - rm -rf ./.github
+    - rm -rf ./.husky
+    - rm -rf ./.vscode
+    - rm -rf docs/
+    - rm -rf app/
+    - rm -rf scripts/*
+    - rm -rf Docker*
+    - rm -rf docker*
+  artifacts:
+    paths:
+      - reactive-resume/
+  only:
+    changes:
+      - Dockerfile.git
 
-#buildx-static-docker-image:
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: docker-buildx-static
-#  dependencies: ["build-static"]
-#  before_script:
-#    - export RELEASE="static"
-#    - export DATE=$(date +%Y%m%d)
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use --config buildx-config.toml
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.static
-#  only:
-#    changes:
-#      - Dockerfile.static
 
-#buildx-dev:
-#  # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-#  stage: buildx-develop
-#  #services:
-#  #  - docker:dind
-#  before_script:
-#    - export RELEASE="dev"
-#    - export DATE=$(date +%Y%m%d)
-#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-#    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-#  script:
-#    - docker buildx create --use --config buildx-config.toml
-#    - docker buildx inspect --bootstrap
-#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
-#  only:
-#    variables:
-#      - $DEV == "true"
+buildx-docker-git:
+  cache: []
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerized
+  before_script:
+    - export RELEASE="git"
+    - echo $RELEASE    
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    changes:
+      - Dockerfile.git
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
