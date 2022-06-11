@@ -5,7 +5,8 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # Any repo that need testing
 #RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
-RUN git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git /reactiveresume
+#RUN git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git /reactiveresume
+RUN git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git /reactiveresume
 COPY reactive-resume /reactiveresume
 WORKDIR /reactiveresume
 RUN npm set-script prepare "" && \

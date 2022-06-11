@@ -96,8 +96,7 @@ build-js-git:
     #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     #- echo $RELEASE
     #- git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
-    #- git clone --depth=1 -b minio-s3-compability https://github.com/martadinata666/Reactive-Resume.git reactive-resume
-    - git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git reactive-resume
+    - git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
     - pnpm install --no-frozen-lockfile
@@ -128,7 +127,7 @@ buildx-docker-git:
   stage: dockerized
   before_script:
     - export RELEASE="git"
-    - echo $RELEASE    
+    - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -136,7 +135,7 @@ buildx-docker-git:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
+    - docker buildx build --push --platform linux/amd64,linux/arm64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
   after_script:
     - docker buildx stop
     - docker buildx rm
