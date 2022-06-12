@@ -1,0 +1,5 @@
+jobs:
+  - name: scheduled-backup
+    command: php -f /var/www/html/artisan backup:run
+    shell: /bin/bash
+    schedule: "0 0 * * *"

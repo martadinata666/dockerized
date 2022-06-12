@@ -15,4 +15,5 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists
 COPY apache.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher /htdocs /var/www/html
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER yacron.yml /home/debian/supervisor/yacron.yml
 USER $CONTAINERUSER
