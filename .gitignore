@@ -8,6 +8,7 @@ oauthtoken.txt
 quayiologin.txt
 slackwebhook.txt
 telegrambot.txt
+gh-app-pat.txt
 ./gitlab-runner
 */.git
 */..git
@@ -25,3 +26,4 @@ gitlab*.txt
 ..git
 update.sh
 heimdall/ghtoken.txt
+embystat/embystat/*

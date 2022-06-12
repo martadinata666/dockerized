@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  app:
+    image: embystat:local
+    #command: EmbyStat
+    volumes:
+      - ./data:/home/debian/embystat
+    ports:
+      - 6555:6555
+    environment:
+      - EMBYSTAT_PORT=6555
+      - EMBYSTAT_LISTENURL=http://*
+#    command: bash
+#    tty: true
+#    stdin_open: true

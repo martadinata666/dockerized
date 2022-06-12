@@ -1,0 +1,29 @@
+[2022-06-12 09:00:09.653] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Starting job
+[2022-06-12 09:00:09.835] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Processing genres
+[2022-06-12 09:00:09.843] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Fetching information from 0 people
+[2022-06-12 09:00:09.852] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Lets start processing movies
+[2022-06-12 09:00:09.852] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] 0 libraries are selected, getting ready for processing
+[2022-06-12 09:00:09.853] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Calculating movie statistics
+[2022-06-12 09:00:09.903] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Calculations done
+[2022-06-12 09:00:09.907] [EmbyStat.Jobs.Jobs.Sync.MovieSyncJob]  [INF] Job finished after 1 minute.
+[2022-06-12 09:00:09.908] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Starting job
+[2022-06-12 09:00:09.925] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Server info downloaded
+[2022-06-12 09:00:09.941] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Server plugins downloaded
+[2022-06-12 09:00:09.969] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Server users downloaded
+[2022-06-12 09:00:10.082] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Processed 161 views for dedyms
+[2022-06-12 09:00:10.169] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Processed 290 views for rasdem
+[2022-06-12 09:00:10.169] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Calculating user statistics
+[2022-06-12 09:00:12.907] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Server devices downloaded
+[2022-06-12 09:00:12.914] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Server libraries downloaded
+[2022-06-12 09:00:12.917] [EmbyStat.Jobs.Jobs.Sync.SmallSyncJob]  [INF] Job finished after 1 minute.
+[2022-06-12 10:00:13.189] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Starting job
+[2022-06-12 10:00:13.363] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Processing information from 0 people
+[2022-06-12 10:00:13.379] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Processing genres
+[2022-06-12 10:00:13.381] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Processing shows
+[2022-06-12 10:00:13.381] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] 0 libraries are selected, getting ready for processing
+[2022-06-12 10:00:13.382] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Calculating show statistics
+[2022-06-12 10:00:13.422] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Calculations done
+[2022-06-12 10:00:13.425] [EmbyStat.Jobs.Jobs.Sync.ShowSyncJob]  [INF] Job finished after 1 minute.
+[2022-06-12 11:00:13.665] [EmbyStat.Jobs.Jobs.Maintenance.DatabaseCleanupJob]  [INF] Starting job
+[2022-06-12 11:00:13.670] [EmbyStat.Jobs.Jobs.Maintenance.DatabaseCleanupJob]  [INF] Removed old statistic results.
+[2022-06-12 11:00:13.674] [EmbyStat.Jobs.Jobs.Maintenance.DatabaseCleanupJob]  [INF] Job finished after 1 minute.
