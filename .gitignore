@@ -27,3 +27,4 @@ gitlab*.txt
 update.sh
 heimdall/ghtoken.txt
 embystat/embystat/*
+embystat/*
