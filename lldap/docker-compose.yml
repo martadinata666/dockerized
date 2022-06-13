@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+   dev:
+     image: lldap:dev
+     volumes:
+       - ./lldap-src:/lldap-src
+     command: bash
+     stdin_open: true
+     tty: true
