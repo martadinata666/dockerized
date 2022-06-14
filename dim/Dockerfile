@@ -13,7 +13,8 @@ WORKDIR /dim
 #RUN sqlite3 -init ./database/migrations/*.sql ./dim_dev.db
 #RUN DATABASE_URL="sqlite:///dim/dim_dev.db" cargo build --release
 ARG DATABASE_URL="sqlite://dim_dev.db"
-RUN cargo build --release
+#RUN cargo build --release
+RUN cargo run --features vaapi --release
 
 
 FROM 192.168.0.2:5050/dedyms/debian:vaapi
