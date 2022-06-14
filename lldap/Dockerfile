@@ -1,5 +1,4 @@
-FROM lldap:dev as builder
-RUN apt update && apt install -y --no-install-recommends git
+FROM 192.168.0.2:5050/dedyms/lldap:dev as builder
 RUN git clone --depth=1 https://github.com/nitnelave/lldap.git /lldap-src
 WORKDIR /lldap-src
 RUN cargo build --release -p lldap -p migration-tool && \
@@ -15,7 +14,6 @@ RUN cp docker-entrypoint.sh /docker-entrypoint.sh && \
           /lldap/app/
 RUN ls -al /lldap && \
     ls -al /lldap/app
-RUN apt update && apt install -y --no-install-recommends wget
 WORKDIR /lldap
 RUN set -x \
     && for file in $(cat /lldap/app/static/libraries.txt); do wget -P app/static "$file"; done \

@@ -1,6 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/lldap"
-  GITHUB_REPO_NAME: "user/appname"
+  GITHUB_REPO_NAME: "nitnelave/lldap"
+  DEV: ""
 
 buildx-dev:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
@@ -17,6 +18,8 @@ buildx-dev:
     - docker buildx stop
     - docker buildx rm
   only:
+    variables:
+      - $DEV == "true"
     changes:
       - Dockerfile.dev
 
@@ -28,7 +31,8 @@ buildx-git:
   #  - docker:dind
   before_script:
     #- apk add curl jq
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE="git"
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY

@@ -1,7 +1,7 @@
 #syntax=docker/dockerfile:1.4
 FROM rust:slim-bullseye
 RUN apt update && \
-    apt install -y --no-install-recommends curl git wget libssl-dev build-essential make perl && \
+    apt install -y --no-install-recommends curl git wget libssl-dev build-essential make perl pkg-config && \
     curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
     apt update && \
     apt install -y --no-install-recommends nodejs && \
