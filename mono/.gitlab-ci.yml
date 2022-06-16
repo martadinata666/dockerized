@@ -16,13 +16,12 @@ get-source:
   script:
     #- git clone --recursive --depth=1 -b mono-$RELEASE https://github.com/mono/mono.git
     - aria2c -c -x 10 -s 10 https://download.mono-project.com/sources/mono/preview/mono-$RELEASE.tar.xz
-    - tar xf mono-6.12.0.181.tar.xz
+    - tar xf mono-$RELEASE.tar.xz
   artifacts:
     paths:
       - mono-$RELEASE
   only:
-    changes:
-      - Dockerfile.build
+    - triggers
 
 
 buildx-stable:
@@ -49,8 +48,7 @@ buildx-stable:
     - docker buildx stop
     - docker buildx rm
   only:
-    changes:
-      - Dockerfile.build
+    - triggers
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
