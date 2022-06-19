@@ -1,6 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/mono"
   GITHUB_REPO_NAME: "user/appname"
+  FF_USE_FASTZIP: 0
 
 stages:
   - fetch-repo
