@@ -32,7 +32,12 @@ build-js:
     #- git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
-    - pnpm install --frozen-lockfile
+    - echo "auto-install-peers=true" >> .npmrc
+    - echo "strict-peer-dependencies=false" >> .npmrc
+#    - echo "shamefully-hoist=true" >> .npmrc
+    - cat .npmrc
+    - rm package-lock.json pnpm-lock.yaml
+    - pnpm install
     - pnpm -F schema build
     - pnpm -F server build
     - pnpm -F client build
@@ -119,6 +124,8 @@ build-js-git:
   only:
     changes:
       - Dockerfile.git
+    variables:
+      - $DEV == "true"
 
 
 buildx-docker-git:
@@ -142,6 +149,8 @@ buildx-docker-git:
   only:
     changes:
       - Dockerfile.git
+    variables:
+      - $DEV == "true"
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
