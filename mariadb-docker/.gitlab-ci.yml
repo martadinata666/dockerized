@@ -1,15 +1,15 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/mariadb"
 
-buildx-10.6:
+buildx-10.7:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
   #services:
   #  - docker:dind
   before_script:
-    - export STATIC_RELEASE="10.6"
-    - export RELEASE=$(grep -m1 "MARIADB_VERSION" 10.6/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
+    - export STATIC_RELEASE="10.7"
+    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -24,7 +24,10 @@ buildx-10.6:
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE" 
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" 
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" . 
-      -f 10.6/Dockerfile.debian
+      -f $STATIC_RELEASE/Dockerfile.debian
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     #refs:
     #  - master

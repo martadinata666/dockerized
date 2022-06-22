@@ -82,6 +82,7 @@ ENV MARIADB_MAJOR $MARIADB_MAJOR
 ARG MARIADB_VERSION=1:10.8.0+maria~bullseye
 ENV MARIADB_VERSION $MARIADB_VERSION
 ENV MARIADB_INITDB_SKIP_TZINFO=1
+ENV MARIADB_AUTO_UPGRADE=1
 # release-status:Alpha
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
