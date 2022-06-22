@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 # Build app 
 FROM 192.168.0.2:5050/dedyms/unmanic:dev AS tukang
 ARG RELEASE

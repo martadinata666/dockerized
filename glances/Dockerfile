@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
 ARG RELEASE=v3.2.4
 #ARG PIP_RELEASE=echo "$RELEASE" | tr -d v

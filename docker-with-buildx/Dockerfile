@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 ARG BUILDKIT_VERSION
 
 FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher

@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM 192.168.0.2:5050/dedyms/php-fpm:7.4 AS cache
 ARG TOKEN
 ARG RELEASE

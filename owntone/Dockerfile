@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM 192.168.0.2:5050/dedyms/owntone-server:dev AS tukang
 RUN apt update && apt install -y --no-install-recommends git
 USER $CONTAINERUSER

@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
 ARG RELEASE
 RUN apt update && apt install --no-install-recommends -y ssl-cert && apt clean && rm -rf /var/lib/apt/lists/*

@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM 192.168.0.2:5050/dedyms/libreddit:dev-rust AS tukang
 ARG RELEASE
 RUN git clone --depth=1 -b $RELEASE https://github.com/spikecodes/libreddit.git /libreddit

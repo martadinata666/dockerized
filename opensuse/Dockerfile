@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM opensuse/tumbleweed:latest
 ARG USER=tumbleweed
 ENV CONTAINERUSER=$USER

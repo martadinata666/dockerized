@@ -1,4 +1,4 @@
-#syntax=docker/dockerfile:1.4
+
 FROM alpine:3.13
 WORKDIR /var/www/localhost/htdocs/
 ARG RELEASE
