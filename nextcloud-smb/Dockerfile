@@ -93,7 +93,8 @@ RUN set -ex; \
 
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /home/$CONTAINERUSER/supervisor
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor/notify-push.conf /home/$CONTAINERUSER/supervisor/conf.d/
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor/yacron.yml /home/$CONTAINERUSER/supervisor/yacron.yml
 COPY --from=notify --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/notify-push /usr/local/bin/notify-push
 COPY --from=ffmpeg $HOME/.local/bin/ /usr/local/bin/
 COPY *.sh upgrade.exclude /
