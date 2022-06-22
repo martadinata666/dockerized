@@ -18,6 +18,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
     libicu-dev \
     libevent-dev \
     libjpeg-dev \
+    libldap-dev \
     libmcrypt-dev \
     libpng-dev\
     libmemcached-dev \
@@ -48,6 +49,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
          gmp \
          zip \
          mysqli \
+         ldap \
          bz2 && \
     pecl install apcu && \
     pecl install inotify && \
