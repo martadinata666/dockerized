@@ -44,7 +44,7 @@ create-release:
     - rm package-lock.json
     - npm install -d --save-prod --no-audit --no-optional --omit=optional mysql2@latest
     - npm install -d --save-prod --no-audit --no-optional --omit=optional jsdom@latest
-    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@0.30.6
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@0.30.7
     - npm install -d --no-audit --no-optional --omit=optional gulp
     - npm run -d --ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
     #- yarn --ignore-engines create-release
