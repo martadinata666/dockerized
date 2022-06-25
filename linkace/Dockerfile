@@ -16,4 +16,6 @@ RUN apt update && \
 COPY apache.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher /htdocs /var/www/html
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER laravel-cron.conf /home/debian/supervisor/conf.d/
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER entrypoint.sh /entrypoint.sh
 USER $CONTAINERUSER
+ENTRYPOINT ["/tini", "--", "/entrypoint.sh"]
