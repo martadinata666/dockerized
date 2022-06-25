@@ -29,7 +29,8 @@ build-frontend:
     - npm config set fetch-retries 100
     - npm config set fetch-retry-mintimeout 99999999
     - npm config set fetch-retry-maxtimeout 999999999
-    - git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+    #- git clone --depth=1 -b 4.3-prep https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+    - git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
     - npm -d install -g @angular/cli
   script:
     - cd ytdl

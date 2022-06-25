@@ -3,7 +3,7 @@ FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
 USER $CONTAINERUSER
 WORKDIR $HOME
 #RUN git clone --depth=1 https://github.com/martadinata666/YoutubeDL-Material.git ytdl
-RUN git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+RUN git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
 
 
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS backend
@@ -11,7 +11,7 @@ USER $CONTAINERUSER
 WORKDIR $HOME/youtubedl-material
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/backend ./backend
 WORKDIR $HOME/youtubedl-material/backend
-RUN npm -d install --prod && ls -al
+RUN npm -d install --prod && npm install pm2 && ls -al
 
 
 #FROM 192.168.0.2:5050/dedyms/node:lts-dev AS frontend
@@ -32,13 +32,13 @@ FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 FROM 192.168.0.2:5050/dedyms/node:lts
 ENV NO_UPDATE_NOTIFIER=true
 ENV FOREVER_ROOT=$HOME/youtubedl-material/.forever
+ENV PM2_HOME=$HOME/youtubedl-material/pm2
 RUN apt update && \
-    apt install -y --no-install-recommends python3-minimal atomicparsley python-is-python3 && \
+    apt install -y --no-install-recommends python3-minimal atomicparsley python-is-python3 python3-pip && \
     apt clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    npm install -g forever && \
-    rm -rf $HOME/.config
+    rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
+RUN pip3 install --no-cache-dir tcd
 WORKDIR $HOME/youtubedl-material
 COPY --from=backend --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/youtubedl-material/backend $HOME/youtubedl-material
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER ytdl/backend/public $HOME/youtubedl-material/public
@@ -49,4 +49,4 @@ VOLUME $HOME/youtubedl-material/audio
 VOLUME $HOME/youtubedl-material/video
 VOLUME $HOME/youtubedl-material/appdata
 EXPOSE 8080
-CMD ["node","app.js"]
+CMD ["npm","start"]
