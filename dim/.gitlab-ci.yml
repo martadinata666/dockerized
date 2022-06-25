@@ -1,11 +1,68 @@
 variables:
-  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/dim"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/dim"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   DEV: ""
+  FF_USE_FASTZIP: 0
+
+stages:
+  - build-web
+  - build-app
+  - dockerize
+  - other
+
+create-web:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-web
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .cargo
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - git clone --depth=1 https://github.com/Dusk-Labs/dim.git dim
+  script:
+    - cd dim
+    - yarn --cwd ui/
+    - yarn --cwd ui/ build
+    - ls -alh
+    - ls -alh ui/
+  #after_script:
+  #  - docker buildx stop
+  #  - docker buildx rm
+  artifacts:
+    paths:
+      - dim
+  only:
+    changes:
+      - Dockerfile
+
+create-app:
+  image: 192.168.0.2:5050/dedyms/dim:dev-rust
+  stage: build-app
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .cargo
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - export DATABASE_URL="sqlite://dim_dev.db"
+  script:
+    - cd dim/
+    - cargo build --features vaapi --release
+  artifacts:
+    paths:
+      - dim
+  only:
+    changes:
+      - Dockerfile
 
 buildx-git:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: dockerize
   before_script:
     - export RELEASE="git"
     - export DATE=$(date +%Y%m%d)
@@ -16,18 +73,22 @@ buildx-git:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --push --platform linux/amd64
+      -t "$CI_REGISTRY_IMAGE"
+      -t "$CI_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
-    refs:
-      - master
-      - schedules
     changes:
       - Dockerfile
 
 buildx-dev:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  stage: other
   before_script:
     - export RELEASE="dev-rust"
     - export DATE=$(date +%Y%m%d)
@@ -39,6 +100,9 @@ buildx-dev:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
     #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
   only:
     variables:
       - $DEV == "true"

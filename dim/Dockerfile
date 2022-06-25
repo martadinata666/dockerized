@@ -1,20 +1,19 @@
+#FROM 192.168.0.2:5050/dedyms/node:lts-dev AS build-web
+#ARG DEBIAN_FRONTEND=noninteractive
+#USER $CONTAINERUSER
+#RUN git clone https://github.com/Dusk-Labs/dim.git $HOME/dim
+#WORKDIR $HOME/dim/ui
+#RUN yarn && yarn build
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS build-web
-ARG DEBIAN_FRONTEND=noninteractive
-USER $CONTAINERUSER
-RUN git clone https://github.com/Dusk-Labs/dim.git $HOME/dim
-WORKDIR $HOME/dim/ui
-RUN yarn && yarn build
 
-
-FROM 192.168.0.2:5050/dedyms/dim:dev-rust AS build-app
-COPY --from=build-web /home/debian/dim /dim
-WORKDIR /dim
+#FROM 192.168.0.2:5050/dedyms/dim:dev-rust AS build-app
+#COPY dim /dim
+#WORKDIR /dim
 #RUN sqlite3 -init ./database/migrations/*.sql ./dim_dev.db
 #RUN DATABASE_URL="sqlite:///dim/dim_dev.db" cargo build --release
-ARG DATABASE_URL="sqlite://dim_dev.db"
+#ARG DATABASE_URL="sqlite://dim_dev.db"
 #RUN cargo build --release
-RUN cargo run --features vaapi --release
+#RUN cargo build --features vaapi --release
 
 
 FROM 192.168.0.2:5050/dedyms/debian:vaapi
@@ -32,7 +31,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /opt/dim/ && \
     chown $CONTAINERUSER:$CONTAINERUSER /opt/dim/
-COPY --from=build-app --chown=$CONTAINERUSER:$CONTAINERUSER /dim/target/release/dim /opt/dim/dim
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER dim/target/release/dim /opt/dim/dim
 USER $CONTAINERUSER
 RUN mkdir -p /opt/dim/config /opt/dim/utils
 RUN ln -s /usr/lib/jellyfin-ffmpeg/ffmpeg /opt/dim/utils/ffmpeg && \
