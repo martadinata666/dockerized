@@ -18,6 +18,7 @@ RUN apt update && apt install -y --no-install-recommends \
     rm -rf /var/lib/a1pt/* && npm install -g pnpm
 COPY --from=apprise --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/.local $HOME/.local
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/uptime-kuma $HOME/uptime-kuma
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libeatmydata.so
 WORKDIR $HOME/uptime-kuma
 VOLUME $HOME/uptime-kuma/data
 EXPOSE 3001
