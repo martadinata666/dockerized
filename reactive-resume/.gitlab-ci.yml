@@ -32,12 +32,13 @@ build-js:
     #- git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
-    - echo "auto-install-peers=true" >> .npmrc
-    - echo "strict-peer-dependencies=false" >> .npmrc
+    - rm -rf docs/
+#    - echo "auto-install-peers=true" >> .npmrc
+#    - echo "strict-peer-dependencies=false" >> .npmrc
 #    - echo "shamefully-hoist=true" >> .npmrc
-    - cat .npmrc
-    - rm package-lock.json pnpm-lock.yaml
-    - pnpm install
+#    - cat .npmrc
+#    - rm package-lock.json pnpm-lock.yaml
+    - pnpm install --frozen-lockfile
     - pnpm -F schema build
     - pnpm -F server build
     - pnpm -F client build
