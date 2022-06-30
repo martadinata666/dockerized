@@ -5,7 +5,7 @@ stages:
   - create-stable-docker-image
 
 variables:
-  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/pigallery2"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/pigallery2"
   TYPE: ""
   GITHUB_REPO_NAME: "bpatrik/pigallery2"
   PLATFORM_TEST: linux/amd64

@@ -72,7 +72,7 @@
     },
     "Database": {
       "mongodb_connection_string": "'mongodb://db:27017/?compressor=zlib'",
-      "use_local_db": true
+      "use_local_db": false
     }
   }
 }

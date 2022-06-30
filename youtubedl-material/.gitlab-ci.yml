@@ -1,9 +1,9 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/youtubedl-material"
-  FF_USE_FASTZIP: "true" # enable fastzip - a faster zip implementation that also supports level configuration.
-  ARTIFACT_COMPRESSION_LEVEL: default # can also be set to fastest, fast, slow and slowest. If just enabling fastzip is not enough try setting this to fastest or fast.
-  CACHE_COMPRESSION_LEVEL: default # same as above, but for caches
-  TRANSFER_METER_FREQUENCY: 5s
+#  FF_USE_FASTZIP: "true" # enable fastzip - a faster zip implementation that also supports level configuration.
+#  ARTIFACT_COMPRESSION_LEVEL: default # can also be set to fastest, fast, slow and slowest. If just enabling fastzip is not enough try setting this to fastest or fast.
+#  CACHE_COMPRESSION_LEVEL: default # same as above, but for caches
+#  TRANSFER_METER_FREQUENCY: 5s
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
 
@@ -29,12 +29,12 @@ build-frontend:
     - npm config set fetch-retries 100
     - npm config set fetch-retry-mintimeout 99999999
     - npm config set fetch-retry-maxtimeout 999999999
-    #- git clone --depth=1 -b 4.3-prep https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
-    - git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
+    - git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+    #- git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
     - npm -d install -g @angular/cli
   script:
     - cd ytdl
-    - npm -d install
+    - npm -d ci
     - ng build --configuration production
     - ls -al
     #- yarn --ignore-engines create-release

@@ -24,8 +24,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-            ca-certificates intel-media-va-driver-non-free \
-            libsqlite3-dev libva2 libva-drm2 libharfbuzz0b \
+            libsqlite3-0 libva2 libva-drm2 libharfbuzz0b \
             libfontconfig libfribidi0 libtheora0 libvorbis0a libvorbisenc2 && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \
