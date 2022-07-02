@@ -1,32 +1,102 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/lldap"
   GITHUB_REPO_NAME: "nitnelave/lldap"
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  RUSTFLAGS: "-Ctarget-feature=-crt-static"
+  OPENSSL_INCLUDE_DIR: "/usr/include/openssl/"
+  CARGO_TERM_COLOR: always
   DEV: ""
 
-buildx-dev:
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+stages:
+  - build-bin
+  - dockerize
+  - dev
+
+build-lldap-amd64:
+  image: 192.168.0.2:5050/dedyms/lldap:dev
+  stage: build-bin
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG-amd64"
+    paths:
+      - $CI_PROJECT_DIR/target
+      - .cargo/
+    policy: pull-push
   before_script:
-    - export RELEASE="dev"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
   script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
-  after_script:
-    - docker buildx stop
-    - docker buildx rm
+    - cd lldap/
+    - rustc --version
+    - cargo build --target=x86_64-unknown-linux-gnu --release -p lldap -p migration-tool
+    - ls -al $CI_PROJECT_DIR/target/
+  artifacts:
+    paths:
+      - target/x86_64-unknown-linux-gnu/release/lldap
+      - target/x86_64-unknown-linux-gnu/release/migration-tool
   only:
-    variables:
-      - $DEV == "true"
     changes:
-      - Dockerfile.dev
+      - Dockerfile.ci
+
+
+build-lldap-arm64:
+  image: 192.168.0.2:5050/dedyms/lldap:dev
+  stage: build-bin
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG-arm64"
+    paths:
+      - $CI_PROJECT_DIR/target
+      - .cargo/
+    policy: pull-push
+  before_script:
+    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+    - export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu/
+    - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+  script:
+    - cd lldap/
+    - rustc --version
+    - cargo build --target=aarch64-unknown-linux-gnu --release -p lldap -p migration-tool
+    - ls -al $CI_PROJECT_DIR/target/
+  artifacts:
+    paths:
+      - target/aarch64-unknown-linux-gnu/release/lldap
+      - target/aarch64-unknown-linux-gnu/release/migration-tool
+  only:
+    changes:
+      - Dockerfile.ci
+
+build-js:
+  image: 192.168.0.2:5050/dedyms/lldap:dev
+  stage: build-bin
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG-js"
+    paths:
+      - .npm-cache/
+      - $CI_PROJECT_DIR/target
+      - .cargo/
+    policy: pull-push
+  before_script:
+    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+  script:
+    - cd lldap/
+    - rustc --version
+    - app/build.sh
+    - ls -al app
+  artifacts:
+    paths:
+      - lldap/app 
+      - lldap/docker-entrypoint.sh
+      - lldap/lldap_config.docker_template.toml
+  only:
+    changes:
+      - Dockerfile.ci
+
 
 buildx-git:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
+  needs: ["build-js","build-lldap-amd64","build-lldap-arm64"]
+  stage: dockerize
   #services:
   #  - docker:dind
   before_script:
@@ -35,6 +105,10 @@ buildx-git:
     - export RELEASE="git"
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
+    - ls -al
+    - ls -al lldap
+    - ls -al lldap/app
+    - ls -al target
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
@@ -43,14 +117,13 @@ buildx-git:
     #- docker buildx create --append --name nginx-builder node-arm64
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.ci
   after_script:
     - docker buildx stop
     - docker buildx rm -f
   only:
     changes:
-      - Dockerfile
-
+      - Dockerfile.ci
 
 #remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
 #localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")
@@ -76,3 +149,24 @@ buildx-git:
 #    BUILDVARIANT - variant component of BUILDPLATFORM
 #These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
 #To expose one of these arguments inside the build stage redefine it without value.
+
+
+buildx-dev:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dev
+  before_script:
+    - export RELEASE="dev"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    variables:
+      - $DEV == "true"
+    changes:
+      - Dockerfile.dev
