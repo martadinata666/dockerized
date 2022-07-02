@@ -1,0 +1,3 @@
+We cut our build times roughly in half, down to 15-20 minutes from 30-45 minutes.
+Why not more? The sccache cannot cache any Crates that depend on C libraries, as such they are build every time. \
+The linking in the end is still needed for each run and takes a good portion of the total build time.
