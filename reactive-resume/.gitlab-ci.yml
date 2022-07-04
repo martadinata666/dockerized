@@ -61,7 +61,7 @@ build-js:
 
 
 buildx-docker-v3:
-  cache: []
+  needs: ["build-js"]
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized
   before_script:
@@ -101,8 +101,8 @@ build-js-git:
     - apt update && apt install -y --no-install-recommends git jq curl
     #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     #- echo $RELEASE
-    #- git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
-    - git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git reactive-resume
+    - git clone --depth=1 https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
+    #- git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
     - pnpm install --no-frozen-lockfile
@@ -130,7 +130,7 @@ build-js-git:
 
 
 buildx-docker-git:
-  cache: []
+  needs: ["build-js-git"]
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized
   before_script:

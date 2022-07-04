@@ -4,9 +4,9 @@ ARG RELEASE
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 # Any repo that need testing
-#RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
+RUN git clone --depth=1 https://github.com/AmruthPillai/Reactive-Resume.git /reactiveresume
 #RUN git clone --depth=1 https://github.com/dvd741-a/Reactive-Resume.git /reactiveresume
-RUN git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git /reactiveresume
+#RUN git clone --depth=1 -b local-storage https://github.com/martadinata666/Reactive-Resume.git /reactiveresume
 COPY reactive-resume /reactiveresume
 WORKDIR /reactiveresume
 RUN npm set-script prepare "" && \
@@ -28,10 +28,11 @@ RUN echo 'deb http://deb.debian.org/debian bullseye non-free' > /etc/apt/sources
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /ms-playwright /ms-playwright
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER /reactiveresume $HOME/reactiveresume
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor $HOME/supervisor
-RUN apt update && \
-    apt install -y --no-install-recommends supervisor ps-watcher libatk1.0-0 libglib2.0-0 libnss3 libatk-bridge2.0-0 libcups2 \
-                                           libdrm2 libdbus-1-3 libxkbcommon0 libxcomposite1 libxdamage1 libxext6 \
-                                           libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 && \
+RUN PLAYWRIGHT_VERSION=$(grep -m1 "playwright" $HOME/reactiveresume/server/package.json | cut -c30-35) && \
+    echo $PLAYWRIGHT_VERSION && \
+    pnpx --yes playwright@${PLAYWRIGHT_VERSION} install-deps chromium && \
+    apt update && \
+    apt install -y --no-install-recommends supervisor ps-watcher && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR $HOME/reactiveresume
