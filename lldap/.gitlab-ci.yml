@@ -4,9 +4,13 @@ variables:
   CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
-  RUSTFLAGS: "-Ctarget-feature=-crt-static"
+  RUSTFLAGS: "-Ctarget-feature=+crt-static"
   OPENSSL_INCLUDE_DIR: "/usr/include/openssl/"
   CARGO_TERM_COLOR: always
+  SCCACHE_ENDPOINT: "http://192.168.0.2:9000"
+  SCCACHE_REGION: "us-east-1"
+  SCCACHE_BUCKET: "sccache"
+  RUSTC_WRAPPER: "sccache"
   DEV: ""
 
 stages:
@@ -15,7 +19,7 @@ stages:
   - dev
 
 build-lldap-amd64:
-  image: 192.168.0.2:5050/dedyms/lldap:dev
+  image: 192.168.0.2:5050/dedyms/debian:rust-dev
   stage: build-bin
   cache: 
     key: "$CI_COMMIT_REF_SLUG-amd64"
@@ -25,6 +29,7 @@ build-lldap-amd64:
     policy: pull-push
   before_script:
     - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+    - export SCCACHE_S3_KEY_PREFIX=amd64
   script:
     - cd lldap/
     - rustc --version
@@ -40,7 +45,7 @@ build-lldap-amd64:
 
 
 build-lldap-arm64:
-  image: 192.168.0.2:5050/dedyms/lldap:dev
+  image: 192.168.0.2:5050/dedyms/debian:rust-dev
   stage: build-bin
   cache: 
     key: "$CI_COMMIT_REF_SLUG-arm64"
@@ -52,6 +57,7 @@ build-lldap-arm64:
     - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
     - export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu/
     - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+    - export SCCACHE_S3_KEY_PREFIX=arm64
   script:
     - cd lldap/
     - rustc --version
@@ -66,7 +72,7 @@ build-lldap-arm64:
       - Dockerfile.ci
 
 build-js:
-  image: 192.168.0.2:5050/dedyms/lldap:dev
+  image: 192.168.0.2:5050/dedyms/debian:rust-dev
   stage: build-bin
   cache: 
     key: "$CI_COMMIT_REF_SLUG-js"
@@ -77,6 +83,11 @@ build-js:
     policy: pull-push
   before_script:
     - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+    - export SCCACHE_S3_KEY_PREFIX=amd64
+    - export PATH="$CI_PROJECT_DIR/.cargo/bin:$PATH"
+    - export RUSTFLAGS="-Ctarget-feature=-crt-static"
+    - npm install -g rollup
+    - cargo install wasm-pack --target x86_64-unknown-linux-gnu
   script:
     - cd lldap/
     - rustc --version
