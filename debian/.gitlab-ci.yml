@@ -3,13 +3,15 @@ variables:
   RELEASE: ""
   UPDATE: ""
   DATE: ""
-  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/debian"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/debian"
   GITHUB_REPO_NAME: "jellyfin/jellyfin-ffmpeg"
+  SCCACHE_REPO_NAME: "mozilla/sccache"
 
 stages:
   - build-base
   - build-base-dev
   - build-vaapi
+  - other
 
 buildx-baseimage:
   cache: {}
@@ -89,3 +91,26 @@ buildx-vaapi:
       - master
     changes:
       - bullseye/Dockerfile.vaapi
+
+build-rust:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: other
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$SCCACHE_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 --build-arg SCCACHE_VERSION=$RELEASE -t "$CI_REGISTRY_IMAGE:rust-dev" -t "$CI_DOCKERHUB_REGISTRY:rust-dev" . -f Dockerfile.rust-dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    refs:
+      - master
+    changes:
+      - Dockerfile.rust-dev
