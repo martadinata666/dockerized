@@ -3,7 +3,13 @@ variables:
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
   CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   DEV: ""
-  FF_USE_FASTZIP: 0
+  SCCACHE_ENDPOINT: "192.168.0.2:9000"
+  SCCACHE_REGION: "us-east-1"
+  SCCACHE_BUCKET: "sccache"
+  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+  SCCACHE_S3_KEY_PREFIX: "amd64"
+  RUSTFLAGS: "-Ctarget-feature=+crt-static"
+  
 
 stages:
   - build-web
@@ -39,7 +45,7 @@ create-web:
       - Dockerfile
 
 create-app:
-  image: 192.168.0.2:5050/dedyms/dim:dev-rust
+  image: 192.168.0.2:5050/dedyms/debian:rust-dev
   stage: build-app
   cache: 
     key: "$CI_COMMIT_REF_SLUG"
@@ -49,9 +55,11 @@ create-app:
     policy: pull-push
   before_script:
     - export DATABASE_URL="sqlite://dim_dev.db"
+    - apt update
+    - apt install -y --no-install-recommends ca-certificates libva2 libva-dev sqlite3 libdrm2 libdrm-dev libdrm-amdgpu1 curl build-essential pkg-config libssl-dev
   script:
     - cd dim/
-    - cargo build --features vaapi --release
+    - cargo build --target=x86_64-unknown-linux-gnu --release
   artifacts:
     paths:
       - dim
