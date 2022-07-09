@@ -25,15 +25,20 @@ build-lldap-amd64:
     key: "$CI_COMMIT_REF_SLUG-amd64"
     paths:
       - $CI_PROJECT_DIR/target
-      - .cargo/
+      - $CI_PROJECT_DIR/.cargo/bin
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
     policy: pull-push
   before_script:
-    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
     - export SCCACHE_S3_KEY_PREFIX=amd64
+    - apt update && apt install -y jq
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
     - cd lldap/
     - rustc --version
-    - cargo update --aggressive
     - cargo build --target=x86_64-unknown-linux-gnu --release -p lldap -p migration-tool
     - ls -al $CI_PROJECT_DIR/target/
   artifacts:
@@ -52,17 +57,22 @@ build-lldap-arm64:
     key: "$CI_COMMIT_REF_SLUG-arm64"
     paths:
       - $CI_PROJECT_DIR/target
-      - .cargo/
+      - $CI_PROJECT_DIR/.cargo/bin
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
     policy: pull-push
   before_script:
-    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+    - apt update && apt install -y jq
     - export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu/
     - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
     - export SCCACHE_S3_KEY_PREFIX=arm64
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
     - cd lldap/
     - rustc --version
-    - cargo update --aggressive
     - cargo build --target=aarch64-unknown-linux-gnu --release -p lldap -p migration-tool
     - ls -al $CI_PROJECT_DIR/target/
   artifacts:
@@ -80,18 +90,21 @@ build-js:
     key: "$CI_COMMIT_REF_SLUG-js"
     paths:
       - .npm-cache/
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
       - $CI_PROJECT_DIR/target
-      - .cargo/
     policy: pull-push
   before_script:
-    - git clone --depth=1 https://github.com/nitnelave/lldap.git lldap
+    - apt update && apt install -y jq
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
     - export SCCACHE_S3_KEY_PREFIX=amd64
     - export PATH="$CI_PROJECT_DIR/.cargo/bin:$PATH"
     - export RUSTFLAGS="-Ctarget-feature=-crt-static"
-    - rustc --version
+    - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
     - cd lldap/
-    - cargo update --aggressive
     - cargo install wasm-pack
     - npm install -g rollup
     - app/build.sh
@@ -115,8 +128,8 @@ buildx-git:
   #  - docker:dind
   before_script:
     #- apk add curl jq
-    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
-    - export RELEASE="git"
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export RELEASE="git"
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - ls -al
