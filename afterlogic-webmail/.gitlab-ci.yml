@@ -64,7 +64,7 @@ build-themes-admin-ui:
     - cd ./modules/AdminPanelWebclient/vue
     - npm -d install
     - cd ../../../
-    - gulp styles --themes Default,DeepForest,Funny,Sand
+    - gulp styles --themes Default,DefaultDark,DeepForest,Funny,Sand
     - gulp js:min
     - cd modules/AdminPanelWebclient/vue
     - npm -d run build-production
