@@ -54,8 +54,8 @@ buildx-dev:
     - docker buildx stop
     - docker buildx rm
   only:
-    variables:
-      - $DEV == "true"
+    changes:
+      - Dockerfile.dev
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.

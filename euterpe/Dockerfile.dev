@@ -1,5 +1,4 @@
-
-FROM golang:1.17-bullseye
+FROM golang:1.18-bullseye
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libtagc0-dev upx-ucl libicu-dev git ssl-cert make && \
     apt clean && \
