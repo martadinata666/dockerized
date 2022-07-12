@@ -1,6 +1,5 @@
-
 # Builder
-FROM golang:1.17-bullseye
+FROM golang:1.18-bullseye
 ARG TARGETARCH
 #ARG VERSION=$VERSION
 #ENV CADVISOR_VERSION=$VERSION
