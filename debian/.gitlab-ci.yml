@@ -105,7 +105,7 @@ build-rust:
   script:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64 --build-arg SCCACHE_VERSION=$RELEASE -t "$CI_REGISTRY_IMAGE:rust-dev" -t "$CI_DOCKERHUB_REGISTRY:rust-dev" . -f Dockerfile.rust-dev
+    - docker buildx build --push --platform linux/amd64 --build-arg SCCACHE_VERSION=$RELEASE -t "$CI_REGISTRY_IMAGE:rust-dev" . -f Dockerfile.rust-dev
   after_script:
     - docker buildx stop
     - docker buildx rm
