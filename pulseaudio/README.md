@@ -353,4 +353,29 @@ Cookie: 265e:39cc
 
 ```
 
+### Override pulseaudio.service
+```
+#/etc/systemd/system/pulseaudio.service
+# systemd service spec for pulseaudio running in system mode -- not recommended though!
+# on arch, put it under /etc/systemd/system/pulseaudio.service
+# start with: systemctl start pulseaudio.service
+# enable on boot: systemctl enable pulseaudio.service 
+[Unit]
+Description=Pulseaudio sound server
+After=avahi-daemon.service network.target
+
+[Service]
+ExecStart=/usr/local/bin/pulseaudio --disallow-exit
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=30
+User=pi
+WorkingDirectory=/home/pi
+
+
+[Install]
+WantedBy=multi-user.target
+
+```
+
 #### NB: I prefer wipe out system installed pulseaudio, just for preventing library clash.
