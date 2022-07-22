@@ -4,9 +4,10 @@ variables:
   CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
   CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
-  RUSTFLAGS: "-Ctarget-feature=+crt-static"
-  OPENSSL_INCLUDE_DIR: "/usr/include/openssl/"
-  CARGO_TERM_COLOR: always
+  # Static build success break email function due libssl issue
+  RUSTFLAGS: "-Ctarget-feature=-crt-static"
+  #OPENSSL_STATIC: "1"
+  CARGO_TERM_COLOR: "always"
   SCCACHE_ENDPOINT: "192.168.0.2:9000"
   SCCACHE_REGION: "us-east-1"
   SCCACHE_BUCKET: "sccache"
@@ -31,9 +32,13 @@ build-lldap-amd64:
       - $CI_PROJECT_DIR/.cargo/git/db
     policy: pull-push
   before_script:
+    - apt update
+    - apt install -y --no-install-recommends libssl-dev
     - export SCCACHE_S3_KEY_PREFIX=amd64
-    - apt update && apt install -y jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export OPENSSL_INCLUDE_DIR=/usr/include/openssl/
+    - export OPENSSL_LIB_DIR=/usr/lib/x86_64-linux-gnu/
+    - export OPENSSL_STATIC=yes
     - echo $RELEASE
     - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
@@ -63,15 +68,18 @@ build-lldap-arm64:
       - $CI_PROJECT_DIR/.cargo/git/db
     policy: pull-push
   before_script:
-    - apt update && apt install -y jq
-    - export OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu/
+    - apt update
+    - apt install -y --no-install-recommends libssl-dev:arm64
+    - export OPENSSL_INCLUDE_DIR=/opt/openssl-arm64/include
+    - export OPENSSL_LIB_DIR=/opt/openssl-arm64/lib
+    - export OPENSSL_STATIC=yes
     - export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
     - export SCCACHE_S3_KEY_PREFIX=arm64
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
-    - cd lldap/
+    - cd ${CI_PROJECT_DIR}/lldap/
     - rustc --version
     - cargo build --target=aarch64-unknown-linux-gnu --release -p lldap -p migration-tool
     - ls -al $CI_PROJECT_DIR/target/
@@ -96,16 +104,14 @@ build-js:
       - $CI_PROJECT_DIR/target
     policy: pull-push
   before_script:
-    - apt update && apt install -y jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - export SCCACHE_S3_KEY_PREFIX=amd64
     - export PATH="$CI_PROJECT_DIR/.cargo/bin:$PATH"
-    - export RUSTFLAGS="-Ctarget-feature=-crt-static"
     - git clone --depth=1 -b $RELEASE https://github.com/nitnelave/lldap.git lldap
   script:
     - cd lldap/
-    - cargo install wasm-pack
+    - npm install -g wasm-pack
     - npm install -g rollup
     - app/build.sh
     - ls -al app
@@ -119,7 +125,7 @@ build-js:
       - Dockerfile.ci
 
 
-buildx-git:
+buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   needs: ["build-js","build-lldap-amd64","build-lldap-arm64"]
