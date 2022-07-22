@@ -6,10 +6,10 @@ RUN apt update && \
     apt install -y --no-install-recommends meson g++ \
     libfmt-dev \
     libpcre2-dev \
-    libmad0-dev libmpg123-dev libid3tag0-dev \
+    libmad0-dev libid3tag0-dev \
     libflac-dev libvorbis-dev libopus-dev libogg-dev \
     libsndfile1-dev libfaad-dev libwavpack-dev \
-    libmp3lame-dev libtwolame-dev libshine-dev \
+    libmp3lame-dev \
     libsamplerate0-dev libcurl4-gnutls-dev libyajl-dev libexpat-dev libshout3-dev \
     libmpdclient-dev \
     libsqlite3-dev \
