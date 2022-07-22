@@ -18,7 +18,7 @@ RUN case ${TARGETPLATFORM} in \
          "linux/amd64")  QBIT_ARCH=x86_64  ;; \
          "linux/arm64")  QBIT_ARCH=aarch64  ;; \
     esac \ 
-    && curl -L https://github.com/userdocs/qbittorrent-nox-static/releases/download/$QBVERSION/${QBIT_ARCH}-icu-qbittorrent-nox -o qbittorrent-nox && \
+    && curl -L https://github.com/userdocs/qbittorrent-nox-static/releases/download/$QBVERSION/$QBIT_ARCH-qbittorrent-nox -o qbittorrent-nox && \
     mv ./qbittorrent-nox $HOME/.local/bin/qbittorrent-nox; 
 
 #RUN if [ "${TARGETARCH}" = "amd64" ]; then \
