@@ -59,10 +59,10 @@ build-themes-admin-ui:
   script:
     - cd web
     - ls -al;
-    - npm -d install
+    - npm -d install --no-audit
     - npm -d install -g gulp-cli @quasar/cli
     - cd ./modules/AdminPanelWebclient/vue
-    - npm -d install
+    - npm -d install --no-audit
     - cd ../../../
     - gulp styles --themes Default,DefaultDark,DeepForest,Funny,Sand
     - gulp js:min
