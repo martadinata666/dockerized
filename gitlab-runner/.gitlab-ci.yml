@@ -1,6 +1,6 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/gitlab-runner"
-  GITHUB_REPO_NAME: "user/appname"
+  GITHUB_REPO_NAME: "gitlabhq/gitlab-runner"
   GITLAB_RUNNER_VERSION: ""
   # v14.8.0
   # helper-v14.8.0
@@ -33,7 +33,7 @@ buildx-gitlab-runner:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: addon-runner-helper
   before_script:
-    - export RELEASE=$GITLAB_RUNNER_VERSION
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/gitlabhq/gitlab-runner/tags" | jq -r 'first(.[] | .name )')
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
