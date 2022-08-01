@@ -2,6 +2,16 @@
 variables:
   RELEASE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/iperf3"
+#  DOCKER_HOST: tcp://localhost:2376
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_TLS_VERIFY: '0'
+  #DOCKER_TLS_CERTDIR: '/certs'
+  #DOCKER_CERT_PATH: '/certs/client'
+
+  # Faster than the default, apparently
+  DOCKER_DRIVER: overlay2
+
+  #DOCKER_VERSION: '20.10'
   #DOCKER_HOST: tcp://192.168.0.2:2375/
 
 buildx-stable:
@@ -9,8 +19,9 @@ buildx-stable:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   #image: docker:latest
   stage: build
-  #services:
-  #  - docker:dind
+#  services:
+    #- 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#    - docker:dind
   before_script:
     - export RELEASE="bullseye"
     - export
