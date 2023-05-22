@@ -1,0 +1,49 @@
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Check out the our repo
+        uses: actions/checkout@v3
+        
+      - name: Clone upstream repo
+        run: |
+             git clone --depth=1 https://git.torrents-csv.ml/heretic/torrents-csv-ui-perseus.git torrents-csv-ui
+             cp Dockerfile.ui torrents-csv-ui/Dockerfile
+             cd torrents-csv-ui/
+             tree ./
+             
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/torrents-csv
+          tags: |
+             type=raw,value=latest
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3
+        with:
+          context: torrents-csv-ui/
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/torrents-csv:ui
+          labels: ${{ steps.meta.outputs.labels }}

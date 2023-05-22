@@ -1,0 +1,17 @@
+
+FROM docker
+
+ENV SLEEP_TIME='5m'
+ENV FILTER_SERVICES=''
+ENV TZ='UTC'
+ENV VERBOSE='true'
+ENV AVATAR_URL=''
+ENV USER=''
+
+
+
+RUN apk add --update --no-cache bash curl tzdata
+
+COPY shepherd.discord /usr/local/bin/shepherd
+
+ENTRYPOINT ["/usr/local/bin/shepherd"]

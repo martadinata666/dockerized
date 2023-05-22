@@ -1,0 +1,7 @@
+FROM 192.168.0.2:5050/dedyms/node:lts
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER jellyfin-vue/frontend/dist/ /var/www/html
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER static/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER jellyfin-vue jellyfin-vue
+WORKDIR $HOME/jellyfin-vue
+RUN npm -d ci --no-audit
+CMD ["npm","run","serve"]

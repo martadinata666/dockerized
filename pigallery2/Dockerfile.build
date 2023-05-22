@@ -1,0 +1,14 @@
+
+### FFMPEG
+FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+
+FROM 192.168.0.2:5050/dedyms/node:lts-dev
+RUN apt update && apt install -y --no-install-recommends python3
+COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin /home/$CONTAINERUSER/.local/bin
+USER $CONTAINERUSER
+RUN git clone --depth=1 https://github.com/bpatrik/pigallery2.git $HOME/pigallery2
+WORKDIR $HOME/pigallery2
+RUN sed '153,154d' package.json 
+    npm install -d --save-prod --omit=optional mysql2@latest && \
+    npm install -d gulp && \
+    npm run -d create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static --languanges=en

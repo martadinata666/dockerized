@@ -1,0 +1,48 @@
+
+### FFMPEG
+FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+
+#-----------------BUILDER-----------------
+#-----------------------------------------
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
+ARG DATE
+ENV NODE_ENV=production
+#RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends libvips-dev
+COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin /usr/local/bin
+#RUN npm -g install npm && \
+#    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
+#    unzip pigallery2.zip -d pigallery2
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER pigallery2/release pigallery2
+WORKDIR $HOME/pigallery2
+RUN npm -d install --only=prod --no-audit --no-optional --cache=/dev/shm 
+#RUN npm ci --prod
+
+#-----------------MAIN--------------------
+#-----------------------------------------
+FROM 192.168.0.2:5050/dedyms/node:lts
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends netcat-openbsd wget libvips42 && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/*
+COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/pigallery2 $HOME/pigallery2
+COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
+COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffprobe /usr/local/bin/ffprobe
+COPY wait-for /usr/local/bin/wait-for
+RUN sudo mkdir -p $HOME/pigallery2/data && \
+    sudo mkdir -p /images && \
+    sudo mkdir -p /preview && \
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /preview /images $HOME/pigallery2/data
+WORKDIR $HOME/pigallery2
+USER $CONTAINERUSER
+VOLUME ["$HOME/pigallery2/data", "/images", "/preview"]
+ENV NODE_ENV=production \
+    PI_DOCKER=true \
+    default-Database-type=mysql \
+    default-Media-folder=/images \
+    default-Media-tempFolder=/preview \
+    default-Preview-Sorting=[4] \
+    default-Gallery-defaultPhotoSortingMethod=descDate
+CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json --Database-type=mysql --Media-folder=/images --Media-tempFolder=/preview --Preview-Sorting=[4] --Gallery-defaultPhotoSortingMethod=descDate"]
+#CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json"]

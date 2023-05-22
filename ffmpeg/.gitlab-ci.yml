@@ -1,0 +1,87 @@
+variables:
+  GIT_STRATEGY: clone # clone entire repo instead of reusing workspace
+  GIT_DEPTH: 1
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/ffmpeg"
+
+stages:
+  - build
+  - trigger
+
+buildx-ffmpeg:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - export NEO_RELEASE=$(grep -m1 "NEO_VERSION" ${TARGET}/Dockerfile | cut -c17-)
+    - echo $NEO_RELEASE
+    - export FFMPEG_RELEASE=$(grep -m1 "FFMPEG_VERSION" ${TARGET}/Dockerfile | cut -c21-)
+    - echo $FFMPEG_RELEASE
+    - export SHORT_FFMPEG_RELEASE=$(grep -m1 "FFMPEG_VERSION" ${TARGET}/Dockerfile | cut -c21)
+    - echo $SHORT_FFMPEG_RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64
+      -t "$CI_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE"
+      -t "$CI_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE" . -f $TARGET/Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    changes:
+      - 4/Dockerfile
+      - 5/Dockerfile
+      - 6/Dockerfile
+  parallel:
+    matrix:
+      - TARGET: [4,6]
+
+trigger-ffmpeg:
+  image: 192.168.0.2:5050/dedyms/debian:latest
+  needs: ["buildx-ffmpeg"]
+  stage: trigger
+  script:
+    - curl -X POST --fail
+      -F token=$SHINOBI_TOKEN
+      -F ref=master
+      -F "variables[TYPE]=main"
+      https://gitlab.ddyms.space/api/v4/projects/35/trigger/pipeline
+    - curl -X POST
+      -F token=$JELLYFIN_TOKEN
+      -F ref=master
+      -F "variables[TYPE]=stable"
+      https://gitlab.ddyms.space/api/v4/projects/33/trigger/pipeline
+  only:
+    changes:
+      - Dockerfile
+
+
+#remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
+#localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")
+#if [[ ! $remoteVersion == $localVersion ]]; then
+#  echo "Updating to commit $remoteVersion"
+#  curl --request PUT --header "PRIVATE-TOKEN: $PAT_TOKEN" \
+#     --header "Content-Type: application/json" \
+#     --data '{"branch": "master", "author_email": "update@bocki.bot", "author_name": "Update Bot",
+#       "content": "'"$remoteVersion"'", "commit_message": "Update to '$remoteVersion'"}' \
+#     "https://gitlab.com/api/v4/projects/19217373/repository/files/version"
+#else
+#  echo "Up to date"
+#fi
+
+#The following ARG variables are set automatically:
+#    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
+#    TARGETOS - OS component of TARGETPLATFORM
+#    TARGETARCH - architecture component of TARGETPLATFORM
+#    TARGETVARIANT - variant component of TARGETPLATFORM
+#    BUILDPLATFORM - platform of the node performing the build.
+#    BUILDOS - OS component of BUILDPLATFORM
+#    BUILDARCH - architecture component of BUILDPLATFORM
+#    BUILDVARIANT - variant component of BUILDPLATFORM
+#These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
+#To expose one of these arguments inside the build stage redefine it without value.

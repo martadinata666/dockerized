@@ -1,0 +1,62 @@
+variables:
+  GIT_STRATEGY: clone # clone entire repo instead of reusing workspace
+  GIT_DEPTH: 1
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/go"
+  GITHUB_REPO_NAME: "user/appname"
+
+buildx-stable:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  #services:
+  #  - docker:dind
+  before_script:
+    #- apk add curl jq
+#    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE=$(grep -m1 "GO_VERSION" Dockerfile | cut -c16-)
+    - echo $RELEASE
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME"
+    #- docker buildx create --append --name nginx-builder node-arm64
+    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - Dockerfile
+
+
+#remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
+#localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")
+#if [[ ! $remoteVersion == $localVersion ]]; then
+#  echo "Updating to commit $remoteVersion"
+#  curl --request PUT --header "PRIVATE-TOKEN: $PAT_TOKEN" \
+#     --header "Content-Type: application/json" \
+#     --data '{"branch": "master", "author_email": "update@bocki.bot", "author_name": "Update Bot",
+#       "content": "'"$remoteVersion"'", "commit_message": "Update to '$remoteVersion'"}' \
+#     "https://gitlab.com/api/v4/projects/19217373/repository/files/version"
+#else
+#  echo "Up to date"
+#fi
+
+#The following ARG variables are set automatically:
+#    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
+#    TARGETOS - OS component of TARGETPLATFORM
+#    TARGETARCH - architecture component of TARGETPLATFORM
+#    TARGETVARIANT - variant component of TARGETPLATFORM
+#    BUILDPLATFORM - platform of the node performing the build.
+#    BUILDOS - OS component of BUILDPLATFORM
+#    BUILDARCH - architecture component of BUILDPLATFORM
+#    BUILDVARIANT - variant component of BUILDPLATFORM
+#These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
+#To expose one of these arguments inside the build stage redefine it without value.

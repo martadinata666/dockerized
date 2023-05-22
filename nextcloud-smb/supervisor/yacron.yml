@@ -1,0 +1,72 @@
+jobs:
+  - name: nextcloud-cron
+    command: php -f /var/www/html/cron.php
+    # every 5 minutes
+    schedule: "*/5 * * * *"
+    utc: false
+#    executionTimeout: 299
+    concurrencyPolicy: Forbid
+
+#  - name: nextcloud-preview-generate
+#    command: /var/www/html/occ preview:pre-generate
+#    # hourly
+#    schedule: "0 * * * *"
+#    utc: false
+#    failsWhen:
+#      producesStdout: false
+    #  producesStderr: false
+    #executionTimeout: 120
+#    concurrencyPolicy: Forbid
+
+  - name: nextcloud-facerecognition
+    command: /var/www/html/occ face:background_job -vv
+    # hourly
+    schedule: "0 * * * *"
+    utc: false
+    failsWhen:
+      producesStdout: false
+    #  producesStderr: false
+    #executionTimeout: 30
+    concurrencyPolicy: Forbid
+
+#  - name: nextcloud-fulltextsearch
+#    command: /var/www/html/occ fulltextsearch:index -q
+#    concurrencyPolicy: Forbid
+    # every 3 hours
+#    schedule: "0 */3 * * *"
+#    utc: false
+#    failsWhen:
+#      producesStdout: false
+#      producesStderr: false
+    #executionTimeout: 120
+
+
+  - name: nextcloud-memories
+    command: /var/www/html/occ memories:index
+    # hourly
+    schedule: "0 * * * *"
+    concurrencyPolicy: Forbid
+    utc: false
+    failsWhen:
+      producesStdout: false
+    #  producesStderr: false
+    #executionTimeout: 120
+
+logging:
+  # In the format of:
+  # https://docs.python.org/3/library/logging.config.html#dictionary-schema-details
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    simple:
+      format: '%(asctime)s %(levelname)s [%(name)s]: %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  root:
+    level: INFO
+    handlers:
+      - console

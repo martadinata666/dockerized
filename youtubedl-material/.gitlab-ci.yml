@@ -1,0 +1,54 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/youtubedl-material"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+stages:
+  - frontend
+  - dockerize
+
+build-frontend:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: frontend
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .npm-cache/
+    policy: pull-push
+  before_script:
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 999999999
+    - git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
+    #- git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
+    - sudo npm -d install -g @angular/cli
+  script:
+    - cd ytdl
+    - npm -d ci
+    - ng build --configuration production
+    - ls -al
+  artifacts:
+    paths:
+      - ytdl/backend/public/
+  only:
+    changes:
+      - Dockerfile
+
+buildx-git:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerize
+  before_script:
+    - export RELEASE="git"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    changes:
+      - Dockerfile

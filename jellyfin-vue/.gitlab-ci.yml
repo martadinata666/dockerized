@@ -1,0 +1,65 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/jellyfin-vue"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  PNPM_HOME: "$CI_PROJECT_DIR"
+
+stages:
+  - build-js
+  - dockerize
+
+build-static-js:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-js
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .npm-cache/
+    policy: pull-push
+  before_script:
+    - export HISTORY_ROUTER_MODE=1
+    - export IS_STABLE=0
+    # Set environment variables
+    - export HISTORY_ROUTER_MODE=$HISTORY_ROUTER_MODE
+    - export NUXT_ENV_COMMIT=""
+  script:
+    - git clone --depth=1 https://github.com/jellyfin/jellyfin-vue.git jellyfin-vue
+    - cd jellyfin-vue
+    - export COMMIT_HASH=$(git rev-parse HEAD)
+    - npm -d -timeout=9999999 ci --no-audit
+    - npm -d run build
+  artifacts:
+    paths:
+      - jellyfin-vue/frontend/dist
+
+dockerize:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerize
+  needs: ["build-static-js"]
+  #services:
+  #  - docker:dind
+  before_script:
+    - export RELEASE="static"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-tukang --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 
+      -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" 
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f static/Dockerfile.ci
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - static/Dockerfile.ci

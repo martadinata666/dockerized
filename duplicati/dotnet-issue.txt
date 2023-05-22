@@ -1,0 +1,5 @@
+Cannot use file stream for [/home/debian/duplicati/Duplicati.Server.deps.json]: No such file or directory
+A fatal error was encountered. The library 'libhostpolicy.so' required to execute the application was not found in '/home/debian/duplicati/'.
+Failed to run as a self-contained app.
+  - The application was run as a self-contained app because '/home/debian/duplicati/Duplicati.Server.runtimeconfig.json' was not found.
+  - If this should be a framework-dependent app, add the '/home/debian/duplicati/Duplicati.Server.runtimeconfig.json' file and specify the appropriate framework.

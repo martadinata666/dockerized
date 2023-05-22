@@ -1,0 +1,30 @@
+{
+    "listen": ":443",
+
+    "ssl": true,
+
+    "ssl_certificate": {
+        "crt": "/etc/ssl/localcerts/euterpe.pem",
+        "key": "/etc/ssl/localcerts/euterpe.key"
+    },
+
+    "basic_authenticate": false,
+
+    "authentication": {
+        "user": "admin",
+        "password": "adminadmin"
+    },
+
+    "libraries": [
+        "/home/debian/musics"
+    ],
+
+    "library_scan": {
+        "files_per_operation": 1500,
+        "sleep_after_operation": "15ms",
+        "initial_wait_duration": "5s"
+    },
+
+    "download_artwork": true,
+    "discogs_auth_token": "personal-discogs-token-value"
+}

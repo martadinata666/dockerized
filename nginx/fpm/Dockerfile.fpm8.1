@@ -1,0 +1,40 @@
+FROM martadinata666/yacron:ci as yacron
+
+FROM 192.168.0.2:5050/dedyms/debian:latest AS sslgenerator
+USER root
+RUN apt update && apt install -y ssl-cert
+
+FROM 192.168.0.2:5050/dedyms/php-fpm:8.1
+USER root
+COPY mainline/99nginx /etc/apt/preferences.d/99nginx
+RUN apt update && \
+    apt install -y --no-install-recommends curl gnupg2 ca-certificates lsb-release debian-archive-keyring supervisor bash libexpat1 ssl-cert ca-certificates && \
+    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+    apt update && \
+    apt install -y --no-install-recommends nginx && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/ssl/localcerts && \
+    mkdir -p /var/www/html && \
+    mkdir -p /var/cache/nginx && \
+    mkdir -p /run/nginx/ && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
+    touch /run/nginx/nginx.pid && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER /var/www/html /run/nginx/nginx.pid /var/cache/nginx/ /var/log/nginx/
+
+COPY --from=yacron --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/yacron /usr/local/bin/yacron
+COPY --from=sslgenerator /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/localcerts/nginx.pem
+COPY --from=sslgenerator /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/localcerts/nginx.key
+RUN chmod 666 /etc/ssl/localcerts/nginx*
+
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER fpm/default.conf /etc/nginx/conf.d/default.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER fpm/nginx.conf /etc/nginx/nginx.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER fpm/supervisor /supervisor
+
+USER $CONTAINERUSER
+WORKDIR /var/www/html
+ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
+CMD ["supervisord","-c","/supervisor/supervisord.conf"]

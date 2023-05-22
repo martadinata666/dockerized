@@ -1,0 +1,35 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest AS tukang
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETPLATFORM
+COPY target/ bin/
+RUN mkdir -p target/
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/x86_64-unknown-linux-gnu/release/libreddit target/libreddit && \
+    sudo chmod +x target/libreddit && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-unknown-linux-gnu/release/libreddit target/libreddit && \
+    sudo chmod +x target/libreddit && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG RELEASE
+ENV LIBREDDIT_VERSION=$RELEASE
+ENV LIBREDDIT_DEFAULT_THEME=dark
+ENV LIBREDDIT_DEFAULT_FRONT_PAGE=popular
+ENV LIBREDDIT_DEFAULT_LAYOUT=card
+ENV LIBREDDIT_DEFAULT_WIDE=off
+ENV LIBREDDIT_DEFAULT_COMMENT_SORT=new
+ENV LIBREDDIT_DEFAULT_POST_SORT=new
+ENV LIBREDDIT_DEFAULT_SHOW_NSFW=on
+ENV LIBREDDIT_DEFAULT_USE_HLS=on
+ENV LIBREDDIT_DEFAULT_HIDE_HLS_NOTIFICATION=off
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/libreddit $HOME/.local/bin/libreddit
+USER $CONTAINERUSER
+EXPOSE 8080
+CMD ["libreddit"]

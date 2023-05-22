@@ -1,0 +1,6 @@
+#syntax=docker/dockerfile:1.4
+FROM registry.gitlab.com/dedyms/sid-slim:node16
+RUN apt update && apt install -y --no-install-recommends zip unzip git wget build-essential && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+CMD ["/bin/bash"]

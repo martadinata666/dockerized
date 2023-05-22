@@ -1,0 +1,49 @@
+{
+  "name": "shinobi-tensorflow",
+  "author": "Shinob Systems, Moinul Alam",
+  "version": "1.0.0",
+  "description": "Object Detection plugin based on @tensorflow/tfjs-node",
+  "main": "shinobi-tensorflow.js",
+  "dependencies": {
+      "@tensorflow-models/coco-ssd": "2.2.2",
+      "@tensorflow/tfjs-backend-cpu": "2.7.0",
+      "@tensorflow/tfjs-backend-webgl": "2.7.0",
+      "@tensorflow/tfjs-converter": "2.7.0",
+      "@tensorflow/tfjs-core": "2.7.0",
+      "@tensorflow/tfjs-layers": "2.7.0",
+      "@tensorflow/tfjs-node": "2.7.0",
+      "moment": "^2.29.4",
+      "dotenv": "^8.2.0",
+      "cws": "^2.0.0",
+      "express": "^4.17.1",
+      "socket.io": "^4.4.1",
+      "socket.io-client": "^4.5.3"
+  },
+  "devDependencies": {},
+  "bin": "shinobi-tensorflow.js",
+  "scripts": {
+    "package": "pkg package.json -t linux,macos,win --out-path dist",
+    "package-x64": "pkg package.json -t linux-x64,macos-x64,win-x64 --out-path dist/x64",
+    "package-x86": "pkg package.json -t linux-x86,macos-x86,win-x86 --out-path dist/x86",
+    "package-armv6": "pkg package.json -t linux-armv6,macos-armv6,win-armv6 --out-path dist/armv6",
+    "package-armv7": "pkg package.json -t linux-armv7,macos-armv7,win-armv7 --out-path dist/armv7",
+    "package-all": "npm run package && npm run package-x64 && npm run package-x86 && npm run package-armv6 && npm run package-armv7"
+  },
+  "addCmd": {
+      "test-plugin": {
+          "name": "test-plugin",
+          "title": "Test Object Detector on CPU",
+          "cmd": "node test.js"
+      }
+  },
+  "pkg": {
+    "targets": [
+      "node18"
+    ],
+    "scripts": [
+      "../pluginBase.js"
+    ],
+    "assets": [
+    ]
+  }
+}

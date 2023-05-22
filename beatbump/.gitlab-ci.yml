@@ -1,0 +1,168 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/beatbump"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  GITHUB_REPO_NAME: "snuffyDev/Beatbump"
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  RUSTFLAGS: "-Ctarget-feature=-crt-static"
+  OPENSSL_INCLUDE_DIR: "/usr/include/openssl/"
+  AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR: "/usr/include/aarch64-linux-gnu/openssl"
+  AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR: "/usr/lib/aarch64-linux-gnu/"
+  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: "aarch64-linux-gnu-gcc"
+  CARGO_TERM_COLOR: always
+  SCCACHE_ENDPOINT: "192.168.0.2:9000"
+  SCCACHE_REGION: "us-east-1"
+  SCCACHE_BUCKET: "sccache"
+  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+  ENV_ADAPTER: "node"
+
+stages:
+  - build-deps
+  - dockerized
+
+build-js:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-deps
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .npm-cache/
+    policy: pull-push
+  before_script:
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 999999999
+    - sudo apt update
+    - sudo apt install -y --no-install-recommends git jq curl
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- echo $RELEASE
+    - git clone --depth=1 -b dev https://github.com/snuffyDev/Beatbump.git beatbump
+#    - git clone --depth=1 https://github.com/snuffyDev/Beatbump.git beatbump
+  script:
+    - cd beatbump/app
+    - sed -i 's/yt-hls-rewriter.onrender.com/bbproxy.ddyms.space/g' src/routes/settings/+page.svelte
+    - npm -d ci --no-audit
+    - npm run bb:build
+  artifacts:
+    paths:
+      - beatbump/app/build
+#      - beatbump/app/node_modules
+  only:
+    changes:
+      - Dockerfile
+
+
+build-bin:
+  image: 192.168.0.2:5050/dedyms/rust:latest
+  stage: build-deps
+  cache:
+    key: "$TARGET"
+    paths:
+      - $CI_PROJECT_DIR/target
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
+    policy: pull-push
+  before_script:
+    - sudo apt update
+    - sudo apt install -y --no-install-recommends libssl-dev libssl-dev:arm64
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - export SCCACHE_S3_KEY_PREFIX="$CI_PROJECT_NAME-$TARGET"
+    - git clone --depth=1 https://github.com/$GITHUB_REPO_NAME.git beatbump
+  script:
+    - cd beatbump/packages/proxy-server/rust
+    - rustc --version
+    - cargo build --target="$TARGET" --release
+    - sccache --show-stats
+    - ls -al $CI_PROJECT_DIR/target/$TARGET/release
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/target/$TARGET/release/bb-proxy
+  only:
+    changes:
+      - Dockerfile.ci
+  parallel:
+    matrix:
+      - TARGET: [x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu]
+
+
+dockerize-beatbump:
+  cache: []
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerized
+  before_script:
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE="git"
+    #- echo $RELEASE    
+    #- export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+  script:
+    - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME-dockerize" --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name "$CI_PROJECT_NAME-dockerize" --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - Dockerfile
+
+dockerize-proxy-rust:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  needs: ["build-bin"]
+  stage: dockerized
+  before_script:
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE="proxy-$BASE"
+    #- echo $RELEASE    
+    #- export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME-proxy-$BASE"
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.proxy.$BASE
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+#      - Dockerfile.proxy.deno
+      - Dockerfile.proxy.rust
+  parallel:
+    matrix:
+      - BASE: ["rust"]
+
+
+dockerize-proxy-deno:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  needs: ["build-bin"]
+  stage: dockerized
+  before_script:
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export RELEASE="proxy-$BASE"
+    #- echo $RELEASE    
+    #- export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME-proxy-$BASE"
+    - docker buildx inspect
+    - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.proxy.$BASE
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - Dockerfile.proxy.deno
+#      - Dockerfile.proxy.rust
+  parallel:
+    matrix:
+      - BASE: ["deno"]

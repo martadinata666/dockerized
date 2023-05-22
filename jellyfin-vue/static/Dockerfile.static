@@ -1,0 +1,28 @@
+#syntax=docker/dockerfile:1.4
+#FROM 192.168.0.2:5050/dedyms/jellyfin-vue:build
+
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+#USER root
+#RUN apt update && apt install -y --no-install-recommends autoconf automake zlib1g-dev libtool libpng-dev
+
+# Set build arguments
+ARG HISTORY_ROUTER_MODE=1
+ARG IS_STABLE=0
+
+# Set environment variables
+ENV HISTORY_ROUTER_MODE=$HISTORY_ROUTER_MODE
+ENV NUXT_ENV_COMMIT=""
+
+# Set commit hash
+RUN if [[ $IS_STABLE == "0" ]] ; then NUXT_ENV_COMMIT=$(git rev-parse HEAD) ; fi
+
+USER $CONTAINERUSER
+RUN git clone --depth=1 https://github.com/jellyfin/jellyfin-vue.git $HOME/jellyfin-vue
+WORKDIR $HOME/jellyfin-vue
+RUN npm -d ci --no-audit && \
+    npm -d run build
+
+
+FROM 192.168.0.2:5050/dedyms/nginx:mainline
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/jellyfin-vue/frontend/dist/ /var/www/html 
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER static/nginx.conf /etc/nginx/conf.d/default.conf

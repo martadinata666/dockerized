@@ -1,0 +1,67 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest AS lldap
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETPLATFORM
+RUN sudo apt update && \
+    sudo apt install -y wget tree
+COPY target bin
+COPY lldap/app web
+RUN tree bin/
+RUN tree web/
+RUN mkdir -p target/
+RUN mkdir -p lldap/app
+
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/x86_64-unknown-linux-gnu/release/lldap target/lldap && \
+    mv bin/x86_64-unknown-linux-gnu/release/migration-tool target/migration-tool && \
+    mv bin/x86_64-unknown-linux-gnu/release/lldap_set_password target/lldap_set_password && \
+    sudo chmod +x target/* && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-unknown-linux-gnu/release/lldap target/lldap && \
+    mv bin/aarch64-unknown-linux-gnu/release/migration-tool target/migration-tool && \
+    mv bin/aarch64-unknown-linux-gnu/release/lldap_set_password target/lldap_set_password && \
+    sudo chmod +x target/* && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm/v7" ]; then \
+    mv bin/armhf-bin/lldap target/lldap && \
+    mv bin/armhf-bin/migration-tool target/migration-tool && \
+    mv bin/armhf-bin/lldap_set_password target/lldap_set_password && \
+    sudo chmod +x target/* && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+
+# Web and App dir
+COPY lldap/docker-entrypoint.sh /docker-entrypoint.sh
+COPY lldap/lldap_config.docker_template.toml /lldap/
+RUN cp target/* lldap/ && \
+    cp -R web/index.html \
+          web/pkg \
+          web/static \
+          lldap/app/
+RUN tree lldap/
+
+# Change workdir to correct path
+WORKDIR lldap
+
+RUN set -x \
+    && for file in $(cat app/static/libraries.txt); do wget -P app/static "$file"; done \
+    && for file in $(cat app/static/fonts/fonts.txt); do wget -P app/static/fonts "$file"; done \
+    && chmod a+r -R .
+
+# Final image    
+FROM 192.168.0.2:5050/dedyms/debian:latest
+COPY --from=lldap --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/lldap /app
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER /entrypoint.sh /docker-entrypoint.sh
+ADD https://raw.githubusercontent.com/lldap/lldap/main/lldap_config.docker_template.toml /app/lldap_config.docker_template.toml
+WORKDIR /app
+RUN sudo mkdir /data && \
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /data
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/docker-entrypoint.sh"]
+CMD ["run", "--config-file", "/data/lldap_config.toml"]

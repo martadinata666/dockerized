@@ -1,0 +1,95 @@
+stages:
+  - composer
+  - build-ui
+  - dockerize
+
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/afterlogic-webmail"
+  TYPE: ""
+  GITHUB_REPO_NAME: "afterlogic/webmail-lite-8"
+  PLATFORM: linux/arm64,linux/amd64
+  PNPM_HOME: "$CI_PROJECT_DIR"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+fetch-composer-depths:
+  image: 192.168.0.2:5050/dedyms/php-fpm:8.1
+  stage: composer
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .composer-cache/
+    policy: pull-push
+  before_script:
+    - apt update
+    - apt install -y --no-install-recommends git ca-certificates curl
+    - git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
+  script:
+    - cd web
+    - curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./composer.phar
+    - chmod +x ./composer.phar
+    - ./composer.phar config -g cache-dir "$CI_PROJECT_DIR/.composer-cache"
+    - ./composer.phar install
+    - ls -al;
+    - rm ./composer.phar
+    - rm -rf ./.git
+  artifacts:
+    paths: 
+      - web/
+
+build-themes-admin-ui:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-ui
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .npm-cache/
+      - .composer-cache/
+    policy: pull-push
+  before_script:
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 99999999 
+    #- git clone --depth=1 https://github.com/afterlogic/webmail-lite-8.git web
+  script:
+    - cd web
+    - ls -al;
+    - npm -d install --no-audit
+    - npm -d install -g gulp-cli @quasar/cli
+    - cd ./modules/AdminPanelWebclient/vue
+    - npm -d install --no-audit
+    - cd ../../../
+    - gulp styles --themes Default,DefaultDark,DeepForest,Funny,Sand
+    - gulp js:min
+    - cd modules/AdminPanelWebclient/vue
+    - npm -d run build-production
+    - cd ../../../
+    - rm -rf ./system/.git
+    - rm -rf ./node_modules/
+    - rm -rf ./modules/AdminPanelWebclient/vue/node_modules
+  artifacts:
+    paths:
+      - web/
+  only:
+    refs:
+      - master
+
+create-docker-image:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerize
+  before_script:
+    - export RELEASE="git"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64,linux/arm64  -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$DATE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$DATE" . -f Dockerfile.ci
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    refs:
+      - master

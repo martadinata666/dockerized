@@ -1,0 +1,10 @@
+{
+  "plug":"Tensorflow",
+  "host":"localhost",
+  "tfjsBuild":"cpu",
+  "port":8080,
+  "hostPort":8082,
+  "key":"homelab/plugins/opencv/conf.json",
+  "mode":"client",
+  "type":"detector"
+}

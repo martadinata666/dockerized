@@ -1,0 +1,64 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/mariadb"
+
+buildx-lts:
+  # Current lts 10.11
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  #services:
+  #  - docker:dind
+  before_script:
+    - export STATIC_RELEASE="10.11"
+    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
+#    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d'=' -f2- | cut -d'+' -f1 )
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 
+      -t "$CI_REGISTRY_IMAGE:lts"
+      -t "$CI_REGISTRY_IMAGE:$STATIC_RELEASE"
+      -t "$CI_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:lts"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" .
+      -f $STATIC_RELEASE/Dockerfile.debian
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    - triggers
+
+.buildx-10.11:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  #services:
+  #  - docker:dind
+  before_script:
+    - export STATIC_RELEASE="10.6"
+    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 
+      -t "$CI_REGISTRY_IMAGE:lts"
+      -t "$CI_REGISTRY_IMAGE:$STATIC_RELEASE"
+      -t "$CI_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:lts"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" .
+      -f $STATIC_RELEASE/Dockerfile.debian
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    - triggers

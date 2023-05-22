@@ -1,0 +1,30 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev as setter
+ARG TARGETPLATFORM
+COPY target bin
+RUN ls -alR bin && \
+    mkdir target
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/x86_64-unknown-linux-gnu/release/docker-swarm-visualizer-rs target/docker-swarm-visualizer-rs && \
+    sudo chmod +x target/* && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-unknown-linux-gnu/release/docker-swarm-visualizer-rs target/docker-swarm-visualizer-rs && \
+    sudo chmod +x target/* && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+
+FROM 192.168.0.2:5050/dedyms/debian:dev as web
+#RUN git clone --depth=1 https://github.com/yandeu/docker-swarm-visualizer-rs.git dsv-rs
+COPY dsv-rs/www www
+
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+USER root
+COPY --from=setter $HOME/target/docker-swarm-visualizer-rs /app/docker-swarm-visualizer-rs
+COPY --from=web $HOME/www /app/www
+WORKDIR /app
+CMD ["./docker-swarm-visualizer-rs"]

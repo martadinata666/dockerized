@@ -1,0 +1,29 @@
+# Build app 
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+ARG PIP_BREAK_SYSTEM_PACKAGES=1
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends python3-pip python3-setuptools grc git python3-dev
+ARG RELEASE
+RUN git clone --recursive -b $RELEASE https://github.com/Unmanic/unmanic.git $HOME/unmanic #app clone
+WORKDIR $HOME/unmanic
+RUN npm --cache=/dev/shm install @quasar/cli && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    python3 ./setup.py install --user
+
+
+FROM 192.168.0.2:5050/dedyms/ffmpeg:6
+ARG RELEASE
+ENV UNMANIC_RELEASE=$RELEASE
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends python3-minimal python3-pip python3-setuptools libgomp1 libharfbuzz0b libmediainfo0v5 libv4l-0 sqlite3 && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/*
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/.local/ $HOME/.local/
+USER $CONTAINERUSER
+RUN mkdir -p $HOME/.unmanic $HOME/.unmanic/logs /tmp/unmanic && \
+    touch $HOME/.unmanic/logs/unmanic.log && \
+    ln -sf /dev/stdout $HOME/.unmanic/logs/unmanic.log
+WORKDIR $HOME/.unmanic
+VOLUME ["$HOME/.unmanic", "/tmp/unmanic"]
+HEALTHCHECK CMD curl --fail http://localhost:8888/unmanic/api/v2/version/read || exit 1 
+CMD ["unmanic"]

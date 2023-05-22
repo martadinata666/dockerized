@@ -1,0 +1,5 @@
+FROM 192.168.0.2:5050/dedyms/docker-binfmt-qemu:latest
+WORKDIR /
+COPY qemu-generate.sh qemu-generate.sh
+COPY qemu-setup.sh qemu-setup.sh
+ENTRYPOINT ["/qemu-setup.sh"]

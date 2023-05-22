@@ -1,0 +1,9 @@
+# deb http://snapshot.debian.org/archive/debian/20220801T000000Z bullseye main
+deb http://kartolo.sby.datautama.net.id/debian bullseye main
+# deb http://snapshot.debian.org/archive/debian-security/20220801T000000Z bullseye-security main
+deb http://kartolo.sby.datautama.net.id/debian-security bullseye-security main
+# deb http://snapshot.debian.org/archive/debian/20220801T000000Z bullseye-updates main
+deb http://kartolo.sby.datautama.net.id/debian bullseye-updates main
+
+
+

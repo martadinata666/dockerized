@@ -1,0 +1,8 @@
+
+FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+LABEL build-date=$BUILDDATE
+RUN apt update && apt install -y --no-install-recommends python3-pip python3-dev libcurl4-gnutls-dev libgnutls28-dev git build-essential && \
+    pip3 install --upgrade pip setuptools wheel distlib && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt clean

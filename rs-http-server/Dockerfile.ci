@@ -1,0 +1,27 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+USER root
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETPLATFORM
+COPY target/ bin/
+RUN mkdir -p target/
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/x86_64-unknown-linux-gnu/release/http-server target/http-server && \
+    strip target/http-server && \
+    chmod +x target/http-server && \
+    ls -lah target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-unknown-linux-gnu/release/http-server target/http-server && \
+    strip target/http-server && \
+    chmod +x target/http-server && \
+    ls -lah target/ . && \
+    pwd \
+    ; fi
+    
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG RELEASE
+ENV RS_HTTP_SERVER_VERSION=$RELEASE
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/http-server $HOME/.local/bin/rs-http-server
+CMD ["rs-http-server","--cors", "-v", "-l", "-h","0.0.0.0","-p","8080","/data"]

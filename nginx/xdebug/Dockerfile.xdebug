@@ -1,0 +1,14 @@
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm
+# Switch to root to install xdebug
+ARG USER=debian
+ARG SUDOERS="$USER       ALL=(ALL) NOPASSWD:ALL"
+USER root
+RUN apt update && apt install -y --no-install-recommends $PHPIZE_DEPS sudo git && \
+    pecl install xdebug && \
+    docker-php-ext-enable xdebug && \
+    apt remove -y --purge $PHPIZE_DEPS && \
+    apt autoremove -y --purge && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo $SUDOERS >> /etc/sudoers
+USER $CONTAINERUSER

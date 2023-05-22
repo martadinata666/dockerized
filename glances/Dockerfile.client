@@ -1,0 +1,20 @@
+FROM 192.168.0.2:5050/dedyms/glances:latest as tukang
+
+FROM 192.168.0.2:5050/dedyms/openssh:latest
+ARG RELEASE
+ENV GLANCES_RELEASE=$RELEASE
+USER root
+RUN apt update && \
+     apt install -y --no-install-recommends python3-setuptools python3-psutil python3-minimal curl lm-sensors wireless-tools iputils-ping python3-dateutil && \
+     rm -rf /var/lib/apt/lists/*
+ENV WEBPORT=61208
+ENV ADDITIONAL_OPT=-d
+RUN  groupadd -g 999 docker && \
+     gpasswd -a $CONTAINERUSER docker && \
+     mkdir -p $HOME/glances && \
+     chown $CONTAINERUSER:$CONTAINERUSER $HOME/glances
+COPY --from=tukang /usr/local /usr/local
+COPY glances.conf $HOME/glances/glances.conf
+WORKDIR $HOME
+USER $CONTAINERUSER
+VOLUME $HOME/glances

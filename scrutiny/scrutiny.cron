@@ -1,0 +1,2 @@
+{COLLECTOR_CRON_SCHEDULE} root . /env.sh; /scrutiny/collector/scrutiny-collector-metrics-linux run >/proc/1/fd/1 2>/proc/1/fd/2
+{COLLECTOR_CRON_SCHEDULE} root . /env.sh; /usr/sbin/update-smart-drivedb >/proc/1/fd/1 2>/proc/1/fd/2

@@ -1,0 +1,4 @@
+apps:
+  - script   : 'camera.js'
+    name     : 'camera'
+    kill_timeout  : 5000

@@ -1,0 +1,128 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/dim"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  DEV: ""
+  SCCACHE_ENDPOINT: "192.168.0.2:9000"
+  SCCACHE_REGION: "us-east-1"
+  SCCACHE_BUCKET: "sccache"
+  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+  SCCACHE_S3_KEY_PREFIX: "amd64"
+  RUSTFLAGS: "-Ctarget-feature=+crt-static"
+  
+
+stages:
+  - build-web
+  - build-app
+  - dockerize
+  - other
+
+create-web:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build-web
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .cargo
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - git clone --depth=1 https://github.com/Dusk-Labs/dim.git dim
+  script:
+    - cd dim
+    - yarn --cwd ui/
+    - yarn --cwd ui/ build
+    - ls -alh
+    - ls -alh ui/
+  #after_script:
+  #  - docker buildx stop
+  #  - docker buildx rm
+  artifacts:
+    paths:
+      - dim
+  only:
+    changes:
+      - Dockerfile
+
+create-app:
+  image: 192.168.0.2:5050/dedyms/debian:rust-dev
+  stage: build-app
+  cache: 
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .cargo
+      - .yarn-cache/
+    policy: pull-push
+  before_script:
+    - export DATABASE_URL="sqlite://dim_dev.db"
+    - apt update
+    - apt install -y --no-install-recommends ca-certificates libva2 libva-dev sqlite3 libdrm2 libdrm-dev libdrm-amdgpu1 curl build-essential pkg-config libssl-dev
+  script:
+    - cd dim/
+    - cargo build --target=x86_64-unknown-linux-gnu --release
+  artifacts:
+    paths:
+      - dim
+  only:
+    changes:
+      - Dockerfile
+
+buildx-git:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerize
+  before_script:
+    - export RELEASE="git"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --push --platform linux/amd64
+      -t "$CI_REGISTRY_IMAGE"
+      -t "$CI_REGISTRY_IMAGE:$RELEASE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    changes:
+      - Dockerfile
+
+buildx-dev:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: other
+  before_script:
+    - export RELEASE="dev-rust"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+    #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    variables:
+      - $DEV == "true"
+
+#The following ARG variables are set automatically:
+#    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
+#    TARGETOS - OS component of TARGETPLATFORM
+#    TARGETARCH - architecture component of TARGETPLATFORM
+#    TARGETVARIANT - variant component of TARGETPLATFORM
+#    BUILDPLATFORM - platform of the node performing the build.
+#    BUILDOS - OS component of BUILDPLATFORM
+#    BUILDARCH - architecture component of BUILDPLATFORM
+#    BUILDVARIANT - variant component of BUILDPLATFORM
+#These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
+#To expose one of these arguments inside the build stage redefine it without value.

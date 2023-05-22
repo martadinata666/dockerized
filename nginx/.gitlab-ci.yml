@@ -1,0 +1,86 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  RELEASE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/nginx"
+  FPM: ""
+
+stages:
+  - base
+  - xdebug
+
+buildx-mainline:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: base
+  before_script:
+    - export RELEASE="mainline"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f mainline/Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    variables:
+      - $FPM == ""
+    changes:
+      - mainline/Dockerfile
+      - mainline/default.conf
+      - mainline/nginx.conf
+
+buildx-xdebug:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  needs: ["buildx-fpm"]
+  stage: xdebug
+  before_script:
+    - export RELEASE="xdebug"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f xdebug/Dockerfile.xdebug
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    variables:
+      - $FPM == "1"
+    changes:
+      - xdebug/Dockerfile.xdebug
+
+
+buildx-fpm:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: base
+  before_script:
+    - export RELEASE="mainline-fpm$TARGET"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:mainline-fpm" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:mainline-fpm"  . -f fpm/Dockerfile.fpm$TARGET
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    variables:
+      - $FPM == "1"
+    changes:
+      - fpm/Dockerfile.fpm
+      - fpm/default.conf
+      - fpm/nginx.conf
+      - fpm/supervisor/supervisord.conf
+  parallel:
+    matrix:
+      - TARGET: ["8.2"]
+

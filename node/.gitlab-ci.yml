@@ -1,0 +1,83 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  RELEASE: ""
+  SCHEDULE_TYPE: ""
+  DATE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/node"
+
+stages:
+  - create-base-image
+  - create-dev-image
+
+buildx-node:
+  cache: {}
+  # Official docker image.
+  stage: create-base-image
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:14" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:14" . -f 14/Dockerfile
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:16" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:16" . -f 16/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:18" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:18" -t "$CI_REGISTRY_IMAGE:lts" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:lts" . -f 18/Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  #except:
+  #  - schedules
+  only:
+    - triggers
+
+buildx-node-dev:
+  cache: {}
+  # Official docker image.
+  stage: create-dev-image
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:14-dev" . -f Dockerfile.node14-dev
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:16-dev" . -f 16/Dockerfile.dev
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:18-dev" -t "$CI_REGISTRY_IMAGE:lts-dev" . -f 18/Dockerfile.dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  #except:
+  #  - schedules
+  only:
+    - triggers
+
+
+buildx-node-ffmpeg:
+  cache: {}
+  # Official docker image.
+  stage: create-dev-image
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:14-dev" . -f Dockerfile.node14-dev
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:16-dev" . -f 16/Dockerfile.dev
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:18-dev" -t "$CI_REGISTRY_IMAGE:lts-dev" . -f 18/Dockerfile.ffmpeg
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  #except:
+  #  - schedules
+  only:
+    - triggers

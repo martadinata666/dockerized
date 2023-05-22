@@ -1,0 +1,7 @@
+
+FROM 192.168.0.2:5050/dedyms/node:14-dev-buster AS frontend
+ENV QT_QPA_PLATFORM=offscreen
+RUN apt update && apt install -y --no-install-recommends libssl-dev libsqlite3-dev phantomjs git ca-certificates make python && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+CMD ["bash"]

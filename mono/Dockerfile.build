@@ -1,0 +1,25 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev AS builder
+USER root
+ARG RELEASE
+ENV PREFIX=/opt/mono
+RUN apt update && \
+    apt install --no-install-recommends -y git autoconf libtool libtool-bin \
+                                           automake build-essential gettext cmake \
+                                           python3 libglib2.0-dev libjemalloc-dev zlib1g-dev bc tar
+#RUN git clone --recursive --depth=1 -b mono-$RELEASE https://github.com/mono/mono.git /mono
+COPY mono-$RELEASE.tar.xz mono.tar.xz
+RUN tar xf mono.tar.xz
+#COPY mono-$RELEASE /mono
+WORKDIR $HOME/mono-$RELEASE
+RUN ls -al && \
+    ./configure --prefix=$PREFIX --with-csc=mcs --with-crash-privacy=no && \
+    make -j$(nproc) && \
+    make install && \
+    strip $PREFIX/bin/mono
+RUN /opt/mono/bin/mono --version
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG RELEASE
+ENV MONO_VERSION=$RELEASE
+ENV PATH=/opt/mono/bin:/opt/mono:$PATH
+COPY --from=builder /opt/mono /opt/mono

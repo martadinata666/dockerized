@@ -1,0 +1,42 @@
+FROM martadinata666/yacron:ci as yacron
+
+FROM 192.168.0.2:5050/dedyms/php-fpm:8.2
+ENV HOME=/home/debian
+# install apache and generate ssl, and ca-certificates
+USER root
+RUN apt update && apt install -y --no-install-recommends libexpat1 apache2 ssl-cert ca-certificates curl supervisor && apt clean && rm -rf /var/lib/apt/lists/*
+#RUN apt update && apt install -y --no-install-recommends apache2 ssl-cert ca-certificates curl supervisor gcc libc6-dev python3-dev python3-pip bash && \
+#    pip3 install --no-cache-dir yacron && \
+#    apt remove -y --purge gcc libc6-dev python3-dev && \
+#    apt autoremove -y --purge && \
+#    apt clean && rm -rf /var/lib/apt/lists/* && \
+#    rm /var/www/html/index.html
+
+# copy needed files to enable user apache
+COPY envvars /etc/apache2/envvars
+COPY ports.conf /etc/apache2/ports.conf
+COPY --from=yacron --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/yacron /usr/local/bin/yacron
+COPY fpm/000-default-fpm.conf /etc/apache2/sites-available/000-default.conf
+COPY fpm/000-default-ssl-fpm.conf /etc/apache2/sites-available/000-default-ssl.conf
+COPY remoteip.conf /etc/apache2/conf-available/remoteip.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER fpm/supervisor /supervisor
+
+# add user to ssl-cert, for read ssl-certs
+RUN usermod --append --groups ssl-cert $CONTAINERUSER
+
+# enabling mod and sites
+RUN a2enmod ssl proxy_fcgi headers rewrite remoteip proxy proxy_http proxy_wstunnel http2 && \
+    a2ensite 000-default && \
+    a2ensite 000-default-ssl && \
+    a2enconf remoteip
+
+# set permission on our root web
+RUN mkdir -p $HOME/apache2 && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER /var/www &&\
+    ln -sf /dev/stdout $HOME/apache2/access.log && \
+    ln -sf /dev/stderr $HOME/apache2/error.log && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER $HOME/apache2
+USER $CONTAINERUSER
+WORKDIR /var/www/html
+ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
+CMD ["supervisord","-c","/supervisor/supervisord.conf"]

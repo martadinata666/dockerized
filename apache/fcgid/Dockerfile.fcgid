@@ -1,0 +1,36 @@
+#syntax=docker/dockerfile:1.4
+FROM 192.168.0.2:5050/dedyms/debian:latest
+
+# install apache and generate ssl, and ca-certificates
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends apache2 ssl-cert ca-certificates curl && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+# add user to ssl-cert, for read ssl-certs
+RUN sudo usermod --append --groups ssl-cert $CONTAINERUSER
+
+# copy needed files to enable user apache
+COPY envvars /etc/apache2/envvars
+COPY ports.conf /etc/apache2/ports.conf
+COPY fcgid/000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY fcgid/000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
+COPY remoteip.conf /etc/apache2/conf-available/remoteip.conf
+
+# enabling mod and sites
+RUN sudo a2enmod ssl proxy_fcgi headers rewrite remoteip proxy proxy_http proxy_wstunnel http2  && \
+    sudo a2ensite 000-default && \
+    sudo a2ensite 000-default-ssl && \
+    sudo a2enconf remoteip
+
+# set permission on our root web
+RUN mkdir -p $HOME/apache2 && \
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /var/www &&\
+    ln -sf /dev/stdout $HOME/apache2/access.log && \
+    ln -sf /dev/stderr $HOME/apache2/error.log && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER $HOME/apache2
+USER $CONTAINERUSER
+WORKDIR /var/www/html
+VOLUME /var/www/html
+STOPSIGNAL SIGWINCH
+CMD ["apache2ctl", "-DFOREGROUND"]

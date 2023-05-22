@@ -1,0 +1,3 @@
+mkdir /opt/qemu-user-static/bin/binfmt
+/qemu-setup.sh --qemu-path "/opt/qemu-user-static/bin" --qemu-suffix "-static" --debian --exportdir "/usr/lib/binfmt.d"
+update-binfmts --importdir "/usr/lib/binfmt.d" --import

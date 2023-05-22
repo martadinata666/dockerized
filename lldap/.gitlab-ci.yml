@@ -1,0 +1,174 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/lldap"
+  GITHUB_REPO_NAME: "lldap/lldap"
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  # Static build success break email function due libssl issue
+  RUSTFLAGS: "-Ctarget-feature=-crt-static"
+  #OPENSSL_STATIC: "1"
+  CARGO_TERM_COLOR: "always"
+  SCCACHE_ENDPOINT: "192.168.0.2:9000"
+  SCCACHE_REGION: "us-east-1"
+  SCCACHE_BUCKET: "sccache"
+  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+  DEV: ""
+
+stages:
+  - build-bin
+  - dockerize
+  - dev
+
+build-js:
+  image: 192.168.0.2:5050/dedyms/rust:latest
+  stage: build-bin
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-js"
+    paths:
+      - .npm-cache/
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
+      - $CI_PROJECT_DIR/target
+      - $CI_PROJECT_DIR/app/target
+    policy: pull-push
+  before_script:
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/${GITHUB_REPO_NAME}/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - SCCACHE_S3_KEY_PREFIX="lldap-ui"
+    - export PATH="$CI_PROJECT_DIR/.cargo/bin:$PATH"
+    - export RUSTFLAGS=""
+    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git lldap
+  script:
+    - cd lldap/
+    - sudo apt update && sudo apt install -y gzip tree
+#    - sudo npm install -g rollup
+    - rustup target add wasm32-unknown-unknown
+    - cargo install wasm-pack || true
+    - app/build.sh
+    - tree ./
+  artifacts:
+    paths:
+      - lldap/app
+      - lldap/docker-entrypoint.sh
+      - lldap/lldap_config.docker_template.toml
+  only:
+    changes:
+      - Dockerfile.ci
+
+
+build-lldap:
+  image: 192.168.0.2:5050/dedyms/rust:latest
+  stage: build-bin
+  cache:
+    key: "$TARGET"
+    paths:
+      - $CI_PROJECT_DIR/target
+      - $CI_PROJECT_DIR/.cargo/registry/index
+      - $CI_PROJECT_DIR/.cargo/registry/cache
+      - $CI_PROJECT_DIR/.cargo/git/db
+    policy: pull-push
+  before_script:
+    - sudo apt update
+    - sudo apt install -y --no-install-recommends libssl-dev
+    - export SCCACHE_S3_KEY_PREFIX="lldap-$TARGET"
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/${GITHUB_REPO_NAME}/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git lldap
+  script:
+    - cd lldap/
+    - rustc --version
+    - cargo build --target="$TARGET" --release -p lldap -p migration-tool -p lldap_set_password
+    - sccache --show-stats
+    - ls -al $CI_PROJECT_DIR/target/$TARGET/release
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/target/$TARGET/release/lldap
+      - $CI_PROJECT_DIR/target/$TARGET/release/migration-tool
+      - $CI_PROJECT_DIR/target/$TARGET/release/lldap_set_password
+  only:
+    changes:
+      - Dockerfile.ci
+  parallel:
+    matrix:
+      - TARGET: [x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu]
+
+
+buildx-stable:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  needs: ["build-js","build-lldap"]
+  stage: dockerize
+  #services:
+  #  - docker:dind
+  before_script:
+    #- apk add curl jq
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    #- export RELEASE="git"
+    - echo $RELEASE
+    - export DATE=$(date +%Y%m%d)
+    - ls -al
+    - ls -al lldap
+    - ls -al lldap/app
+    - ls -al target
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    #- docker buildx create --append --name nginx-builder node-arm64
+    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.ci
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - Dockerfile.ci
+
+#remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
+#localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")
+#if [[ ! $remoteVersion == $localVersion ]]; then
+#  echo "Updating to commit $remoteVersion"
+#  curl --request PUT --header "PRIVATE-TOKEN: $PAT_TOKEN" \
+#     --header "Content-Type: application/json" \
+#     --data '{"branch": "master", "author_email": "update@bocki.bot", "author_name": "Update Bot",
+#       "content": "'"$remoteVersion"'", "commit_message": "Update to '$remoteVersion'"}' \
+#     "https://gitlab.com/api/v4/projects/19217373/repository/files/version"
+#else
+#  echo "Up to date"
+#fi
+
+#The following ARG variables are set automatically:
+#    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
+#    TARGETOS - OS component of TARGETPLATFORM
+#    TARGETARCH - architecture component of TARGETPLATFORM
+#    TARGETVARIANT - variant component of TARGETPLATFORM
+#    BUILDPLATFORM - platform of the node performing the build.
+#    BUILDOS - OS component of BUILDPLATFORM
+#    BUILDARCH - architecture component of BUILDPLATFORM
+#    BUILDVARIANT - variant component of BUILDPLATFORM
+#These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
+#To expose one of these arguments inside the build stage redefine it without value.
+
+
+buildx-dev:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dev
+  before_script:
+    - export RELEASE="dev"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    variables:
+      - $DEV == "true"
+    changes:
+      - Dockerfile.dev

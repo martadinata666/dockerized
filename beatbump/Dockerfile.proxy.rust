@@ -1,0 +1,22 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest as tukang
+ARG TARGETPLATFORM
+COPY target/ bin/
+RUN mkdir -p target/
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/x86_64-unknown-linux-gnu/release/bb-proxy target/bb-proxy && \
+    sudo chmod +x target/bb-proxy && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-unknown-linux-gnu/release/bb-proxy target/bb-proxy && \
+    sudo chmod +x target/bb-proxy && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/bb-proxy $HOME/.local/bin/bb-proxy
+# Compile the main app so that it doesn't need to be compiled each startup/entry.
+CMD ["bb-proxy"]

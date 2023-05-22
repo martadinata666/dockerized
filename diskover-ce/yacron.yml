@@ -1,0 +1,6 @@
+jobs:
+  - name: diskover-scan
+    command: /diskover/crawl.sh
+    schedule: "0 4 * * *"
+    utc: false
+    executionTimeout: 120

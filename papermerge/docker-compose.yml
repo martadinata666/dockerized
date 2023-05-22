@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+  app:
+    image: registry.gitlab.com/dedyms/papermerge-mysql:main
+    #build:
+    #  context: .
+    #  dockerfile: app.dockerfile
+    container_name: papermerge_app
+    ports:
+      - "5000:8000"
+    networks:
+      - papermerge
+    depends_on:
+      - redis
+    volumes:
+      - media_root:/opt/media
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - TZ=Asia/Jakarta
+      - MYSQL_USER=papermerge
+      - MYSQL_PASSWORD=papermergepass
+      - MYSQL_DB=papermerge
+      - MYSQL_HOST=pm_db
+      - MYSQL_PORT=3306
+  db:
+    image: mariadb:10.5
+    container_name: pm_db
+    volumes:
+      - db_data:/var/lib/MYSQLql/data/
+    environment:
+      - TZ=Asia/Jakarta
+      - MYSQL_ROOT_PASSWORD=papermergeroot
+      - MYSQL_USER=papermerge
+      - MYSQL_PASSWORD=papermergepass
+      - MYSQL_DATABASE=papermerge
+  redis:
+    container_name: 'redispm'
+    image: 'redis:6'
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - 'redisdata:/data'
+    networks:
+      - papermerge
+  worker:
+    image: registry.gitlab.com/dedyms/papermerge-mysql:worker
+    #build:
+    #  context: .
+    #  dockerfile: worker.dockerfile    
+    container_name: papermerge_worker
+    volumes:
+      - media_root:/opt/media
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - MYSQL_USER=papermerge
+      - MYSQL_PASSWORD=papermergepass
+      - MYSQL_DB=papermerge
+      - MYSQL_HOST=pm_db
+      - MYSQL_PORT=3306  
+    networks:
+      - papermerge
+volumes:
+  db_data:
+  media_root:
+  redisdata:
+networks:
+  papermerge:
+    external: true

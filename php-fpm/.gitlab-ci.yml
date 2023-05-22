@@ -1,0 +1,109 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/php-fpm"
+
+stages:
+  - build-php
+  - trigger-apache-nginx
+
+.buildx-7.4:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-php
+  before_script:
+    - export RELEASE=$(grep -m1 "FROM" 7.4/Dockerfile.debian | cut -d':' -f2- | cut -d'-' -f1)
+    - echo $RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build . -f 7.4/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:7.4" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:7.4" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - 7.4/Dockerfile.debian
+
+.buildx-8.0:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-php
+  before_script:
+    - export RELEASE=$(grep -m1 "FROM" 8.0/Dockerfile.debian | cut -d':' -f2- | cut -d'-' -f1)
+    - echo $RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build . -f 8.0/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:8.0" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.0" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - 8.0/Dockerfile.debian
+
+.buildx-8.1:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-php
+  before_script:
+    - export RELEASE=$(grep -m1 "FROM" 8.1/Dockerfile.debian | cut -d':' -f2- | cut -d'-' -f1)
+    - echo $RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name buildx-tukang --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-tukang --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build . -f 8.1/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:8.1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.1" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - 8.1/Dockerfile.debian
+
+buildx-8.2:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-php
+  before_script:
+    - export RELEASE=$(grep -m1 "FROM" 8.2/Dockerfile.debian | cut -d':' -f2- | cut -d'-' -f1)
+    - echo $RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name buildx-tukang --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-tukang --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build . -f 8.2/Dockerfile.debian --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:8.2" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.2" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    changes:
+      - 8.2/Dockerfile.debian
+
+trigger-apache-nginx:
+  image: 192.168.0.2:5050/dedyms/debian:latest
+  stage: trigger-apache-nginx
+  script:
+    - echo "Trigger apache fpm image rebuild"
+    - curl -X POST -F token=$APACHE_TOKEN -F ref=master -F variables[FPM]=true https://gitlab.ddyms.space/api/v4/projects/5/trigger/pipeline
+    - echo "Trigger nginx fpm image rebuild"
+    - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true https://gitlab.ddyms.space/api/v4/projects/6/trigger/pipeline
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - 8.0/Dockerfile.debian
+      - 8.2/Dockerfile.debian
+      - 7.4/Dockerfile.debian

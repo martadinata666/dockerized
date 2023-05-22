@@ -1,0 +1,34 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/docker-with-buildx"
+  BUILDX_REPO_NAME: "docker/buildx"
+  BUILDKIT_REPO_NAME: "moby/buildkit"
+
+build-stable:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  #services:
+  #  - docker:dind
+  before_script:
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$BUILDX_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
+#    - export RELEASE=0.9.1
+    - echo $RELEASE
+    - export BUILDKIT_RELEASE=$(curl --silent "https://api.github.com/repos/$BUILDKIT_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
+    - echo $BUILDKIT_RELEASE
+    # Some test
+    #- docker --version
+    #- docker buildx version
+    #- buildkitd --version
+    #- buildctl --version
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME"
+    - docker buildx inspect --bootstrap
+    - docker buildx build --build-arg BUILDX_VERSION=$RELEASE --build-arg BUILDKIT_VERSION=$BUILDKIT_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    - triggers

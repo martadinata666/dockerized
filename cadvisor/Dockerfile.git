@@ -1,0 +1,53 @@
+# Builder
+FROM 192.168.0.2:5050/dedyms/go:latest as builder
+ARG TARGETARCH
+ARG VERSION=$VERSION
+ENV CADVISOR_VERSION=$VERSION
+RUN sudo apt update && \
+    sudo apt install -y git dmsetup libpfm4-dev libndctl-dev pkg-config findutils
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+      sudo apt install -y libipmctl-dev; \
+    fi;
+USER root
+ARG GO_TAGS="-tags=libpfm,netgo"
+#RUN git clone --depth=1 --branch release-v0.43 https://github.com/google/cadvisor.git /go/src/github.com/google/cadvisor
+RUN git clone --depth=1 --branch master --depth=1 https://github.com/google/cadvisor.git /go/src/github.com/google/cadvisor
+WORKDIR /go/src/github.com/google/cadvisor
+#WORKDIR /go/src/github.com/google/cmd
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+      GO_FLAGS=${GO_TAGS},libipmctl build/build.sh; \
+    fi;
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+      GO_FLAGS=${GO_TAGS} build/build.sh; \
+    fi;
+#RUN sudo apt install -y tree && \
+#    tree /go/src/github.com/google/cadvisor | grep cadvisor
+#RUN ls -alR _output | grep cadvisor && \
+#    ls -al && \
+#    pwd
+#RUN case ${TARGETPLATFORM} in \
+#         "linux/amd64")  GO_FLAGS="-tags=libpfm,netgo,libipmctl"  ;; \
+#    esac \ 
+#    && GO_FLAGS="$GO_TAGS" make build
+#RUN make build
+
+# Runtime
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG TARGETARCH
+ENV CADVISOR_VERSION=master
+#RUN apt update && apt install --no-install-recommends tini && apt clean && rm -rf /var/lib/apt/lists/*
+RUN sudo apt update && \
+    sudo apt install --no-install-recommends -y dmsetup findutils libndctl6 libpfm4 && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/*
+
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+        sudo apt update && \
+        sudo apt install -y --no-install-recommends libipmctl5 && \
+        sudo apt clean && \
+        sudo rm -rf /var/lib/apt/lists/*; \
+    fi;
+COPY --from=builder /go/src/github.com/google/cadvisor/_output/cadvisor /usr/bin/cadvisor
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz || exit 1
+ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/bin/cadvisor","-logtostderr"]

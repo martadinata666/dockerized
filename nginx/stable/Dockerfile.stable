@@ -1,0 +1,35 @@
+#syntax=docker/dockerfile:1.4
+# Get ssl autogeneration by using debian then copy to nginx alpine
+FROM 192.168.0.2:5050/dedyms/debian:latest AS sslgenerator
+RUN apt update && apt install -y ssl-cert
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+COPY stable/99nginx /etc/apt/preferences.d/99nginx
+RUN apt update && \
+    apt install -y --no-install-recommends curl gnupg2 ca-certificates lsb-release debian-archive-keyring && \
+    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/debian `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+    apt update && \
+    apt install -y nginx && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/ssl/localcerts && \
+    mkdir -p /var/www/html && \
+    mkdir -p /var/cache/nginx && \
+    mkdir -p /run/nginx/ && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
+    touch /run/nginx/nginx.pid && \
+    chown -R $CONTAINERUSER:$CONTAINERUSER /var/www/html /run/nginx/nginx.pid /var/cache/nginx/ /var/log/nginx/
+COPY --from=sslgenerator /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/localcerts/nginx.pem
+COPY --from=sslgenerator /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/localcerts/nginx.key
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER stable/default.conf /etc/nginx/conf.d/default.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER stable/nginx.conf /etc/nginx/nginx.conf
+RUN chmod 666 /etc/ssl/localcerts/nginx*
+
+USER $CONTAINERUSER
+STOPSIGNAL SIGQUIT
+VOLUME /var/www/html
+WORKDIR /var/www/html
+CMD ["nginx", "-g", "daemon off;"]

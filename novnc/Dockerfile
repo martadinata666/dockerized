@@ -1,0 +1,22 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+ARG RELEASE
+RUN apt update && apt install --no-install-recommends -y ssl-cert && apt clean && rm -rf /var/lib/apt/lists/*
+USER $CONTAINERUSER
+WORKDIR $HOME
+RUN git clone --depth=1 https://github.com/novnc/noVNC.git noVNC \
+	&& git clone --depth=1 https://github.com/novnc/websockify noVNC/utils/websockify \
+	&& rm -rf noVNC/.git \
+	&& rm -rf noVNC/utils/websockify/.git \
+        && cp noVNC/vnc.html noVNC/index.html
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ENV REMOTE_HOST=localhost
+ENV REMOTE_PORT=5900
+ENV NOVNC_PORT=13000
+USER root
+RUN apt update && apt install -y --no-install-recommends procps python3-minimal libpython3.11-stdlib python3-numpy && apt clean && rm -rf /var/lib/apt/lists/*
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/localcerts/novnc.pem
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/localcerts/novnc.key
+USER $CONTAINERUSER
+COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/noVNC $HOME/noVNC
+CMD ["bash", "-c", "$HOME/noVNC/utils/novnc_proxy --vnc $REMOTE_HOST:$REMOTE_PORT --listen $NOVNC_PORT --ssl-only --key /etc/ssl/localcerts/novnc.key --cert /etc/ssl/localcerts/novnc.pem"]

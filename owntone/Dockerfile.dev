@@ -1,0 +1,16 @@
+
+FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+RUN apt update && apt install -y --no-install-recommends build-essential git autotools-dev autoconf \
+    automake libtool gettext gawk flex bison \
+    gperf antlr3 libantlr3c-dev libconfuse-dev libunistring-dev libsqlite3-dev \
+    libavcodec-dev libavformat-dev libavfilter-dev libswscale-dev libavutil-dev \
+    libasound2-dev libmxml-dev libgcrypt20-dev libavahi-client-dev zlib1g-dev \
+    libevent-dev libplist-dev libsodium-dev libjson-c-dev \
+    libcurl4-openssl-dev libprotobuf-c-dev libpulse-dev libc6-dev libwebsockets-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+#RUN 
+#    apt-get update && \
+#    apt-get install -y --no-install-recommends -t experimental binfmt-support qemu-user-static && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,45 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest as base
+ARG TARGETPLATFORM
+ARG RELEASE
+ENV DEBIAN_FRONTEND=noninteractive
+# hadolint ignore=DL3008
+USER root
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends --no-install-suggests \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        git \
+        wget \
+        tzdata \
+        openssh-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt clean
+
+ARG DOCKER_MACHINE_VERSION=0.16.2
+ARG DUMB_INIT_VERSION=1.2.2
+ARG GIT_LFS_VERSION=3.2.0
+COPY checksums-* install-deps /tmp/
+RUN /tmp/install-deps "${TARGETPLATFORM}" "${DOCKER_MACHINE_VERSION}" "${DUMB_INIT_VERSION}" "${GIT_LFS_VERSION}" && rm -rf /tmp/
+
+FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+USER root
+ARG RELEASE
+ARG TARGETARCH
+RUN case ${TARGETARCH} in \
+         "amd64")  HELPER_ARCH=x86_64  ;; \
+         "arm64")  HELPER_ARCH=arm64  ;; \
+    esac \ 
+    && curl -o /usr/local/bin/gitlab-runner-helper -L https://gitlab-runner-downloads.s3.amazonaws.com/${RELEASE}/binaries/gitlab-runner-helper/gitlab-runner-helper.$HELPER_ARCH \
+    && chmod +x /usr/local/bin/gitlab-runner-helper;
+
+FROM 192.168.0.2:5050/dedyms/debian:latest
+COPY --from=base / /
+COPY --from=fetcher /usr/local/bin/gitlab-runner-helper /usr/bin/gitlab-runner-helper
+COPY helper/gitlab-runner-build /usr/bin/gitlab-runner-build
+COPY helper/entrypoint /entrypoint
+STOPSIGNAL SIGQUIT
+#USER $CONTAINERUSER
+USER root
+ENTRYPOINT ["tini","-g", "--", "/entrypoint"]
+CMD ["bash"]

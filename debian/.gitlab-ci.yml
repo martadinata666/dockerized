@@ -1,0 +1,122 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  RELEASE: ""
+  UPDATE: ""
+  DATE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/debian"
+  GITHUB_REPO_NAME: "jellyfin/jellyfin-ffmpeg"
+  SCCACHE_REPO_NAME: "mozilla/sccache"
+
+stages:
+  - build-base
+  - build-base-dev
+  - trigger-other-repo
+#  - build-vaapi
+
+buildx-baseimage:
+  cache: {}
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-base
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    #- apk add --no-cache curl
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
+    #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE:stable" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:stable" . -f bullseye/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f sid/Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  except:
+    - schedules
+  only:
+    - triggers
+
+buildx-base-dev:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-base-dev
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f sid/Dockerfile.dev
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    - triggers
+
+.buildx-vaapi:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build-vaapi
+  before_script:
+    - export DATE=$(date +%Y%m%d)
+    - export RELEASE=$(grep -m1 "NEO_VERSION" Dockerfile.vaapi | cut -c17-)
+    - echo $RELEASE
+    - export JELLYFIN_RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
+    - echo $JELLYFIN_RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/amd64 --build-arg JELLYFIN_VERSION=$JELLYFIN_RELEASE -t "$CI_REGISTRY_IMAGE:vaapi" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:vaapi" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.vaapi
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    changes:
+      - Dockerfile.vaapi
+
+trigger-other-repo:
+  image: 192.168.0.2:5050/dedyms/debian:latest
+  stage: trigger-other-repo
+  script:
+    - echo "Trigger NODE image rebuild"
+    - curl -X POST --fail -F token=$NODE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/3/trigger/pipeline
+#    - echo "Trigger JRE image rebuild"
+#    - curl -X POST --fail -F token=$JRE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/4/trigger/pipeline
+    - echo "Trigger APACHE image rebuild"
+    - curl -X POST --fail -F token=$APACHE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/5/trigger/pipeline
+    - echo "Trigger NGINX image rebuild"
+    - curl -X POST --fail -F token=$NGINX_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/6/trigger/pipeline
+    - echo "Trigger PING build"
+    - curl -X POST --fail -F token=$PING_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/7/trigger/pipeline
+    - echo "Trigger IPERF3 build"
+    - curl -X POST --fail -F token=$IPERF3_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/8/trigger/pipeline
+    - echo "Trigger PYTHON-HTTP_SERVER"
+    - curl -X POST --fail -F token=$PHS_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/46/trigger/pipeline
+    - echo "Trigger OPENSSH build"
+    - curl -X POST --fail -F token=$OPENSSH_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/43/trigger/pipeline
+    - echo "Trigger APPRISE"
+    - curl -X POST --fail -F token=$APPRISE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/14/trigger/pipeline
+    - echo "Trigger MARIADB"
+    - curl -X POST --fail -F token=$MARIADB_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/15/trigger/pipeline
+    - echo "Trigger WHOOGLE"
+    - curl -X POST -F token=$WHOOGLE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/27/trigger/pipeline
+    - echo "Trigger CADVISOR"
+    - curl -X POST -F token=$CADVISOR_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/69/trigger/pipeline
+    - echo "Trigger YMPD"
+    - curl -X POST --fail -F token=$YMPD_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/29/trigger/pipeline
+#    - echo "Trigger GLANCES"
+#    - curl -X POST -F token=$GLANCES_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/42/trigger/pipeline
+    - echo "Trigger STASH"
+    - curl -X POST -F token=$STASH_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/26/trigger/pipeline
+#    - echo "Trigger DOCUMIZE"
+#    - curl -X POST -F token=$DOCUMIZE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/21/trigger/pipeline
+    - echo "Trigger DOCKER-STATIC"
+    - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/17/trigger/pipeline
+    - echo "Triggger DOCKER-QEMU"
+    - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/11/trigger/pipeline
+  only:
+    - triggers

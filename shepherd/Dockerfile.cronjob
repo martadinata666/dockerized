@@ -1,0 +1,14 @@
+FROM 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+ENV FILTER_SERVICES="" \
+    TZ="Asia/Jakarta" \
+    VERBOSE="true" \
+    AVATAR_URL="" \
+    USER="" \
+    ROLLBACK_ON_FAILURE="true" \
+    UPDATE_OPTIONS="--update-delay=30s" \
+    DOCKER_CONFIG="/docker" \
+    UPDATE_OPTIONS=""
+RUN groupadd docker && \
+    gpasswd -a $CONTAINERUSER docker
+COPY shepherd.cronjob.update /usr/local/bin/shepherd
+CMD /usr/local/bin/shepherd

@@ -1,0 +1,51 @@
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "index.docker.io/martadinata666/apprise"
+  GITHUB_REPO_NAME: "caronc/apprise-api" 
+  GITHUB_APPRISE_NAME: "caronc/apprise"
+
+buildx-api:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  before_script:
+    #- export RELEASE="git"
+    - export API_RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $API_RELEASE
+    - export APPRISE_RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_APPRISE_NAME/releases/latest" | jq -r .tag_name)
+    - echo $APPRISE_RELEASE
+    - export RELEASE=$APPRISE_RELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    - docker buildx build --build-arg APPRISE_API_RELEASE=$API_RELEASE --build-arg APPRISE_RELEASE=$APPRISE_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - Dockerfile
+
+#buildx-binary:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: build
+#  before_script:
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:binary" . -f Dockerfile.binary
+#  only:
+#    refs:
+#      - master
+#      - schedules
+#    changes:
+#      - Dockerfile.binary

@@ -1,0 +1,147 @@
+stages:
+  - create-release
+  - create-git-docker-image
+  - create-stable-docker-image
+
+variables:
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/pigallery2"
+  TYPE: ""
+  GITHUB_REPO_NAME: "bpatrik/pigallery2"
+  PLATFORM_TEST: linux/amd64
+  PLATFORM: linux/arm64,linux/amd64
+  ZIP_NAME: "pigallery2"
+  RELEASE: "build"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
+  YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+
+
+#default:
+#  image: 192.168.0.2:5050/dedyms/node:lts-dev
+
+
+create-release:
+   # Use the official docker image.
+  #image: 192.168.0.2:5050/dedyms/pigallery2:build
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: create-release
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .npm-cache/
+    policy: pull-push
+  before_script:
+    - sudo apt update
+    - sudo apt install -y --no-install-recommends libvips-dev
+    - npm config set fetch-retries 100
+    - npm config set fetch-retry-mintimeout 99999999
+    - npm config set fetch-retry-maxtimeout 999999999
+    - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2
+#    - git clone --depth=1 -b heif https://github.com/martadinata666/pigallery2.git
+  script:
+    - cd pigallery2
+    #- sed '151, 152d' package.json
+#    - rm package-lock.json
+    - npm ci -d --no-audit
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional mysql@latest 
+    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@latest
+    - npm run -d --ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
+    #- yarn --ignore-engines create-release
+    #- zip -9 -r ${ZIP_NAME}.zip release/
+    #- export DATE=$(date +%Y%m%d)
+    #- export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+    #- echo $PACKAGE_REGISTRY_URL
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip
+    #- |
+    #  curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file ${ZIP_NAME}.zip ${PACKAGE_REGISTRY_URL}/${ZIP_NAME}-${DATE}.zip
+  artifacts:
+    paths:
+      - pigallery2/release/
+  only:
+    #refs:
+    #  - schedules
+    #changes:
+    #  - .gitlab-ci.yml
+    variables:
+      - $TYPE == "git"
+
+#create-release:
+#  cache: []
+  # Caution, as of 2021-02-02 these assets links require a login, see:
+  # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
+#  stage: create-release
+#  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  #rules:
+  #  - if: $CI_COMMIT_SHA
+#  script:
+#    - export DATE=$(date +%Y%m%d)
+#    - export PACKAGE_REGISTRY_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${DATE}/${CI_PROJECT_NAME}"
+#    - |
+#      release-cli create --name "Release $DATE" --tag-name $CI_COMMIT_SHORT_SHA \
+#        --assets-link "{\"name\":\"${ZIP_NAME}.zip\",\"url\":\"${PACKAGE_REGISTRY_URL}/${ZIP_NAME}.zip\"}"
+#  only:
+#    #- schedules
+#    variables:
+#      - $TYPE == "git"
+
+create-docker-image-git:
+  cache: []
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: create-git-docker-image
+  before_script:
+    - export RELEASE="git"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - export DATE=$(date +%Y%m%d)
+    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name $CI_PROJECT_NAME --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --build-arg DATE=$DATE --build-arg VERSION=$RELEASE --platform $PLATFORM -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile.git
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    #refs:
+    #  - master
+    #changes:
+    #  - Dockerfile.git
+    variables:
+      - $TYPE == "git"
+
+create-docker-image-stable:
+  cache: []
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: create-stable-docker-image
+  before_script:
+#    - apk add curl jq
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - echo $RELEASE
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name $CI_PROJECT_NAME --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --build-arg RELEASE=$RELEASE --platform $PLATFORM -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  after_script:
+    - docker buildx stop
+    - docker buildx rm
+  only:
+    variables:
+      - $TYPE == "stable"
+
+#The following ARG variables are set automatically:
+#    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
+#    TARGETOS - OS component of TARGETPLATFORM
+#    TARGETARCH - architecture component of TARGETPLATFORM
+#    TARGETVARIANT - variant component of TARGETPLATFORM
+#    BUILDPLATFORM - platform of the node performing the build.
+#    BUILDOS - OS component of BUILDPLATFORM
+#    BUILDARCH - architecture component of BUILDPLATFORM
+#    BUILDVARIANT - variant component of BUILDPLATFORM
+#These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
+#To expose one of these arguments inside the build stage redefine it without value.

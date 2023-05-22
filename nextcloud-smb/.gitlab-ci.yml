@@ -1,0 +1,64 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  RELEASE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/nextcloud-smb"
+  GITHUB_REPO_NAME: "nextcloud/server"
+  GITHUB_PUSH_NAME: "nextcloud/notify_push"
+
+stages:
+  - download
+  - dockerize
+
+download-nextcloud:
+  image: 192.168.0.2:5050/dedyms/debian:latest
+  stage: download
+  before_script:
+    - sudo apt update && sudo apt install -y bzip2
+  script:
+    #- curl -fsSL -o nextcloud.tar.bz2 "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUDRELEASE}.tar.bz2"
+    - curl -fsSL -o nextcloud.tar.bz2 "http://192.168.0.2:25000/nextcloud/nextcloud-${NEXTCLOUDRELEASE}.tar.bz2"
+    - mkdir -p ./usr/src
+    - tar -xjf nextcloud.tar.bz2 -C ./usr/src/
+    - rm -rf ./usr/src/nextcloud/updater
+    - mkdir -p ./usr/src/nextcloud/data
+    - mkdir -p ./usr/src/nextcloud/custom_apps
+    - chmod +x ./usr/src/nextcloud/occ
+  artifacts:
+    paths:
+      - usr/src
+  only:
+    - triggers
+
+
+buildx-stable:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: dockerize
+  before_script:
+    #- export NEXTCLOUDRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
+    - export PUSHRELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_PUSH_NAME/releases/latest" | jq -r .tag_name)
+#    - export RELEASE=$(echo $NEXTCLOUDRELEASE | cut -c 2-)
+    - echo $NEXTCLOUDRELEASE
+    - echo $RELEASE
+    - echo $PUSHRELEASE
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --build-arg NEXTCLOUD_VERSION=$RELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile
+    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile.ci
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    #refs:
+    #  - master
+    #  - schedules
+    #changes:
+    #  - Dockerfile
+    #  - entrypoint.sh
+    #variables:
+    #  - $RELEASE != ""
+    - triggers

@@ -1,0 +1,14 @@
+jobs:
+  - name: background-update
+    command: bash -c 'curl -sS -L https://picsum.photos/3840/2160.webp -o /var/www/html/public/img/bg1.webp'
+    shell: /bin/bash
+    schedule: "0 * * * *"
+#    failsWhen:
+#      producesStdout: false
+#      producesStderr: false
+  # Some additional jobs, not including this line
+  #- name: nextcloud-preview-generate
+  #  command: php -f /var/www/html/occ -vvv preview:pre-generate
+  #  schedule: "*/30 * * * *"
+  #  utc: false
+  #  #executionTimeout: 120

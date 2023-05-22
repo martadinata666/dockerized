@@ -1,0 +1,61 @@
+#buildx-git:
+#  # Official docker image.
+#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+#  stage: build
+#  before_script:
+#    - export RELEASE="git"
+#    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+#    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#  script:
+#    - docker buildx create --use --config buildx-config.toml
+#    - docker buildx inspect --bootstrap
+#    #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.sid
+#    - docker buildx build --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+#  only:
+#    refs:
+#      - master
+#      - schedules
+#    changes:
+#      - Dockerfile
+
+stages:
+  - build
+  - create-docker-image
+
+build-deemix:
+  image: 192.168.0.2:5050/dedyms/node:lts-dev
+  stage: build
+  before_script:
+    - export NODE_ENV="production"
+  script:
+    - git clone --depth=1 --recursive https://gitlab.com/RemixDev/deemix-gui.git deemix-gui && rm -rf deemix-gui/.git
+    - cd deemix-gui
+    - yarn --cwd server install --prod && yarn build-server && rm -rf node_modules
+    - yarn --cwd webui install --prod && yarn build-webui && rm -rf node_modules
+    #- chown -R 1000:1000 deemix-gui
+  artifacts:
+    paths:
+      - deemix-gui/
+  
+build-docker-image:
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  dependencies:
+    - build-deemix
+  stage: create-docker-image
+  before_script:
+    - export RELEASE="git"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml
+    - docker buildx inspect --bootstrap
+    #- docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.sid
+    - docker buildx build --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - Dockerfile

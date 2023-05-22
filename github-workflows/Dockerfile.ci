@@ -1,0 +1,55 @@
+FROM debian:bullseye AS intermediary
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETPLATFORM
+RUN apt update && apt install -y wget
+WORKDIR /dim
+# From artifacts extract
+COPY bin/ bin/
+COPY web/ web/
+
+# Setup app folder
+RUN mkdir -p /app
+RUN mkdir -p /something
+
+RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
+    mv bin/amd64-bin/somebin target/somebin && \
+    chmod +x target/lldap && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+    mv bin/aarch64-bin/somebin target/somebin && \
+    chmod +x target/somebin && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+    
+RUN if [ "${TARGETPLATFORM}" = "linux/arm/v7" ]; then \
+    mv bin/armhf-bin/somebin target/somebin && \
+    chmod +x target/somebin && \
+    ls -la target/ . && \
+    pwd \
+    ; fi
+
+# Web and App dir
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN cp target app
+
+
+# Final image oonly copy from intermediary image    
+FROM debian:bullseye
+ENV UID=1000
+ENV GID=1000
+ENV USER=lldap
+RUN apt update && \
+    apt install -y --no-install-recommends tini && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -g $GID $USER && useradd --system -m -g $USER --uid $UID $USER
+COPY --from=intermediary --chown=$CONTAINERUSER:$CONTAINERUSER /app /app
+COPY --from=intermediary --chown=$CONTAINERUSER:$CONTAINERUSER /docker-entrypoint.sh /docker-entrypoint.sh
+WORKDIR /app
+USER $CONTAINERUSER
+ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+CMD ["run", "--config-file", "/data/lldap_config.toml"]

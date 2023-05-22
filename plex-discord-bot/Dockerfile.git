@@ -1,0 +1,18 @@
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+ARG RELEASE
+USER $CONTAINERUSER
+RUN git clone --depth=1 https://github.com/irbyk/Plex-Discord-Bot_V2.git $HOME/plex-discord-bot
+WORKDIR $HOME/plex-discord-bot
+RUN npm --cache=/dev/shm update && \
+    npm -d --no-audit --cache=/dev/shm install erlpack && \
+    npm -d --cache=/dev/shm --no-audit install
+
+# NOde 18
+FROM 192.168.0.2:5050/dedyms/node:lts
+ARG RELEASE
+ENV PLEX_DISCORD_BOT_VERSION=$RELEASE
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=tukang $HOME/plex-discord-bot $HOME/plex-discord-bot
+WORKDIR $HOME/plex-discord-bot
+USER $CONTAINERUSER
+VOLUME $HOME/plex-discord-bot/config
+CMD node index.js

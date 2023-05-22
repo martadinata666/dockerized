@@ -1,0 +1,9 @@
+#syntax=docker/dockerfile:1.4
+FROM registry.gitlab.com/dedyms/sid-slim:latest
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
+    apt update && apt install -y --no-install-recommends nodejs && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    npm install -g yarn && \
+    rm -rf $HOME/.config
+CMD ["/bin/bash"]

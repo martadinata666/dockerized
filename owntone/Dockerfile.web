@@ -1,0 +1,8 @@
+
+FROM 192.168.0.2:5050/dedyms/node:lts-dev
+USER $CONTAINERUSER
+RUN git clone --depth=1 https://github.com/owntone/owntone-server.git $HOME/owntone
+WORKDIR $HOME/owntone/web-src
+RUN npm -d install
+COPY env.development .env.development
+CMD ["npm","run","dev"]

@@ -1,0 +1,13 @@
+
+FROM 192.168.0.2:5050/dedyms/node:lts-dev
+ENV QT_QPA_PLATFORM=offscreen
+RUN apt update && apt install -y --no-install-recommends cmake g++ qtbase5-dev libqt5webkit5-dev python3 python-is-python3 libssl-dev libsqlite3-dev git ca-certificates make && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    git clone --depth=1 https://github.com/ariya/phantomjs.git /phantomjs
+WORKDIR /phantomjs
+RUN ./configure && \
+    make && \
+    ./bin/phantomjs --version && \
+    make install
+CMD ["bash"]

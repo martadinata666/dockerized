@@ -1,0 +1,67 @@
+#syntax=docker/dockerfile:1.4
+FROM php:8.0.23-fpm
+ENV TZ=Asia/Jakarta
+# Set default user
+ARG USER=debian
+# Add ton of modules
+RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/apt/sources.list && \
+    apt update && \
+    apt install -y --no-install-recommends git \
+    curl \
+    ca-certificates \
+    autoconf \
+    pkg-config \
+    cmake \
+    libx11-dev \
+    libopenblas-dev \
+    pax-utils && \
+    git clone --depth=1 https://github.com/davisking/dlib.git /dlib && \ 
+    cd /dlib/dlib && \
+    mkdir build && \
+    cd build && \
+    cmake -DBUILD_SHARED_LIBS=ON .. && \
+    make && make install && \
+    cd / && rm -rf /dlib && \
+    git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib && \
+    sed -i 's/c++11/c++14/g' /usr/src/php/ext/pdlib/config.m4 && \
+    docker-php-ext-configure pdlib && \
+    docker-php-ext-install pdlib && \
+    docker-php-source delete && \
+    apt-mark auto '.*' > /dev/null; \
+	[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
+	find /usr/local -type f -executable -exec ldd '{}' ';' \
+		| awk '/=>/ { print $(NF-1) }' \
+		| sort -u \
+		| xargs -r dpkg-query --search \
+		| cut -d: -f1 \
+		| sort -u \
+		| xargs -r apt-mark manual \
+	; \
+	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+        # dynamic module deps
+        apt install -y --no-install-recommends libmemcached11 imagemagick libopenblas0 libsmbclient tzdata openssl binutils; \
+        ln -snf /usr/share/zoneinfo/$TZ /etc/localtime; \
+        apt clean; \
+	rm -rf /var/lib/apt/lists/*; \
+	\
+        #update pecl channel definitions https://github.com/docker-library/php/issues/443
+	pecl update-channels; \
+	rm -rf /tmp/pear ~/.pearrc; \
+	\
+        # smoke test
+        docker-php-ext-enable apcu memcached redis smbclient imagick inotify pdlib; \
+	php --version && php --modules
+
+#Add tini entrypoint
+RUN apt update && apt install -y tini && apt clean && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "docker-php-entrypoint"]
+
+# Enable normal user support
+COPY www.conf /usr/local/etc/php-fpm.d/www.conf
+ENV CONTAINERUSER=$USER
+
+#RUN adduser --disabled-password --uid 1000 $CONTAINERUSER $CONTAINERUSER && chown fpm:fpm /var/www/html
+RUN groupadd $USER && useradd -u 1000 -g $USER -m -d /home/$USER -s /bin/bash -p $(echo $USER | openssl passwd -1 -stdin) $USER && chown $USER:$USER /var/www/html
+#USER $CONTAINERUSER
+VOLUME /var/www/html
+CMD ["php-fpm", "--nodaemonize"]
