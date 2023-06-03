@@ -12,7 +12,7 @@ buildx-stable:
   before_script:
     #- apk add curl jq
     #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/tags" | jq -r 'first(.[] | .name )')
+    #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/tags" | jq -r 'first(.[] | .name )')
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY

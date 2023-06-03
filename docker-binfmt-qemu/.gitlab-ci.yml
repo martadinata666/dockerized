@@ -9,22 +9,20 @@ buildx:
   stage: build
   before_script:
     - export RELEASE_STATIC="sid"
-    - export RELEASE=$(grep -m1 QEMU_VERSION Dockerfile | cut -c18-)
-    - echo $RELEASE
+#    - export RELEASE=$(grep -m1 QEMU_VERSION Dockerfile | cut -c18-)
+#    - echo $RELEASE
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --name buildx-qemu-static --platform linux/amd64
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-qemu-static --platform linux/arm64
+    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME
+#    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-qemu-static --platform linux/arm64
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
     - docker buildx build --push --platform linux/amd64,linux/arm64
       -t "$CI_REGISTRY_IMAGE"
-      -t "$CI_REGISTRY_IMAGE:$RELEASE"
       -t "$CI_REGISTRY_IMAGE:$RELEASE_STATIC"
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE_STATIC" .
       -f Dockerfile
   after_script:

@@ -1,18 +1,18 @@
-FROM debian:sid-slim
+FROM debian:sid-20230522-slim
 ARG USER=debian
 ARG UID=1000
 ARG GID=1000
-ENV CONTAINERUSER=$USER
 ARG SUDOERS="$USER       ALL=(ALL) NOPASSWD:ALL"
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Asia/Jakarta
-ENV HOME=/home/$CONTAINERUSER
+ENV CONTAINERUSER=$USER \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 \
+    DEBIAN_FRONTEND=noninteractive \
+    TZ=Asia/Jakarta \
+    HOME=/home/$USER
 COPY sudo_lecture.txt /etc/sudo_lecture.txt
 RUN apt update && \
-    apt install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano && \
+    apt install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt-get && \
     apt clean && \
@@ -38,3 +38,5 @@ CMD ["/bin/bash"]
 
 # With password
 # useradd -u 1000 -U -d /home/$USER -s /bin/bash -p $(echo $USER | openssl passwd -1 -stdin) $USER -m -d /home/$USER && \
+# locales   sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+#    locale-gen && \

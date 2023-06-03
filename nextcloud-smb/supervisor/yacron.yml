@@ -18,16 +18,16 @@ jobs:
     #executionTimeout: 120
 #    concurrencyPolicy: Forbid
 
-  - name: nextcloud-facerecognition
-    command: /var/www/html/occ face:background_job -vv
-    # hourly
-    schedule: "0 * * * *"
-    utc: false
-    failsWhen:
-      producesStdout: false
-    #  producesStderr: false
-    #executionTimeout: 30
-    concurrencyPolicy: Forbid
+#  - name: nextcloud-facerecognition
+#    command: /var/www/html/occ face:background_job -vv
+#    # hourly
+#    schedule: "0 * * * *"
+#    utc: false
+#    failsWhen:
+#      producesStdout: false
+#    #  producesStderr: false
+#    #executionTimeout: 30
+#    concurrencyPolicy: Forbid
 
 #  - name: nextcloud-fulltextsearch
 #    command: /var/www/html/occ fulltextsearch:index -q

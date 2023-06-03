@@ -1,5 +1,6 @@
-FROM 192.168.0.2:5050/dedyms/docker-binfmt-qemu:latest
+FROM 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
 WORKDIR /
 COPY qemu-generate.sh qemu-generate.sh
 COPY qemu-setup.sh qemu-setup.sh
-ENTRYPOINT ["/qemu-setup.sh"]
+RUN /qemu-setup.sh
+#ENTRYPOINT ["/qemu-setup.sh"]

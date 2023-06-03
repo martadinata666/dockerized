@@ -4,8 +4,7 @@ variables:
   UPDATE: ""
   DATE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/debian"
-  GITHUB_REPO_NAME: "jellyfin/jellyfin-ffmpeg"
-  SCCACHE_REPO_NAME: "mozilla/sccache"
+  GITHUB_REPO_NAME: ""
 
 stages:
   - build-base
@@ -100,8 +99,8 @@ trigger-other-repo:
     - curl -X POST --fail -F token=$OPENSSH_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/43/trigger/pipeline
     - echo "Trigger APPRISE"
     - curl -X POST --fail -F token=$APPRISE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/14/trigger/pipeline
-    - echo "Trigger MARIADB"
-    - curl -X POST --fail -F token=$MARIADB_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/15/trigger/pipeline
+#    - echo "Trigger MARIADB"
+#    - curl -X POST --fail -F token=$MARIADB_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/15/trigger/pipeline
     - echo "Trigger WHOOGLE"
     - curl -X POST -F token=$WHOOGLE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/27/trigger/pipeline
     - echo "Trigger CADVISOR"
@@ -116,7 +115,7 @@ trigger-other-repo:
 #    - curl -X POST -F token=$DOCUMIZE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/21/trigger/pipeline
     - echo "Trigger DOCKER-STATIC"
     - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/17/trigger/pipeline
-    - echo "Triggger DOCKER-QEMU"
-    - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/11/trigger/pipeline
+#    - echo "Triggger DOCKER-QEMU"
+#    - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/11/trigger/pipeline
   only:
     - triggers
