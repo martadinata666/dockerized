@@ -11,7 +11,7 @@ RUN npm config set fetch-retries 100 && \
     ls -al
 
 FROM 192.168.0.2:5050/dedyms/debian:dev as docker
-ARG DOCKERVERSION=24.0.0
+ARG DOCKERVERSION=19.03.9
 ARG TARGETARCH
 USER root
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
@@ -27,13 +27,6 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
     fi;
 
 FROM 192.168.0.2:5050/dedyms/node:lts
-#ENV MS=500 CTX_ROOT=/
-ARG TARGETARCH
-ENV DOCKERVERSION=23.0.6
-
-#RUN curl -fsSLO https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKERVERSION}.tgz \
-#    && tar xzvf docker-${DOCKERVERSION}.tgz --strip 1 -C /usr/local/bin docker/docker \
-#    && rm docker-${DOCKERVERSION}.tgz
 COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=tukang $HOME/docker-swarm-visualizer $HOME/docker-swarm-visualizer
 WORKDIR $HOME/docker-swarm-visualizer

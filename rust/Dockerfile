@@ -55,9 +55,9 @@ ENV AARCH64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-aarch64-gnu \
     AARCH64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR=/opt/lib/openssl-static-aarch64-musl/lib \
     AARCH64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR=/opt/lib/openssl-static-aarch64-musl/include
 
-ENV ARMV7_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-arm-gnueabihf \
-    ARMV7_UNKNOWN_LINUX_GNU_OPENSSL_INCLUDE_DIR=/opt/lib/openssl-static-arm-gnueabihf/include \
-    ARMV7_UNKNOWN_LINUX_GNU_OPENSSL_LIB_DIR=/opt/lib/openssl-static-arm-gnueabihf/lib \
+ENV ARMV7_UNKNOWN_LINUX_GNUEABIHF_OPENSSL_DIR=/opt/lib/openssl-static-arm-gnueabihf \
+    ARMV7_UNKNOWN_LINUX_GNUEABIHF_OPENSSL_INCLUDE_DIR=/opt/lib/openssl-static-arm-gnueabihf/include \
+    ARMV7_UNKNOWN_LINUX_GNUEABIHF_OPENSSL_LIB_DIR=/opt/lib/openssl-static-arm-gnueabihf/lib \
     ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_DIR=/opt/lib/openssl-static-arm-musleabihf \
     ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_LIB_DIR=/opt/lib/openssl-static-arm-musleabihf/lib \
     ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_INCLUDE_DIR=/opt/lib/openssl-static-arm-musleabihf/include
