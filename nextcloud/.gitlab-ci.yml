@@ -1,7 +1,7 @@
 # This file is a template, and might need editing before it works on your project.
 variables:
   RELEASE: ""
-  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/nextcloud-smb"
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/nextcloud"
   GITHUB_REPO_NAME: "nextcloud/server"
   GITHUB_PUSH_NAME: "nextcloud/notify_push"
 

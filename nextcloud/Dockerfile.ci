@@ -111,6 +111,7 @@ COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor/yacron.yml /supervisor/yac
 COPY --from=notify --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/notify-push /usr/local/bin/notify-push
 COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER ldap.conf /etc/ldap/ldap.conf
 COPY *.sh upgrade.exclude /
 
 # Add modified entrypoint because fpm already using user 1000
