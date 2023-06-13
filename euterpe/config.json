@@ -16,7 +16,7 @@
     },
 
     "libraries": [
-        "/home/debian/musics"
+        "/musics"
     ],
 
     "library_scan": {

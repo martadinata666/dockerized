@@ -38,8 +38,6 @@ RUN if [ "${TARGETPLATFORM}" = "linux/arm/v7" ]; then \
     ; fi
 
 # Web and App dir
-COPY lldap/docker-entrypoint.sh /docker-entrypoint.sh
-COPY lldap/lldap_config.docker_template.toml /lldap/
 RUN cp target/* lldap/ && \
     cp -R web/index.html \
           web/pkg \
@@ -59,7 +57,7 @@ RUN set -x \
 FROM 192.168.0.2:5050/dedyms/debian:latest
 COPY --from=lldap --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/lldap /app
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER /entrypoint.sh /docker-entrypoint.sh
-ADD https://raw.githubusercontent.com/lldap/lldap/main/lldap_config.docker_template.toml /app/lldap_config.docker_template.toml
+ADD  --chown=$CONTAINERUSER:$CONTAINERUSER https://raw.githubusercontent.com/lldap/lldap/main/lldap_config.docker_template.toml /app/lldap_config.docker_template.toml
 WORKDIR /app
 RUN sudo mkdir /data && \
     sudo chown -R $CONTAINERUSER:$CONTAINERUSER /data

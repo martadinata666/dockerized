@@ -22,8 +22,6 @@ buildx:
     - docker buildx build --push --platform linux/amd64,linux/arm64
       -t "$CI_REGISTRY_IMAGE"
       -t "$CI_REGISTRY_IMAGE:$RELEASE_STATIC"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE_STATIC" .
       -f Dockerfile
   after_script:
     - docker buildx stop

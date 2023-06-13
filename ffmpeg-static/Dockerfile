@@ -9,7 +9,7 @@ ENV FFMPEG_BUILD_DATE=$DATE
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends wget xz-utils aria2
 USER $CONTAINERUSER
-WORKDIR /home/$CONTAINERUSER
+WORKDIR $HOME
 # https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
 RUN aria2c -x 16 -s 100 -j 100 -c https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-$TARGETARCH-static.tar.xz && \
     tar -xf ffmpeg-release-$TARGETARCH-static.tar.xz && \

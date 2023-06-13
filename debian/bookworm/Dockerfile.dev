@@ -1,0 +1,7 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest 
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends build-essential git autotools-dev autoconf automake libtool gettext gawk \
+                                           python3-pip python3-dev libcurl4-gnutls-dev libgnutls28-dev python3-setuptools grc \
+                                           wget unzip python3-dev ca-certificates libva2 libva-dev sqlite3 libdrm2 jq tar gzip && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/*

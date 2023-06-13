@@ -27,7 +27,7 @@ buildx-baseimage:
     - docker buildx inspect --bootstrap
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE:stable" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:stable" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f sid/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64,linux/arm/v7 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f sid/Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -53,29 +53,6 @@ buildx-base-dev:
     - docker buildx rm
   only:
     - triggers
-
-.buildx-vaapi:
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build-vaapi
-  before_script:
-    - export DATE=$(date +%Y%m%d)
-    - export RELEASE=$(grep -m1 "NEO_VERSION" Dockerfile.vaapi | cut -c17-)
-    - echo $RELEASE
-    - export JELLYFIN_RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
-    - echo $JELLYFIN_RELEASE
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64 --build-arg JELLYFIN_VERSION=$JELLYFIN_RELEASE -t "$CI_REGISTRY_IMAGE:vaapi" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:vaapi" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.vaapi
-  after_script:
-    - docker buildx stop
-    - docker buildx rm
-  only:
-    changes:
-      - Dockerfile.vaapi
 
 trigger-other-repo:
   image: 192.168.0.2:5050/dedyms/debian:latest
@@ -115,7 +92,8 @@ trigger-other-repo:
 #    - curl -X POST -F token=$DOCUMIZE_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/21/trigger/pipeline
     - echo "Trigger DOCKER-STATIC"
     - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/17/trigger/pipeline
-#    - echo "Triggger DOCKER-QEMU"
-#    - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/11/trigger/pipeline
+    - echo "Triggger DOCKER-QEMU"
+    - curl -X POST -F token=$DOCKER_QEMU_TOKEN -F ref=master https://gitlab.ddyms.space/api/v4/projects/11/trigger/pipeline
+
   only:
     - triggers

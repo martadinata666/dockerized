@@ -81,7 +81,7 @@ RUN sudo mkdir /docker-entrypoint-initdb.d
 # bashbrew-architectures: amd64 arm64v8 
 ARG MARIADB_MAJOR=10.8
 ENV MARIADB_MAJOR $MARIADB_MAJOR
-ARG MARIADB_VERSION=1:10.8.8+maria~debsid
+ARG MARIADB_VERSION=1:10.8.8+maria~deb12
 ENV MARIADB_VERSION $MARIADB_VERSION
 # release-status:Stable
 # (https://downloads.mariadb.org/mariadb/+releases/)

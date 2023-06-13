@@ -18,7 +18,7 @@ RUN mkdir -p $HOME/duplicati/data && \
 
 FROM 192.168.0.2:5050/dedyms/mono:latest
 #FROM mcr.microsoft.com/dotnet/sdk:6.0.402-bullseye-slim
-#ARG HOME=/home/debian
+#ARG HOME=/$HOME
 #ARG CONTAINERUSER=debian
 #RUN groupadd --gid 1000 debian && \
 #    useradd --system --create-home --uid 1000 --gid 1000 debian
@@ -31,5 +31,5 @@ COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/duplicati $HOME/
 USER $CONTAINERUSER
 VOLUME $HOME/duplicati/data
 WORKDIR $HOME/duplicati
-CMD ["mono","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=/home/debian/duplicati/data","--webservice-allowed-hostnames=*"]
-#CMD ["dotnet","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=/home/debian/duplicati/data","--webservice-allowed-hostnames=*"]
+CMD ["mono","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=$HOME/duplicati/data","--webservice-allowed-hostnames=*"]
+#CMD ["dotnet","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=$HOME/duplicati/data","--webservice-allowed-hostnames=*"]

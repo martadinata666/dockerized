@@ -59,7 +59,7 @@ ENV WEBPORT=8080
 EXPOSE 8080/tcp
 USER $CONTAINERUSER
 RUN mkdir -p $HOME/mpd && \
-    mkdir -p $HOME/mpd/playlists
+    mkdir -p $HOME/mpd/data $HOME/mpd/data/playlists $HOME/mpd/icecast-log $HOME/mpd/scrobble
 VOLUME $HOME/mpd
 #CMD ympd -h $MPD_SERVER -p $MPD_PORT
 CMD ["supervisord","-c","/supervisor/supervisord.conf"]

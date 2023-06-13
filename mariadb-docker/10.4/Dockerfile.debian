@@ -75,19 +75,19 @@ RUN sudo mkdir /docker-entrypoint-initdb.d
 #      org.opencontainers.image.licenses="GPL-2.0" \
 #      org.opencontainers.image.source="https://github.com/MariaDB/mariadb-docker" \
 #      org.opencontainers.image.vendor="MariaDB Community" \
-#      org.opencontainers.image.version="10.4.29" \
+#      org.opencontainers.image.version="10.4.30" \
 #      org.opencontainers.image.url="https://github.com/MariaDB/mariadb-docker"
 
 # bashbrew-architectures: amd64 arm64v8 
 ARG MARIADB_MAJOR=10.4
 ENV MARIADB_MAJOR $MARIADB_MAJOR
-ARG MARIADB_VERSION=1:10.4.29+maria~deb11
+ARG MARIADB_VERSION=1:10.4.30+maria~deb11
 ENV MARIADB_VERSION $MARIADB_VERSION
 # release-status:Stable
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
 # Allowing overriding of REPOSITORY, a URL that includes suite and component for testing and Enterprise Versions
-ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.4.29/repo/debian/ bullseye main"
+ARG REPOSITORY="http://archive.mariadb.org/mariadb-10.4.30/repo/debian/ bullseye main"
 
 RUN set -e;\
 	echo "deb ${REPOSITORY}" | sudo tee /etc/apt/sources.list.d/mariadb.list; \

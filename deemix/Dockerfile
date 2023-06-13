@@ -14,6 +14,6 @@ ENV WEBPORT=6595
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER deemix-gui $HOME/deemix-gui
 WORKDIR $HOME/deemix-gui
 USER $CONTAINERUSER
-RUN mkdir -p /home/debian/deemix-gui/server/config
-VOLUME /home/debian/deemix-gui/server/config
+RUN mkdir -p /$HOME/deemix-gui/server/config
+VOLUME /$HOME/deemix-gui/server/config
 CMD yarn start-server --host 0.0.0.0

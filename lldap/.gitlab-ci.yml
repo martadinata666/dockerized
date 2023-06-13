@@ -1,12 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/lldap"
-  GITHUB_REPO_NAME: "lldap/lldap"
-  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+  GITHUB_REPO_NAME: "$CI_PROJECT_NAME/lldap"
   CARGO_TARGET_DIR: "$CI_PROJECT_DIR/target"
-  npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
-  # Static build success break email function due libssl issue
-  RUSTFLAGS: "-Ctarget-feature=-crt-static"
-  #OPENSSL_STATIC: "1"
   CARGO_TERM_COLOR: "always"
   SCCACHE_ENDPOINT: "192.168.0.2:9000"
   SCCACHE_REGION: "us-east-1"
@@ -15,32 +10,27 @@ variables:
   DEV: ""
 
 stages:
-  - build-bin
+  - build
   - dockerize
   - dev
 
 build-js:
   image: 192.168.0.2:5050/dedyms/rust:latest
-  stage: build-bin
+  stage: build
   cache:
     key: "$CI_COMMIT_REF_SLUG-js"
     paths:
-      - .npm-cache/
-      - $CI_PROJECT_DIR/.cargo/registry/index
-      - $CI_PROJECT_DIR/.cargo/registry/cache
-      - $CI_PROJECT_DIR/.cargo/git/db
       - $CI_PROJECT_DIR/target
-      - $CI_PROJECT_DIR/app/target
     policy: pull-push
   before_script:
     - export RELEASE=$(curl --silent "https://api.github.com/repos/${GITHUB_REPO_NAME}/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
-    - SCCACHE_S3_KEY_PREFIX="lldap-ui"
+    - SCCACHE_S3_KEY_PREFIX="$CI_PROJECT_NAME-ui"
     - export PATH="$CI_PROJECT_DIR/.cargo/bin:$PATH"
     - export RUSTFLAGS=""
-    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git lldap
+    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git $CI_PROJECT_NAME
   script:
-    - cd lldap/
+    - cd $CI_PROJECT_NAME/
     - sudo apt update && sudo apt install -y gzip tree
 #    - sudo npm install -g rollup
     - rustup target add wasm32-unknown-unknown
@@ -49,34 +39,27 @@ build-js:
     - tree ./
   artifacts:
     paths:
-      - lldap/app
-      - lldap/docker-entrypoint.sh
-      - lldap/lldap_config.docker_template.toml
+      - $CI_PROJECT_NAME/app
   only:
     changes:
       - Dockerfile.ci
 
 
-build-lldap:
+build-bin:
   image: 192.168.0.2:5050/dedyms/rust:latest
-  stage: build-bin
+  stage: build
   cache:
     key: "$TARGET"
     paths:
       - $CI_PROJECT_DIR/target
-      - $CI_PROJECT_DIR/.cargo/registry/index
-      - $CI_PROJECT_DIR/.cargo/registry/cache
-      - $CI_PROJECT_DIR/.cargo/git/db
     policy: pull-push
   before_script:
-    - sudo apt update
-    - sudo apt install -y --no-install-recommends libssl-dev
-    - export SCCACHE_S3_KEY_PREFIX="lldap-$TARGET"
+    - export SCCACHE_S3_KEY_PREFIX="$CI_PROJECT_NAME-$TARGET"
     - export RELEASE=$(curl --silent "https://api.github.com/repos/${GITHUB_REPO_NAME}/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
-    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git lldap
+    - git clone --depth=1 -b $RELEASE https://github.com/${GITHUB_REPO_NAME}.git $CI_PROJECT_NAME
   script:
-    - cd lldap/
+    - cd $CI_PROJECT_NAME/
     - rustc --version
     - cargo build --target="$TARGET" --release -p lldap -p migration-tool -p lldap_set_password
     - sccache --show-stats
@@ -97,7 +80,7 @@ build-lldap:
 buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  needs: ["build-js","build-lldap"]
+  needs: ["build-js","build-bin"]
   stage: dockerize
   #services:
   #  - docker:dind
@@ -108,8 +91,8 @@ buildx-stable:
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - ls -al
-    - ls -al lldap
-    - ls -al lldap/app
+    - ls -al $CI_PROJECT_NAME
+    - ls -al $CI_PROJECT_NAME/app
     - ls -al target
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -152,23 +135,3 @@ buildx-stable:
 #These arguments are defined in the global scope so are not automatically available inside build stages or for your RUN commands.
 #To expose one of these arguments inside the build stage redefine it without value.
 
-
-buildx-dev:
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: dev
-  before_script:
-    - export RELEASE="dev"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml
-    - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.dev
-  after_script:
-    - docker buildx stop
-    - docker buildx rm
-  only:
-    variables:
-      - $DEV == "true"
-    changes:
-      - Dockerfile.dev

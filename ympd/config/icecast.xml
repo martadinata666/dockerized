@@ -195,7 +195,7 @@
 
         <!-- Note that if <chroot> is turned on below, these paths must both
              be relative to the new root, not the original root -->
-        <logdir>/home/debian/mpd</logdir>
+        <logdir>/home/docker/mpd/icecast-log</logdir>
         <webroot>/usr/share/icecast2/web</webroot>
         <adminroot>/usr/share/icecast2/admin</adminroot>
         <!-- <pidfile>/usr/share/icecast/icecast.pid</pidfile> -->

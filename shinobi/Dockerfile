@@ -7,7 +7,7 @@ RUN npm -d ci --no-audit && \
     npm -d uninstall mysql
 
 # VAAPI base image
-FROM 192.168.0.2:5050/dedyms/ffmpeg:4
+FROM 192.168.0.2:5050/dedyms/ffmpeg:6
 ENV PM2_HOME=/Shinobi/pm2
 # Add nodejs
 ARG KEYRING=/usr/share/keyrings/nodesource.gpg

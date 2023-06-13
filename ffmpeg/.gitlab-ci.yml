@@ -34,14 +34,14 @@ buildx-ffmpeg:
     - docker buildx rm
   only:
     changes:
-      - 4/Dockerfile
-      - 5/Dockerfile
+#      - 4/Dockerfile
+#      - 5/Dockerfile
       - 6/Dockerfile
   parallel:
     matrix:
-      - TARGET: [4,6]
+      - TARGET: [6]
 
-trigger-ffmpeg:
+.trigger-ffmpeg:
   image: 192.168.0.2:5050/dedyms/debian:latest
   needs: ["buildx-ffmpeg"]
   stage: trigger

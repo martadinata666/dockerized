@@ -22,8 +22,7 @@ buildx-dotnet:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/amd64
-       -t "$CI_REGISTRY_IMAGE:7"
-       -t "$CI_DOCKERHUB_REGISTRY_IMAGE:7" .
+       -t "$CI_REGISTRY_IMAGE:7" .
        -f $TARGET/Dockerfile
   after_script:
     - docker buildx stop

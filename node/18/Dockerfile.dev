@@ -1,6 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | sudo bash - && \
-    sudo apt-get install -y --no-install-recommends nodejs && \
+    sudo apt install -y --no-install-recommends nodejs && \
     sudo rm -rf /var/lib/apt/lists/* && \
     sudo npm --cache /dev/shm install -g npm && \
     sudo npm --cache /dev/shm install -g yarn && \

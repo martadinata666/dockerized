@@ -42,4 +42,4 @@ COPY --chown=$CONTAINERUSER:$CONTAINERUSER owntone.conf $HOME/owntone/owntone.co
 USER $CONTAINERUSER
 VOLUME $HOME/owntone
 WORKDIR $HOME/owntone
-CMD ["owntone","-c","./owntone.conf","-f","-P","./owntone.pid","-w","/home/debian/.local/share/owntone/htdocs"]
+CMD ["owntone","-c","./owntone.conf","-f","-P","./owntone.pid","-w","/$HOME/.local/share/owntone/htdocs"]
