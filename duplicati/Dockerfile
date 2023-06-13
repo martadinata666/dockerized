@@ -29,7 +29,6 @@ RUN sudo apt update && \
     sudo rm -rf /var/lib/apt/lists/*
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/duplicati $HOME/duplicati
 USER $CONTAINERUSER
-VOLUME $HOME/duplicati/data
 WORKDIR $HOME/duplicati
-CMD ["mono","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=$HOME/duplicati/data","--webservice-allowed-hostnames=*"]
+CMD ["mono","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=/data","--webservice-allowed-hostnames=*"]
 #CMD ["dotnet","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=$HOME/duplicati/data","--webservice-allowed-hostnames=*"]

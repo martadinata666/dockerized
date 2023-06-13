@@ -41,14 +41,14 @@ jobs:
     #executionTimeout: 120
 
 
-  - name: nextcloud-memories
-    command: /var/www/html/occ memories:index
-    # hourly
-    schedule: "0 * * * *"
-    concurrencyPolicy: Forbid
-    utc: false
-    failsWhen:
-      producesStdout: false
+#  - name: nextcloud-memories
+#    command: /var/www/html/occ memories:index
+#    # hourly
+#    schedule: "0 * * * *"
+#    concurrencyPolicy: Forbid
+#    utc: false
+#    failsWhen:
+#      producesStdout: false
     #  producesStderr: false
     #executionTimeout: 120
 

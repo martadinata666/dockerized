@@ -1,8 +1,7 @@
-#syntax=docker/dockerfile:1.4
-FROM php:8.2.4-fpm
+FROM php:8.2.7-fpm
 ENV TZ=Asia/Jakarta
 # Set default user
-ARG USER=debian
+ARG USER=docker
 ARG TARGETARCH
 # Installer https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions
 # Add ton of modules
