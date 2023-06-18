@@ -1,4 +1,3 @@
-
 FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
 ARG VERSION
 RUN sudo apt update && \
@@ -19,16 +18,19 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 
 #RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+#FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:5050/dedyms/ffmpeg:6
 ARG VERSION
 ENV STASH_CONFIG_FILE=$HOME/stash/config.yml
 ENV STASH_VERSION=$VERSION
-COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
-COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffprobe /usr/local/bin/ffprobe
-COPY --from=fetcher --chown=$CONTAINERUSER $HOME/stash-linux $HOME/.local/bin/stash
-EXPOSE 9999
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends python3-minimal python-is-python3 && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists* && \
+    sudo ln -s /usr/local/bin/ffmpeg $HOME/.local/bin/ffmpeg && \
+    sudo ln -s /usr/local/bin/ffprobe $HOME/.local/bin/ffprobe
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/stash-linux $HOME/.local/bin/stash
 USER $CONTAINERUSER
 RUN mkdir $HOME/stash
 WORKDIR $HOME/stash

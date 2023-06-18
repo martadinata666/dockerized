@@ -1,0 +1,5 @@
+# Don't need build js, just take out from official image, as static js platform agnotic
+FROM excalidraw/excalidraw:latest as source
+
+FROM 192.168.0.2:5050/dedyms/nginx:mainline
+COPY --from=source /usr/share/nginx/html /var/www/html

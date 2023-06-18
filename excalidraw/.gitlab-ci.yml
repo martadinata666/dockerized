@@ -1,0 +1,32 @@
+# This file is a template, and might need editing before it works on your project.
+variables:
+  SCHEDULE_TYPE: ""
+  RELEASE: ""
+  DATE: ""
+  CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/excalidraw"
+  DEV: ""
+
+buildx-develop:
+  # Official docker image.
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  stage: build
+  before_script:
+    - export RELEASE="git"
+    - export DATE=$(date +%Y%m%d)
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+  script:
+    - docker buildx create --use --config buildx-config.toml --name buildx-tukang --platform linux/amd64
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-tukang --platform linux/arm64
+    - docker buildx inspect --bootstrap
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f Dockerfile.repack
+  after_script:
+    - docker buildx stop
+    - docker buildx rm -f
+  only:
+    refs:
+      - master
+      - schedules
+    changes:
+      - Dockerfile.repack

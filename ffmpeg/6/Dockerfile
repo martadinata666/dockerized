@@ -15,6 +15,7 @@ RUN sudo apt-get update -qq && sudo apt-get -y install \
   libmp3lame-dev \
   libtool \
   libvorbis-dev \
+  libwebp-dev \
   meson \
   ninja-build \
   pkg-config \
@@ -67,6 +68,7 @@ RUN PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig ./configure \
   --enable-libsvtav1 \
   --enable-libdav1d \
   --enable-libvorbis \
+  --enable-libwebp \
   --enable-libvpx \
   --enable-libx264 \
   --enable-libx265 \
@@ -108,6 +110,9 @@ RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   libopus0 \
   libdav1d6 \
   libunistring2 \
+  libwebp7 \
+  libwebpmux3 \
+  libwebpdemux2 \
   libaom3 \
   libsvtav1enc1 \
   libva-drm2 \

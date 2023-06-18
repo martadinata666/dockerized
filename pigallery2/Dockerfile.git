@@ -30,10 +30,11 @@ COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/pigallery2 /piga
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/ffprobe /usr/local/bin/ffprobe
 COPY wait-for /usr/local/bin/wait-for
-RUN sudo mkdir -p $HOME/pigallery2/data && \
+RUN sudo mkdir -p /pigallery2/data && \
+    sudo mkdir -p /pigallery2/db && \
     sudo mkdir -p /images && \
     sudo mkdir -p /preview && \
-    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /preview /images /pigallery2/data
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /preview /images /pigallery2/data /pigallery2/db
 WORKDIR /pigallery2
 USER $CONTAINERUSER
 VOLUME ["/pigallery2/data", "/images", "/preview"]

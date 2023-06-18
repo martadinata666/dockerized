@@ -1,0 +1,1 @@
+INSERT INTO user_attribute_schema(user_attribute_schema_name,user_attribute_schema_type,user_attribute_schema_is_list,user_attribute_schema_is_user_visible,user_attribute_schema_is_user_editable,user_attribute_schema_is_hardcoded) VALUES('first_name','String',false,true,true,true);

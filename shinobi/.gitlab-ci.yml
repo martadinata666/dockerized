@@ -58,9 +58,9 @@ buildx-tensorflow:
     - docker buildx create --use --config buildx-config.toml
     - docker buildx inspect --bootstrap
     - cd tensorflow
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/amd64 
-      -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$RELEASE-$DATE" 
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile
+    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/amd64
+      -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:$RELEASE-$DATE"
+      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile.orig
   after_script:
     - docker buildx stop
     - docker buildx rm -f
@@ -71,7 +71,7 @@ buildx-tensorflow:
       - master
       - schedules
     changes:
-      - tensorflow/Dockerfile
+      - tensorflow/Dockerfile.orig
 
 
 

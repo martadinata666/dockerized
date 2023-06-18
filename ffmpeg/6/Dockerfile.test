@@ -1,0 +1,86 @@
+FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+ARG FFMPEG_VERSION=n6.0
+ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
+RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
+RUN sudo apt-get update -qq && sudo apt-get -y install \
+  autoconf \
+  automake \
+  build-essential \
+  cmake \
+  git-core \
+  git-lfs \
+  libass-dev \
+  libfreetype6-dev \
+  libgnutls28-dev \
+  libmp3lame-dev \
+  libtool \
+  libvorbis-dev \
+  meson \
+  ninja-build \
+  pkg-config \
+  texinfo \
+  wget \
+  yasm \
+  zlib1g-dev \
+  nasm \
+  libx264-dev \
+  libx265-dev \
+  libnuma-dev \
+  libvpx-dev \
+  libopus-dev \
+  libdav1d-dev \
+  libunistring-dev \
+  libaom-dev \
+  libwebp-dev \
+  libsvtav1enc-dev \
+  libva-dev \
+  ocl-icd-opencl-dev \
+  libdrm-dev \
+  libxml2-dev \
+  libpciaccess-dev \
+  libsrt-gnutls-dev \
+  libvpl-dev \
+  libfdk-aac-dev \
+  libvpl2
+RUN git clone --depth=1 -b $FFMPEG_VERSION https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+WORKDIR $HOME/ffmpeg
+RUN PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig ./configure \
+  --pkg-config-flags=--static \
+  --extra-version=vaapi \
+  --extra-libs="-lpthread -lm" \
+  --ld="g++" \
+  --bindir="/usr/local/bin" \
+  --enable-static \
+  --disable-asm \
+  --disable-debug \
+  --disable-doc \
+  --disable-ffplay \
+  --enable-vaapi \
+  --enable-opencl \
+  --enable-gpl \
+  --enable-gnutls \
+  --enable-libaom \
+  --enable-libass \
+  --enable-libfreetype \
+  --enable-libmp3lame \
+  --enable-libopus \
+  --enable-libsvtav1 \
+  --enable-libdav1d \
+  --enable-libvorbis \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-libvpl \
+  --enable-libsrt \
+  --enable-libwebp \
+  --disable-sdl2 \
+  --disable-libxcb \
+  --disable-xlib \
+  --enable-iconv \
+  --enable-libfdk-aac \
+  --enable-nonfree
+RUN make -j$(nproc) && \
+    sudo make install
+RUN ffmpeg -version && \
+    ffmpeg -hide_banner -hwaccels

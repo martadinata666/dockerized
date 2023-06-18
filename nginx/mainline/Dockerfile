@@ -15,8 +15,7 @@ RUN sudo mkdir -p /etc/ssl/localcerts && \
     sudo mkdir -p /run/nginx/ && \
     sudo ln -sf /dev/stdout /var/log/nginx/access.log && \
     sudo ln -sf /dev/stderr /var/log/nginx/error.log && \
-    sudo touch /run/nginx/nginx.pid && \
-    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /var/www/html /run/nginx/nginx.pid /var/cache/nginx /var/log/nginx /var/lib/nginx
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /var/www/html /var/cache/nginx /var/log/nginx /var/lib/nginx
 COPY --from=sslgenerator /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/localcerts/nginx.pem
 COPY --from=sslgenerator /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/localcerts/nginx.key
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER mainline/default.conf /etc/nginx/conf.d/default.conf

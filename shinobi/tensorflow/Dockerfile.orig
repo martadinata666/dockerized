@@ -10,12 +10,13 @@ RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginBase
 RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/tools/modifyConfigurationForPlugin.js -O $HOME/shinobi/plugins/tensorflow/modifyConfigurationForPlugin.js
 RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginCheck.js -O $HOME/shinobi/plugins/pluginCheck.js
 WORKDIR $HOME/shinobi/plugins/tensorflow
-RUN npm -d --unsafe-perm --force --cache=/dev/shm install
-RUN npm -d rebuild @tensorflow/tfjs-node@2.7.0 build-addon-from-source
+RUN npm -d --unsafe-perm --force install
+#RUN npm -d rebuild @tensorflow/tfjs-node@2.7.0 build-addon-from-source
 
 
 FROM 192.168.0.2:5050/dedyms/node:lts
 ENV TFJS_HW=cpu \
+    TF_ENABLE_ONEDNN_OPTS=1 \
     PLUGIN_NAME=Tensorflow \
     PLUGIN_HOST=localhost \
     PLUGIN_PORT=8080 \
