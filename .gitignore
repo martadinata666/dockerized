@@ -31,3 +31,5 @@ embystat/embystat/*
 embystat/*
 hadolint
 reactiveresume/sentry.txt
+shinobi/update-tensor.sh
+shinobi/update-tensor2.sh
