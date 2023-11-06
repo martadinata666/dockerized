@@ -5,8 +5,8 @@ USER root
 # prevent Debian's PHP packages from being installed
 # https://github.com/docker-library/php/pull/542
 # Set repo to local, deb.debian.org stuck
-RUN rm  /etc/apt/sources.list.d/debian.sources && \
-    echo "deb  http://mirror.poliwangi.ac.id/debian/ unstable main" >> /etc/apt/sources.list
+#RUN rm  /etc/apt/sources.list.d/debian.sources && \
+#    echo "deb  http://mirror.poliwangi.ac.id/debian/ unstable main" >> /etc/apt/sources.list
 RUN set -eux; \
 	{ \
 		echo 'Package: php*'; \
@@ -63,7 +63,8 @@ ENV PHP_INI_DIR=/usr/local/etc/php
 ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
-ENV PHP_VERSION=8.2.7
+# Update this
+ENV PHP_VERSION=8.2.8
 ENV PHP_URL=https://www.php.net/distributions/php-$PHP_VERSION.tar.xz
 
 RUN set -eux; \

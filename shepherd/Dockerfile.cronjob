@@ -8,7 +8,7 @@ ENV FILTER_SERVICES="" \
     UPDATE_OPTIONS="--update-delay=30s" \
     DOCKER_CONFIG="/docker" \
     UPDATE_OPTIONS=""
-RUN groupadd docker && \
-    gpasswd -a $CONTAINERUSER docker
+#RUN groupadd docker && \
+#    gpasswd -a $CONTAINERUSER docker
 COPY shepherd.cronjob.update /usr/local/bin/shepherd
 CMD /usr/local/bin/shepherd

@@ -40,4 +40,4 @@ COPY runner/entrypoint /entrypoint
 STOPSIGNAL SIGQUIT
 USER root
 ENTRYPOINT ["tini","-g", "--", "/entrypoint"]
-CMD ["run", "--working-directory=/home/debian", "--user=debian"]
+CMD ["run", "--working-directory=/home/docker", "--user=docker"]

@@ -32,7 +32,7 @@ buildx-mainline:
       - mainline/default.conf
       - mainline/nginx.conf
 
-buildx-xdebug:
+.buildx-xdebug:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   needs: ["buildx-fpm"]

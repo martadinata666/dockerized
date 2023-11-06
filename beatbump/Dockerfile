@@ -1,3 +1,4 @@
+
 FROM 192.168.0.2:5050/dedyms/node:lts-dev as fetcher
 ENV VITE_DOMAIN="localhost"
 ENV VITE_SITE_URL="http://localhost:3000"

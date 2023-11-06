@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -eux
 
 cronKey="$(head -c 1024 < /dev/urandom | sha256sum | awk '{print substr($1,1,29)}')"
 mkdir -p libs/customAutoLoad
@@ -18,7 +18,7 @@ fi
 
 # Waiting database connection
 echo "Wait for database server" ...
-mysqladmin ping -h"$DB_HOST" -u"$DB_USER" --password="$DB_PASSWORD" --wait=30
+wait-for "$DB_HOST:3306"
 
 # Try create
 #echo "Create database schema if it does not exists ..."

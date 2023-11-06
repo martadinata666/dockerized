@@ -43,7 +43,7 @@ ENV NODE_ENV=production \
     default-Database-type=mysql \
     default-Media-folder=/images \
     default-Media-tempFolder=/preview \
-    default-Preview-Sorting=[4] \
+    default-Preview-Sorting=descDate \
     default-Gallery-defaultPhotoSortingMethod=descDate
-CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json --Database-type=mysql --Media-folder=/images --Media-tempFolder=/preview --Preview-Sorting=[4] --Gallery-defaultPhotoSortingMethod=descDate"]
+CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json"]
 #CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json"]

@@ -10,7 +10,7 @@ variables:
   SCCACHE_ENDPOINT: "192.168.0.2:9000"
   SCCACHE_REGION: "us-east-1"
   SCCACHE_BUCKET: "sccache"
-  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+#  RUSTC_WRAPPER: "/usr/local/bin/sccache"
   DEV: ""
 
 stages:
@@ -39,7 +39,7 @@ build-bin:
     - rustc --version
     - cargo build --target="$TARGET" --release
     #- strip $CI_PROJECT_DIR/target/$TARGET/release/http-server
-    - sccache --show-stats
+    #- sccache --show-stats
     - ls -alh $CI_PROJECT_DIR/target/$TARGET/release
   artifacts:
     paths:

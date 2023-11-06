@@ -1,3 +1,4 @@
+##################################################################
 FROM 192.168.0.2:5050/dedyms/debian:dev as musl
 #COPY x86_64-linux-musl-cross.tgz aarch64-linux-musl-cross.tgz $HOME && \
 #    sudo tar zxf ./x86_64-linux-musl-cross.tgz -C /opt && \
@@ -18,6 +19,18 @@ RUN wget --progress=dot:mega -t 10-c http://192.168.0.2:25000/musl/x86_64-linux-
     rm ./armv7l-linux-musleabihf-cross.tar.gz && \
     ls -al /opt
 
+##################################################################
+FROM 192.168.0.2:5050/dedyms/debian:dev as sccache
+# Install build deps and add sccache 
+ARG SCCACHE_VERSION=v0.5.4
+ARG SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
+ARG SCCACHE_URL=https://github.com/mozilla/sccache/releases/download
+RUN curl -L $SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz | tar xz && \
+    sudo mv $SCCACHE_FILE/sccache /usr/local/bin/sccache && \
+    sudo chmod +x /usr/local/bin/sccache
+
+
+##################################################################
 FROM 192.168.0.2:5050/dedyms/debian:latest
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
@@ -38,7 +51,7 @@ ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     OPENSSL_STATIC=true \
     PATH="/opt/armv7l-linux-musleabihf-cross/:/opt/armv7l-linux-musleabihf-cross/bin/:/opt/aarch64-linux-musl-cross/:/opt/aarch64-linux-musl-cross/bin/:/opt/x86_64-linux-musl-cross/:/opt/x86_64-linux-musl-cross/bin/:$HOME/cargo/bin/:$PATH" \
     RUSTUP_VERSION=1.26.0 \
-    RUST_VERSION=1.70.0
+    RUST_VERSION=1.71.0
 
 # Set openssl envenv per arch split to minimize confusion
 ENV X86_64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-gnu \
@@ -62,10 +75,18 @@ ENV ARMV7_UNKNOWN_LINUX_GNUEABIHF_OPENSSL_DIR=/opt/lib/openssl-static-arm-gnueab
     ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_LIB_DIR=/opt/lib/openssl-static-arm-musleabihf/lib \
     ARMV7_UNKNOWN_LINUX_MUSLEABIHF_OPENSSL_INCLUDE_DIR=/opt/lib/openssl-static-arm-musleabihf/include
 
+# Install rust and amd64 deps
 RUN set -eux; \
     sudo apt-get update; \
     sudo apt-get install -y --no-install-recommends \
         ca-certificates \
+        curl \
+        git \
+        pkg-config \
+        tar \
+        jq \
+        gcc \
+        g++ \
         wget \
         ; \
     dpkgArch="$(dpkg --print-architecture)"; \
@@ -88,19 +109,13 @@ RUN set -eux; \
     sudo apt-get remove -y --auto-remove \
         wget \
         ; \
-    sudo rm -rf /var/lib/apt/lists/*;
-
-# Install build deps and add sccache 
-ARG SCCACHE_VERSION=v0.5.1
-ARG SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
-ARG SCCACHE_URL=https://github.com/mozilla/sccache/releases/download
-RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends curl git wget pkg-config curl tar jq gcc g++ && \
-    sudo apt clean && \
-    sudo rm -rf /var/lib/apt/lists/* && \
-    curl -L $SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz | tar xz && \
-    sudo mv $SCCACHE_FILE/sccache /usr/local/bin/sccache && \
-    sudo chmod +x /usr/local/bin/sccache
+    sudo rm -rf /var/lib/apt/lists/*; \
+## Add musl target list
+    rustup target add x86_64-unknown-linux-musl && \
+    rustup target add aarch64-unknown-linux-gnu && \
+    rustup target add aarch64-unknown-linux-musl && \
+    rustup target add armv7-unknown-linux-gnueabihf && \
+    rustup target add armv7-unknown-linux-musleabihf
 
 ### Arm64 deps
 RUN sudo dpkg --add-architecture arm64 && \
@@ -116,15 +131,12 @@ RUN sudo dpkg --add-architecture armhf && \
     sudo apt clean && \
     sudo rm -rf /var/lib/apt/lists/*
 
-## Add musl target collections
-RUN rustup target add x86_64-unknown-linux-musl && \
-    rustup target add aarch64-unknown-linux-gnu && \
-    rustup target add aarch64-unknown-linux-musl && \
-    rustup target add armv7-unknown-linux-gnueabihf && \
-    rustup target add armv7-unknown-linux-musleabihf
 
 ### Copy musl from
 COPY --from=musl /opt /opt
+
+### Copy sccache
+COPY --from=sccache /usr/local/bin/sccache /usr/local/bin/sccache
 
 ### Build openssl GNU and MUSL
 ARG SSL_VER="3.1.0"

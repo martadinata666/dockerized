@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.1 AS cache
+FROM 192.168.0.2:5050/dedyms/php-fpm:8.2 AS cache
 ARG TOKEN
 ARG RELEASE
 WORKDIR /var/www/html/
@@ -9,7 +9,7 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
-RUN git clone --depth=1 -b 2.x https://github.com/linuxserver/Heimdall.git /var/www/html && \
+RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.git /var/www/html && \
     rm -rf ./.git && \
     git clone --depth=1 https://github.com/linuxserver/Heimdall-Apps.git /var/www/html/app/SupportedApps && \
     rm -rf ./app/SupportedApps/.git && \
@@ -25,10 +25,11 @@ RUN git clone --depth=1 -b 2.x https://github.com/linuxserver/Heimdall.git /var/
     rm -rf ./composer && \
     ls -al /var/www/html && \
     rm -rf public/storage && \
+    php artisan db:seed && \
     php artisan storage:link
 
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm8.1
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm8.2
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
 ENV PHP_MEMORY_LIMIT 2048M

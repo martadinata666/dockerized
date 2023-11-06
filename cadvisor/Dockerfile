@@ -1,5 +1,5 @@
-# Builder
-FROM 192.168.0.2:5050/dedyms/debian:latest as builder
+# Fetch from git
+FROM 192.168.0.2:5050/dedyms/debian:latest as fetcher
 ARG TARGETPLATFORM
 ARG VERSION=$VERSION
 ENV CADVISOR_VERSION=$VERSION
@@ -19,7 +19,7 @@ RUN case ${TARGETPLATFORM} in \
 FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG VERSION=$VERSION
 ENV CADVISOR_VERSION=VERSION
-COPY --from=builder /usr/local/bin/cadvisor /usr/local/bin/cadvisor
+COPY --from=fetcher /usr/local/bin/cadvisor /usr/local/bin/cadvisor
 # Run as non-root user preventing cadvisor looking some stats
 USER root
 ENTRYPOINT ["/usr/bin/tini","-g","--","/usr/local/bin/cadvisor","-docker_only=true"]

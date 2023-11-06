@@ -19,7 +19,7 @@ buildx:
 #    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-qemu-static --platform linux/arm64
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --push --platform linux/amd64,linux/arm64
+    - docker buildx build . --push --platform linux/amd64
       -t "$CI_REGISTRY_IMAGE"
       -t "$CI_REGISTRY_IMAGE:$RELEASE_STATIC"
       -f Dockerfile

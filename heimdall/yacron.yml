@@ -1,6 +1,6 @@
 jobs:
   - name: background-update
-    command: bash -c 'curl -sS -L https://picsum.photos/3840/2160.webp -o /var/www/html/public/img/bg1.webp'
+    command: bash -c 'curl -sS -L https://picsum.photos/1920/1080.webp -o /var/www/html/public/img/bg1.webp'
     shell: /bin/bash
     schedule: "0 * * * *"
 #    failsWhen:

@@ -15,8 +15,8 @@ variables:
   SCCACHE_ENDPOINT: "192.168.0.2:9000"
   SCCACHE_REGION: "us-east-1"
   SCCACHE_BUCKET: "sccache"
-  RUSTC_WRAPPER: "/usr/local/bin/sccache"
-  ENV_ADAPTER: "node"
+#  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+  BB_ADAPTER: "node"
 
 stages:
   - build-deps
@@ -42,8 +42,10 @@ build-js:
 #    - git clone --depth=1 https://github.com/snuffyDev/Beatbump.git beatbump
   script:
     - cd beatbump/app
-    - sed -i 's/yt-hls-rewriter.onrender.com/bbproxy.ddyms.space/g' src/routes/settings/+page.svelte
+    - sed -i 's/hls.beatbump.io/bbproxy.ddyms.my.id/g' src/routes/\(app\)/settings/+page.svelte
     - npm -d ci --no-audit
+    - export ENV_ADAPTER=node
+    - export BB_ADAPTER=node
     - npm run bb:build
   artifacts:
     paths:
@@ -76,7 +78,7 @@ build-bin:
     - cd beatbump/packages/proxy-server/rust
     - rustc --version
     - cargo build --target="$TARGET" --release
-    - sccache --show-stats
+#    - sccache --show-stats
     - ls -al $CI_PROJECT_DIR/target/$TARGET/release
   artifacts:
     paths:

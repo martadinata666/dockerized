@@ -4,31 +4,6 @@ variables:
   GITHUB_REPO_NAME: "linuxserver/heimdall"
   TYPE: ""
 
-buildx-git:
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  stage: build
-  before_script:
-    - export RELEASE="git"
-    - echo $RELEASE
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
-  script:
-    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME
-    - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg RELEASE=$RELEASE --build-arg TOKEN="$GITHUB_OAUTH_TOKEN" --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE"  -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-  after_script:
-    - docker buildx stop
-    - docker buildx rm -f
-  only:
-    variables:
-      - $TYPE == "git"
-    refs:
-      - master
-      - schedules
-    changes:
-      - Dockerfile
-
 buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
@@ -45,15 +20,10 @@ buildx-stable:
   script:
     - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg RELEASE=$RELEASE --build-arg TOKEN="$GITHUB_OAUTH_TOKEN" --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASETAG"  -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASETAG" . -f Dockerfile.stable
+    - docker buildx build --build-arg RELEASE=$RELEASE --build-arg TOKEN="$GITHUB_OAUTH_TOKEN" --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASETAG"  -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASETAG" . -f Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm -f
   only:
-    variables:
-      - $TYPE == ""
-    refs:
-      - master   
-      - schedules
     changes:
-      - Dockerfile.stable
+      - Dockerfile

@@ -34,14 +34,9 @@ trigger-apache-nginx:
   stage: trigger-apache-nginx
   script:
     - echo "Trigger apache fpm image rebuild"
-    - curl -X POST -F token=$APACHE_TOKEN -F ref=master -F variables[FPM]=true https://gitlab.ddyms.space/api/v4/projects/5/trigger/pipeline
+    - curl -X POST -F token=$APACHE_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/5/trigger/pipeline
     - echo "Trigger nginx fpm image rebuild"
-    - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true https://gitlab.ddyms.space/api/v4/projects/6/trigger/pipeline
+    - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/6/trigger/pipeline
   only:
-    refs:
-      - master
-      - schedules
     changes:
-      - 8.0/Dockerfile.debian
       - 8.2/Dockerfile.debian
-      - 7.4/Dockerfile.debian

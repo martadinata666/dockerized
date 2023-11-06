@@ -87,7 +87,7 @@ ENV MARIADB_VERSION $MARIADB_VERSION
 # (https://downloads.mariadb.org/mariadb/+releases/)
 
 # Allowing overriding of REPOSITORY, a URL that includes suite and component for testing and Enterprise Versions
-ARG REPOSITORY="http://archive.mariadb.org/mariadb-%%MARIADB_VERSION_BASIC%%/repo/debian/ %%SUITE%% main"
+ARG REPOSITORY="http://archive.mariadb.org/mariadb-%%MARIADB_VERSION_BASIC%%/repo/debian/ %%SUITE%% main main/debug"
 
 RUN set -e;\
 	echo "deb ${REPOSITORY}" | sudo tee /etc/apt/sources.list.d/mariadb.list; \

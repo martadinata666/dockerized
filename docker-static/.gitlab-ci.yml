@@ -45,9 +45,9 @@ trigger-buildx:
   image: 192.168.0.2:5050/dedyms/debian:latest
   script:
     - echo "Trigger docker-with-buildx"
-    - curl -X POST -F token=$BUILDX_TOKEN -F "ref=master" https://gitlab.ddyms.space/api/v4/projects/9/trigger/pipeline
+    - curl -X POST -F token=$BUILDX_TOKEN -F "ref=master" http://192.168.0.2:10000/api/v4/projects/9/trigger/pipeline
     - echo "Trigger shepherd"
-    - curl -X POST -F token=$SHEPHERD_TOKEN -F "ref=master" https://gitlab.ddyms.space/api/v4/projects/18/trigger/pipeline
+    - curl -X POST -F token=$SHEPHERD_TOKEN -F "ref=master" http://192.168.0.2:10000/api/v4/projects/18/trigger/pipeline
 
   only:
     changes:

@@ -1,4 +1,4 @@
-FROM debian:unstable-20230612-slim
+FROM debian:unstable-20231009-slim
 ENV CONTAINERUSER=docker \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
