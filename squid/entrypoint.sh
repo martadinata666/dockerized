@@ -8,7 +8,7 @@ fi
 
 echo "Setup cache dir"
 /squid/sbin/squid -z -f /data/squid.conf --foreground
-#sleep 30s
+sleep 30s
 
 echo "Starting SQUID"
 
