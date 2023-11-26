@@ -17,8 +17,8 @@ buildx-stable:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --platform linux/amd64 --name $CI_PROJECT_NAME
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --platform linux/arm64 --name $CI_PROJECT_NAME
+    - docker buildx create --use --config buildx-config.toml --platform linux/amd64 --name $CI_PROJECT_NAME --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --platform linux/arm64 --name $CI_PROJECT_NAME --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   after_script:
@@ -42,8 +42,8 @@ buildx-git:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --platform linux/amd64 --name $CI_PROJECT_NAME
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --platform linux/arm64 --name $CI_PROJECT_NAME
+    - docker buildx create --use --config buildx-config.toml --platform linux/amd64 --name $CI_PROJECT_NAME --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --platform linux/arm64 --name $CI_PROJECT_NAME --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg VERSION=$RELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
   after_script:

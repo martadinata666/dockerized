@@ -1,0 +1,39 @@
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+ARG RELEASE
+#ENV PLAYWRIGHT_BROWSERS_PATH=$HOME/ms-playwright
+#ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+#RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git reactiveresume
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER reactive-resume $HOME/reactiveresume
+WORKDIR $HOME/reactiveresume
+# Needed for arm64 deps "sharp"
+RUN pnpm install --frozen-lockfile
+#&& \
+#    pnpm install -F client --frozen-lockfile --prod && \
+#    PLAYWRIGHT_VERSION=$(grep -m1 "playwright" server/package.json | cut -c30-35) && \
+#    echo $PLAYWRIGHT_VERSION && \
+#    pnpx playwright@${PLAYWRIGHT_VERSION} install chromium && \
+#    rm -rf $HOME/ms-playwright/firefox*
+
+FROM 192.168.0.2:5050/dedyms/node:lts
+ARG RELEASE
+ENV REACTIVE_RESUME_VERSION=$RELEASE
+ENV VERSION=$RELEASE
+ENV NODE_ENV=production
+#ARG PLAYWRIGHT_VERSION
+#ENV PLAYWRIGHT_BROWSERS_PATH=$HOME/ms-playwright
+#ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+#RUN echo 'deb http://deb.debian.org/debian sid non-free' > /etc/apt/sources.list.d/non-free.list
+#RUN sudo apt update && \
+#    sudo apt install -y --no-install-recommends supervisor ps-watcher libatk1.0-0 libglib2.0-0 libnss3 libatk-bridge2.0-0 libcups2 \
+#                                           libdrm2 libdbus-1-3 libxkbcommon0 libxcomposite1 libxdamage1 libxext6 libwayland-client0\
+#                                           libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 && \
+#    sudo apt clean && \
+#    sudo rm -rf /var/lib/apt/lists/*
+#COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/ms-playwright $HOME/ms-playwright
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/reactiveresume $HOME/reactiveresume
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER reactive-resume $HOME/reactiveresume
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /supervisor
+WORKDIR $HOME/reactiveresume
+USER $CONTAINERUSER
+VOLUME ["$HOME/reactiveresume/server/dist/assets/uploads","$HOME/reactiveresume/server/dist/assets/exports"]
+CMD ["supervisord","-c","/supervisor/supervisord.conf"]

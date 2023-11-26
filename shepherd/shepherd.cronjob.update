@@ -94,7 +94,7 @@ update_services() {
           if [[ "${ROLLBACK_ON_FAILURE+x}" ]]; then
             logger "Rolling $name back"
             # shellcheck disable=SC2086
-            docker "${config_flag[@]}" service update "$name" $detach_option $registry_auth $no_resolve_image_flag --rollback > /dev/null
+            docker "${config_flag[@]}" service update "$name" --rollback > /dev/null
           fi
             title="[Shepherd] Service $name update failed on $hostname"
             body="$(date) Service $name failed to update to $(docker service inspect "$name" -f '{{.Spec.TaskTemplate.ContainerSpec.Image}}')"

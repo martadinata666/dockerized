@@ -45,10 +45,11 @@ buildx-stable:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     #- docker buildx build --build-arg NEXTCLOUD_VERSION=$RELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile
-    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile.ci
+#    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile.ci
+    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" . -f Dockerfile.ci
   after_script:
     - docker buildx stop
     - docker buildx rm -f

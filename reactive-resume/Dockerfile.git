@@ -1,0 +1,25 @@
+FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+#RUN git clone --depth=1 -b ${RELEASE} https://github.com/AmruthPillai/Reactive-Resume.git reactiveresume
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER reactive-resume $HOME/reactiveresume
+WORKDIR $HOME/reactiveresume
+# Needed for arm64 deps "sharp" te
+RUN pnpm install --frozen-lockfile
+#&& \
+#    pnpm install -F client --frozen-lockfile --prod && \
+#    PLAYWRIGHT_VERSION=$(grep -m1 "playwright" server/package.json | cut -c30-35) && \
+#    echo $PLAYWRIGHT_VERSION && \
+#    pnpx playwright@${PLAYWRIGHT_VERSION} install chromium && \
+#    rm -rf $HOME/ms-playwright/firefox*
+
+FROM 192.168.0.2:5050/dedyms/node:lts
+ARG RELEASE
+ENV REACTIVE_RESUME_VERSION=$RELEASE
+ENV VERSION=$RELEASE
+ENV NODE_ENV=production
+COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/reactiveresume $HOME/reactiveresume
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER reactive-resume $HOME/reactiveresume
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor /supervisor
+WORKDIR $HOME/reactiveresume
+USER $CONTAINERUSER
+VOLUME ["$HOME/reactiveresume/server/dist/assets/uploads","$HOME/reactiveresume/server/dist/assets/exports"]
+CMD ["supervisord","-c","/supervisor/supervisord.conf"]

@@ -32,22 +32,13 @@ build-js:
     - rm -rf docs/
     - pnpm install --frozen-lockfile
     - pnpm run build
-    - rm -rf node_modules/
-    - rm -rf ./.git
-    - rm -rf ./.github
-    - rm -rf ./.husky
-    - rm -rf ./.vscode
-    - rm -rf docs/
-    - rm -rf app/
-    - rm -rf scripts/*
-    - rm -rf Docker*
-    - rm -rf docker*
+    - pnpm run prisma:generate
   artifacts:
     paths:
       - reactive-resume/
   only:
     changes:
-      - Dockerfile.v3
+      - Dockerfile.v4
 
 
 buildx-docker-v3:
@@ -63,21 +54,21 @@ buildx-docker-v3:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64
+    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE .
       -t "$CI_REGISTRY_IMAGE:$RELEASE"
       -t "$CI_REGISTRY_IMAGE"
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
       -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
-      -f Dockerfile.v3
+      -f Dockerfile.v4
   after_script:
     - docker buildx stop
     - docker buildx rm
   only:
     changes:
-      - Dockerfile.v3
+      - Dockerfile.v4
 
 create-sentry-release-client:
   needs: ["buildx-docker-v3"]
@@ -97,7 +88,7 @@ create-sentry-release-client:
     - sentry-cli releases finalize "$RELEASE"
   only:
     changes:
-      - Dockerfile.v3
+      - Dockerfile.v4
 
 
 create-sentry-release-server:
@@ -118,7 +109,7 @@ create-sentry-release-server:
     - sentry-cli releases finalize "$RELEASE"
   only:
     changes:
-      - Dockerfile.v3
+      - Dockerfile.v4
 
 #The following ARG variables are set automatically:
 #    TARGETPLATFORM - platform of the build result. Eg linux/amd64, linux/arm/v7, windows/amd64.
@@ -133,7 +124,7 @@ create-sentry-release-server:
 #To expose one of these arguments inside the build stage redefine it without value.
 
 
-.build-js-git:
+build-js-git:
   image: 192.168.0.2:5050/dedyms/node:lts-dev
   stage: build-js
   cache:
@@ -147,12 +138,13 @@ create-sentry-release-server:
     - export NODE_ENV=development
     #- export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     #- echo $RELEASE
-    - git clone --depth=1 -b minio https://github.com/martadinata666/Reactive-Resume.git reactive-resume
+    - git clone --depth=1 https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
     - rm -rf docs/
     - pnpm install --frozen-lockfile
     - pnpm run build
+    - pnpm run prisma:generate
     - rm -rf node_modules/
     - rm -rf ./.git
     - rm -rf ./.github
@@ -168,11 +160,12 @@ create-sentry-release-server:
       - reactive-resume/
   only:
     changes:
-      - Dockerfile.v3.git
+      - Dockerfile.git
+      - .gitlab-ci.yml
 
 
-.buildx-docker-v3-git:
-  needs: ["build-js"]
+buildx-docker-git:
+  needs: ["build-js-git"]
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized
   before_script:
@@ -181,15 +174,16 @@ create-sentry-release-server:
 #    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64
+    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
 #    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/amd64 --build-arg RELEASE=$RELEASE
+    - docker buildx build --push --platform linux/amd64 --build-arg RELEASE=$RELEASE .
       -t "$CI_REGISTRY_IMAGE:$RELEASE"
-      -f Dockerfile.v3
+      -f Dockerfile.git
   after_script:
     - docker buildx stop
     - docker buildx rm
   only:
     changes:
-      - Dockerfile.v3.git
+      - Dockerfile.git
+      - .gitlab-ci.yml

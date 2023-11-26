@@ -1,0 +1,4 @@
+CREATE DATABASE matthewdb;
+CREATE USER 'matthew'@'%' IDENTIFIED BY 'mattewsupersecretpassword';
+GRANT ALL PRIVILEGES ON matthew.db* TO 'matthew'@'%';
+FLUSH PRIVILEGES;

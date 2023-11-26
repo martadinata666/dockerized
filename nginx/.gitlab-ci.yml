@@ -18,7 +18,7 @@ buildx-mainline:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f mainline/Dockerfile
   after_script:
@@ -66,7 +66,7 @@ buildx-fpm:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_REGISTRY_IMAGE:mainline-fpm" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:mainline-fpm"  . -f fpm/Dockerfile.fpm$TARGET
   after_script:

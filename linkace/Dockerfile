@@ -1,7 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as fetcher
 ARG RELEASE
-RUN curl -L https://github.com/Kovah/LinkAce/releases/download/${RELEASE}/linkace-${RELEASE}.zip -o linkace-${RELEASE}.zip && \
-    unzip linkace-${RELEASE}.zip && \
+RUN curl -L https://github.com/Kovah/LinkAce/releases/download/${RELEASE}/linkace-${RELEASE}.zip -o linkace.zip && \
     unzip linkace.zip -d htdocs
 
 FROM 192.168.0.2:5050/dedyms/apache:fpm

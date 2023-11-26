@@ -17,8 +17,8 @@ buildx:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64
+    - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build . -f 8.2/Dockerfile.build --push --platform linux/amd64,linux/arm64
       -t "$CI_REGISTRY_IMAGE:8.2" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.2"
@@ -39,4 +39,4 @@ trigger-apache-nginx:
     - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=true http://192.168.0.2:10000/api/v4/projects/6/trigger/pipeline
   only:
     changes:
-      - 8.2/Dockerfile.debian
+      - 8.2/Dockerfile.build

@@ -16,7 +16,7 @@ declare -A suffix=(
         ['buster']='deb10'
         ['bullseye']='deb11'
         ['bookworm']='deb12'
-        ['sid']='deb12'
+        ['sid']='debsid'
 )
 
 #declare -A dpkgArchToBashbrew=(

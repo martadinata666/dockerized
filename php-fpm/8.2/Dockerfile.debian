@@ -59,6 +59,7 @@ RUN echo "deb http://mirror.poliwangi.ac.id/debian/ bullseye non-free" >> /etc/a
     pecl install redis && \
     pecl install smbclient && \
     pecl install imagick && \
+    git config --global http.version HTTP/1.1 && \
     git clone --depth=1 https://github.com/davisking/dlib.git /dlib && \ 
     cd /dlib/dlib && \
     mkdir build && \

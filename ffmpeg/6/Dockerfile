@@ -1,5 +1,5 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
-ARG FFMPEG_VERSION=n6.0
+ARG FFMPEG_VERSION=n6.1
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
 RUN sudo apt-get update -qq && sudo apt-get -y install \
@@ -10,7 +10,7 @@ RUN sudo apt-get update -qq && sudo apt-get -y install \
   git-core \
   git-lfs \
   libass-dev \
-  libfreetype6-dev \
+  libfreetype-dev \
   libgnutls28-dev \
   libmp3lame-dev \
   libtool \
@@ -88,9 +88,9 @@ RUN ffmpeg -version && \
 FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
-ARG IGC_VERSION=1.0.13463.18
-ARG NEO_VERSION=23.09.25812.14
-ARG LEVEL_ZERO_VERSION=1.3.25812.14
+ARG IGC_VERSION=1.0.14828.8
+ARG NEO_VERSION=23.30.26918.9
+ARG LEVEL_ZERO_VERSION=1.3.26918.9
 #RUN echo '/opt/intel/mediasdk/lib' | sudo tee /etc/ld.so.conf.d/imsdk.conf && \
 RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   wget \
@@ -106,10 +106,10 @@ RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   libx264-164 \
   libx265-199 \
   libnuma1 \
-  libvpx7 \
+  libvpx8 \
   libopus0 \
-  libdav1d6 \
-  libunistring2 \
+  libdav1d7 \
+  libunistring5 \
   libwebp7 \
   libwebpmux3 \
   libwebpdemux2 \
