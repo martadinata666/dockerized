@@ -12,5 +12,9 @@ RUN mkdir /usr/local/nvm && \
     . $NVM_DIR/nvm.sh && \
     nvm install $NODE_VERSION && \
     rm -rf /usr/local/nvm/.cache && \
+    npm --cache /dev/shm install -g npm && \
+    npm --cache /dev/shm install -g yarn && \
+    npm --cache /dev/shm install -g pnpm && \
+    npm --cache /dev/shm install -g pm2 && \
     rm -rf $HOME/.npm
 USER $CONTAINERUSER
