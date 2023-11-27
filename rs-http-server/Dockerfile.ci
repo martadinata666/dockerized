@@ -24,4 +24,4 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG RELEASE
 ENV RS_HTTP_SERVER_VERSION=$RELEASE
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/http-server $HOME/.local/bin/rs-http-server
-CMD ["rs-http-server","--cors", "-v", "-l", "-h","0.0.0.0","-p","8080","/data"]
+CMD ["rs-http-server","--cors","-l","-h","0.0.0.0","-p","8080","/data"]

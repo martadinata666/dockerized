@@ -12,7 +12,7 @@ RUN mkdir -p lldap/app
 
 RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     mv bin/x86_64-unknown-linux-gnu/release/lldap target/lldap && \
-    mv bin/x86_64-unknown-linux-gnu/release/migration-tool target/migration-tool && \
+    mv bin/x86_64-unknown-linux-gnu/release/migration_tool target/migration-tool && \
     mv bin/x86_64-unknown-linux-gnu/release/lldap_set_password target/lldap_set_password && \
     sudo chmod +x target/* && \
     ls -la target/ . && \
@@ -21,7 +21,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     
 RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     mv bin/aarch64-unknown-linux-gnu/release/lldap target/lldap && \
-    mv bin/aarch64-unknown-linux-gnu/release/migration-tool target/migration-tool && \
+    mv bin/aarch64-unknown-linux-gnu/release/migration_tool target/migration-tool && \
     mv bin/aarch64-unknown-linux-gnu/release/lldap_set_password target/lldap_set_password && \
     sudo chmod +x target/* && \
     ls -la target/ . && \
@@ -30,7 +30,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     
 RUN if [ "${TARGETPLATFORM}" = "linux/arm/v7" ]; then \
     mv bin/armhf-bin/lldap target/lldap && \
-    mv bin/armhf-bin/migration-tool target/migration-tool && \
+    mv bin/armhf-bin/migration-tool target/migration_tool && \
     mv bin/armhf-bin/lldap_set_password target/lldap_set_password && \
     sudo chmod +x target/* && \
     ls -la target/ . && \

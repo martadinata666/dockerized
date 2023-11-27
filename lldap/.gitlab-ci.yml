@@ -6,7 +6,7 @@ variables:
   SCCACHE_ENDPOINT: "192.168.0.2:9000"
   SCCACHE_REGION: "us-east-1"
   SCCACHE_BUCKET: "sccache"
-  RUSTC_WRAPPER: "/usr/local/bin/sccache"
+#  RUSTC_WRAPPER: "/usr/local/bin/sccache"
   DEV: ""
 
 stages:
@@ -61,13 +61,13 @@ build-bin:
   script:
     - cd $CI_PROJECT_NAME/
     - rustc --version
-    - cargo build --target="$TARGET" --release -p lldap -p migration-tool -p lldap_set_password
-    - sccache --show-stats
+    - cargo build --target="$TARGET" --release -p lldap -p lldap_migration_tool -p lldap_set_password
+#    - sccache --show-stats
     - ls -al $CI_PROJECT_DIR/target/$TARGET/release
   artifacts:
     paths:
       - $CI_PROJECT_DIR/target/$TARGET/release/lldap
-      - $CI_PROJECT_DIR/target/$TARGET/release/migration-tool
+      - $CI_PROJECT_DIR/target/$TARGET/release/migration_tool
       - $CI_PROJECT_DIR/target/$TARGET/release/lldap_set_password
   only:
     changes:
@@ -98,11 +98,11 @@ buildx-stable:
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     #- docker buildx create --append --name nginx-builder node-arm64
     - docker buildx inspect --bootstrap
-#    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.ci
+    - docker buildx build --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.ci
+#    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.ci
   after_script:
     - docker buildx stop
     - docker buildx rm -f
