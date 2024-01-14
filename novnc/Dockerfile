@@ -1,6 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
 ARG RELEASE
-RUN apt update && apt install --no-install-recommends -y ssl-cert && apt clean && rm -rf /var/lib/apt/lists/*
+RUN sudo apt update && sudo apt install --no-install-recommends -y ssl-cert && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
 WORKDIR $HOME
 RUN git clone --depth=1 https://github.com/novnc/noVNC.git noVNC \
@@ -13,8 +13,7 @@ FROM 192.168.0.2:5050/dedyms/debian:latest
 ENV REMOTE_HOST=localhost
 ENV REMOTE_PORT=5900
 ENV NOVNC_PORT=13000
-USER root
-RUN apt update && apt install -y --no-install-recommends procps python3-minimal libpython3.11-stdlib python3-numpy && apt clean && rm -rf /var/lib/apt/lists/*
+RUN sudo apt update && sudo apt install -y --no-install-recommends procps python3-minimal libpython3.11-stdlib python3-numpy && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/localcerts/novnc.pem
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /etc/ssl/private/ssl-cert-snakeoil.key /etc/ssl/localcerts/novnc.key
 USER $CONTAINERUSER

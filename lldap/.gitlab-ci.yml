@@ -67,7 +67,7 @@ build-bin:
   artifacts:
     paths:
       - $CI_PROJECT_DIR/target/$TARGET/release/lldap
-      - $CI_PROJECT_DIR/target/$TARGET/release/migration_tool
+      - $CI_PROJECT_DIR/target/$TARGET/release/lldap_migration_tool
       - $CI_PROJECT_DIR/target/$TARGET/release/lldap_set_password
   only:
     changes:

@@ -26,10 +26,13 @@ buildx-stable:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
+
     - docker buildx build --build-arg QBVERSION=$RELEASE --build-arg MATUIRELEASE=$MATUIRELEASE --build-arg ZIPRELEASE=$ZIPRELEASE --push --platform linux/arm64,linux/amd64
-      -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f Dockerfile
-    - docker buildx build --build-arg QBVERSION=$RELEASE1 --build-arg MATUIRELEASE=$MATUIRELEASE --build-arg ZIPRELEASE=$ZIPRELEASE --push --platform linux/arm64,linux/amd64
-      -t "$CI_REGISTRY_IMAGE:libtorrent1" -t "$CI_REGISTRY_IMAGE:$RELEASE1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:libtorrent1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE1"  . -f Dockerfile
+      -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+#    - docker buildx build --build-arg QBVERSION=$RELEASE --build-arg MATUIRELEASE=$MATUIRELEASE --build-arg ZIPRELEASE=$ZIPRELEASE --push --platform linux/arm64,linux/amd64
+#      -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"  . -f Dockerfile
+#    - docker buildx build --build-arg QBVERSION=$RELEASE1 --build-arg MATUIRELEASE=$MATUIRELEASE --build-arg ZIPRELEASE=$ZIPRELEASE --push --platform linux/arm64,linux/amd64
+#      -t "$CI_REGISTRY_IMAGE:libtorrent1" -t "$CI_REGISTRY_IMAGE:$RELEASE1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:libtorrent1" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE1"  . -f Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm

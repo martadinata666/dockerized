@@ -41,7 +41,7 @@ build-js:
       - Dockerfile.v4
 
 
-buildx-docker-v3:
+buildx-docker:
   needs: ["build-js"]
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized
@@ -60,8 +60,6 @@ buildx-docker-v3:
     - docker buildx build --push --platform linux/arm64,linux/amd64 --build-arg RELEASE=$RELEASE .
       -t "$CI_REGISTRY_IMAGE:$RELEASE"
       -t "$CI_REGISTRY_IMAGE"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
       -f Dockerfile.v4
   after_script:
     - docker buildx stop
@@ -71,7 +69,7 @@ buildx-docker-v3:
       - Dockerfile.v4
 
 create-sentry-release-client:
-  needs: ["buildx-docker-v3"]
+  needs: ["buildx-docker"]
   image: 192.168.0.2:5050/dedyms/debian:dev
   stage: sentry
   before_script:
@@ -92,7 +90,7 @@ create-sentry-release-client:
 
 
 create-sentry-release-server:
-  needs: ["buildx-docker-v3"]
+  needs: ["buildx-docker"]
   image: 192.168.0.2:5050/dedyms/debian:dev
   stage: sentry
   before_script:
@@ -124,7 +122,7 @@ create-sentry-release-server:
 #To expose one of these arguments inside the build stage redefine it without value.
 
 
-build-js-git:
+.build-js-git:
   image: 192.168.0.2:5050/dedyms/node:lts-dev
   stage: build-js
   cache:
@@ -164,7 +162,7 @@ build-js-git:
       - .gitlab-ci.yml
 
 
-buildx-docker-git:
+.buildx-docker-git:
   needs: ["build-js-git"]
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerized

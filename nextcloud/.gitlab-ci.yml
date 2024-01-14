@@ -10,10 +10,10 @@ stages:
   - dockerize
 
 download-nextcloud:
-  image: 192.168.0.2:5050/dedyms/debian:latest
+  image: 192.168.0.2:5050/dedyms/debian:dev
   stage: download
-  before_script:
-    - sudo apt update && sudo apt install -y bzip2
+#  before_script:
+#    - sudo apt update && sudo apt install -y bzip2
   script:
     #- curl -fsSL -o nextcloud.tar.bz2 "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUDRELEASE}.tar.bz2"
     - curl -fsSL -o nextcloud.tar.bz2 "http://192.168.0.2:25000/nextcloud/nextcloud-${NEXTCLOUDRELEASE}.tar.bz2"

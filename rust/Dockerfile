@@ -22,7 +22,7 @@ RUN wget --progress=dot:mega -t 10-c http://192.168.0.2:25000/musl/x86_64-linux-
 ##################################################################
 FROM 192.168.0.2:5050/dedyms/debian:dev as sccache
 # Install build deps and add sccache 
-ARG SCCACHE_VERSION=v0.5.4
+ARG SCCACHE_VERSION=v0.7.4
 ARG SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
 ARG SCCACHE_URL=https://github.com/mozilla/sccache/releases/download
 RUN curl -L $SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz | tar xz && \
@@ -51,7 +51,7 @@ ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     OPENSSL_STATIC=true \
     PATH="/opt/armv7l-linux-musleabihf-cross/:/opt/armv7l-linux-musleabihf-cross/bin/:/opt/aarch64-linux-musl-cross/:/opt/aarch64-linux-musl-cross/bin/:/opt/x86_64-linux-musl-cross/:/opt/x86_64-linux-musl-cross/bin/:$HOME/cargo/bin/:$PATH" \
     RUSTUP_VERSION=1.26.0 \
-    RUST_VERSION=1.71.0
+    RUST_VERSION=1.75.0
 
 # Set openssl envenv per arch split to minimize confusion
 ENV X86_64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-gnu \
@@ -211,4 +211,4 @@ RUN curl -sSL https://www.openssl.org/source/openssl-$SSL_VER.tar.gz | tar xz &&
 #    sudo npm --cache /dev/shm install -g pnpm && \
 #    sudo rm -rf $HOME/.config && rm -rf $HOME/.npm
 
-CMD ["bash"]
+#CMD ["bash"]
