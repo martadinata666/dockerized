@@ -1,0 +1,10 @@
+FROM 192.168.0.2:5050/dedyms/ffmpeg:latest
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - && \
+    sudo apt-get install -y --no-install-recommends nodejs && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo npm --cache /dev/shm install -g npm && \
+    sudo npm --cache /dev/shm install -g yarn && \
+    sudo npm --cache /dev/shm install -g pnpm && \
+    sudo rm -rf $HOME/.config && rm -rf $HOME/.npm
+USER $CONTAINERUSER
+CMD ["bash"]

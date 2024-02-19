@@ -3,7 +3,7 @@ FROM 192.168.0.2:5050/dedyms/node:lts-dev as builder
 
 RUN sudo apt update -y && \
     sudo apt install wget curl net-tools python3 -y --no-install-recommends && \
-    sudo npm -g install node-gyp
+    npm install node-gyp
 RUN mkdir -p shinobi/plugins
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER 4.1.0 shinobi/plugins/tensorflow
 RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginBase.js -O $HOME/shinobi/plugins/tensorflow/pluginBase.js
@@ -25,7 +25,7 @@ ENV TFJS_HW=cpu \
     PLUGIN_MODE=client \
     PM2_HOME=/shinobi/tensorflow/pm2
 
-RUN sudo npm -g install pm2
+RUN npm install pm2
 COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/shinobi /shinobi
 WORKDIR /shinobi/plugins/tensorflow
 RUN sudo mkdir -p /config && sudo chown $CONTAINERUSER:$CONTAINERUSER /config

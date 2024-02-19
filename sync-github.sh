@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # sed -i '1i\#syntax=docker/dockerfile:1.4' ./*/*/Dockerfile*
 git-disable-repo.sh --true && \
 mv ./..git ./.git && \

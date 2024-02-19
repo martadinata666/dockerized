@@ -8,7 +8,7 @@ variables:
   TYPE: ""
   GITHUB_REPO_NAME: "bpatrik/pigallery2"
   PLATFORM_TEST: linux/amd64
-  PLATFORM: linux/arm64,linux/amd64
+  PLATFORM: linux/amd64
   ZIP_NAME: "pigallery2"
   RELEASE: "build"
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
@@ -31,19 +31,24 @@ create-release:
     policy: pull-push
   before_script:
     - sudo apt update
-    - sudo apt install -y --no-install-recommends libvips-dev
+#    - sudo apt install -y --no-install-recommends libvips-dev
     - npm config set fetch-retries 100
     - npm config set fetch-retry-mintimeout 99999999
     - npm config set fetch-retry-maxtimeout 999999999
+    - git config --global http.postBuffer 524288000  # Set a larger buffer size
+    - git config --global core.compression 0         # Disable compression
     - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2
+#    - npm update
 #    - git clone --depth=1 -b heif https://github.com/martadinata666/pigallery2.git
   script:
     - cd pigallery2
     #- sed '151, 152d' package.json
 #    - rm package-lock.json
+#    - npm install --package-lock-only
     - npm ci -d --no-audit
     - npm install -d --save-prod --no-audit --no-optional --omit=optional mysql@latest 
-    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@latest
+#    - npm install -d --save-prod --no-audit --no-optional --omit=optional sharp@latest
+#    - npm install --cpu=x64 --os=linux sharp@latest
     - npm run -d --ignore-engines create-release -- --skip-opt-packages=ffmpeg-static,ffprobe-static
     #- yarn --ignore-engines create-release
     #- zip -9 -r ${ZIP_NAME}.zip release/
@@ -91,15 +96,15 @@ create-docker-image-git:
   before_script:
     - export RELEASE="git"
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
-#    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - export DATE=$(date +%Y%m%d)
-    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME --platform linux/amd64
-    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name $CI_PROJECT_NAME --platform linux/arm64
-    - docker buildx inspect --bootstrap
+    - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME --platform linux/amd64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+#    - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name $CI_PROJECT_NAME --platform linux/arm64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
+#    - docker buildx inspect --bootstrap
     - docker buildx build --push --build-arg DATE=$DATE --build-arg VERSION=$RELEASE --platform $PLATFORM
-      -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE-$DATE" . -f Dockerfile.git
+      -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.git
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -121,13 +126,13 @@ create-docker-image-stable:
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml --name $CI_PROJECT_NAME --platform linux/amd64
     - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name $CI_PROJECT_NAME --platform linux/arm64
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --build-arg RELEASE=$RELEASE --platform $PLATFORM -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --push --build-arg RELEASE=$RELEASE --platform $PLATFORM -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm

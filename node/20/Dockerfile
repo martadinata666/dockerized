@@ -1,0 +1,19 @@
+FROM 192.168.0.2:5050/dedyms/debian:latest
+ARG KEYRING=/usr/share/keyrings/nodesource.gpg
+ARG VERSION=node_20.x
+ARG DISTRO=bookworm
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends gpg && \
+    sudo curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | sudo tee "$KEYRING" >/dev/null && \
+    echo 'Package: *\nPin: origin deb.nodesource.com\nPin-Priority: 1001' | sudo tee /etc/apt/preferences.d/nodejs && \
+    echo "deb [signed-by=$KEYRING] https://deb.nodesource.com/$VERSION $DISTRO main" | sudo tee /etc/apt/sources.list.d/nodesource.list && \
+    sudo apt update && \
+    sudo apt install -y --no-install-recommends nodejs && \
+    sudo apt clean && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo npm --cache /dev/shm install -g npm && \
+    sudo npm --cache /dev/shm install -g yarn && \
+    sudo npm --cache /dev/shm install -g pnpm && \
+    sudo rm -rf $HOME/.config && rm -rf $HOME/.npm
+USER $CONTAINERUSER
+CMD ["bash"]

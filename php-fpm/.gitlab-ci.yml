@@ -20,8 +20,11 @@ buildx:
     - docker buildx create --use --config buildx-config.toml --name buildx-$CI_PROJECT_NAME --platform linux/amd64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx create --config buildx-config.toml --append "$DOCKER_ARM_HOST" --name buildx-$CI_PROJECT_NAME --platform linux/arm64 --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
+#    - docker buildx build . -f 8.2/Dockerfile.build --push --platform linux/amd64,linux/arm64
+#      -t "$CI_REGISTRY_IMAGE:8.2" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.2"
+
     - docker buildx build . -f 8.2/Dockerfile.build --push --platform linux/amd64,linux/arm64
-      -t "$CI_REGISTRY_IMAGE:8.2" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:8.2"
+      -t "$CI_REGISTRY_IMAGE:8.2" -t "$CI_REGISTRY_IMAGE:$RELEASE"
   after_script:
     - docker buildx stop
     - docker buildx rm -f

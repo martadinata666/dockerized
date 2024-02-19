@@ -1,10 +1,11 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as builder
+ENV SQUID_VERSION=6.7
 # Get from http://www.squid-cache.org/Versions/v6/
-RUN curl -L http://www.squid-cache.org/Versions/v6/squid-6.4.tar.gz -o squid.tar.gz
+RUN curl -L http://www.squid-cache.org/Versions/v6/squid-$SQUID_VERSION.tar.gz -o squid.tar.gz
 #COPY squid.tar.gz squid.tar.gz
 RUN tar -xzvf squid.tar.gz
-COPY build.sh squid-6.4/build.sh
-WORKDIR $HOME/squid-6.4
+COPY build.sh squid-$SQUID_VERSION/build.sh
+WORKDIR $HOME/squid-$SQUID_VERSION
 RUN bash ./build.sh
 
 FROM 192.168.0.2:5050/dedyms/debian:latest

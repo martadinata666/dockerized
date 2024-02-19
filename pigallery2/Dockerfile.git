@@ -7,16 +7,18 @@ FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
 FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
 ARG DATE
 ENV NODE_ENV=production
-#RUN apt update && apt install -y --no-install-recommends python3 libsqlite3-dev && ln -sf /usr/bin/python3 /usr/bin/python
-RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends libvips-dev
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin /usr/local/bin
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends python3 libsqlite3-dev libvips-dev && \
+    sudo ln -sf /usr/bin/python3 /usr/bin/python
 #RUN npm -g install npm && \
 #    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
 #    unzip pigallery2.zip -d pigallery2
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER pigallery2/release pigallery2
 WORKDIR $HOME/pigallery2
 RUN npm -d install --only=prod --no-audit --no-optional --cache=/dev/shm 
+# sharp bug
+#RUN npm install --cpu=x64 --os=linux sharp --build-from-source
 #RUN npm ci --prod
 
 #-----------------MAIN--------------------
@@ -37,13 +39,7 @@ RUN sudo mkdir -p /pigallery2/data && \
     sudo chown -R $CONTAINERUSER:$CONTAINERUSER /preview /images /pigallery2/data /pigallery2/db
 WORKDIR /pigallery2
 USER $CONTAINERUSER
-VOLUME ["/pigallery2/data", "/images", "/preview"]
 ENV NODE_ENV=production \
-    PI_DOCKER=true \
-    default-Database-type=mysql \
-    default-Media-folder=/images \
-    default-Media-tempFolder=/preview \
-    default-Preview-Sorting=descDate \
-    default-Gallery-defaultPhotoSortingMethod=descDate
-CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json"]
+    PI_DOCKER=true
+CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json --Database-type=mysql --Media-folder=/images --Media-tempFolder=/preview --Gallery-defaultPhotoSortingMethod=descDate --Gallery-NavBar-enableDirectoryFlattening=true"]
 #CMD ["bash","-c","wait-for $MYSQL_HOST:3306 -- node ./src/backend/index --expose-gc --config-path=./data/config.json"]

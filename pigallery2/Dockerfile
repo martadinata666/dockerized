@@ -18,6 +18,7 @@ COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin /usr/loc
 RUN curl -o $HOME/release.zip -L https://github.com/bpatrik/pigallery2/releases/download/$RELEASE/pigallery2-release.zip && unzip $HOME/release.zip -d $HOME/pigallery2 && ls -al $HOME/pigallery2
 #COPY --chown=$CONTAINERUSER:$CONTAINERUSER pigallery2/release pigallery2
 WORKDIR $HOME/pigallery2
+RUN rm package-lock.json
 RUN npm -d install --only=prod --no-audit --no-optional --cache=/dev/shm 
 #RUN npm ci --prod
 

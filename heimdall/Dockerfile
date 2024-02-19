@@ -1,6 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/php-fpm:8.2 AS cache
 ARG TOKEN
-ARG RELEASE
+ARG RELEASE=v2.6.0
 WORKDIR /var/www/html/
 ENV COMPOSER_MEMORY_LIMIT=3G
 USER root
@@ -13,20 +13,13 @@ RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.gi
     rm -rf ./.git && \
     git clone --depth=1 https://github.com/linuxserver/Heimdall-Apps.git /var/www/html/app/SupportedApps && \
     rm -rf ./app/SupportedApps/.git && \
-    curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./composer.phar && \
-    mv ./composer.phar ./composer && \
-    chmod +x ./composer && \
-    rm -rf vendor/ && \
-    ./composer update && \     
-    ./composer install --prefer-dist --no-interaction && \     
-    ./composer clear-cache && \
     sed -i 's/bg1.jpg/bg1.webp/g' public/css/app.css && \
     curl -sS -L https://picsum.photos/3840/2160.webp -o /var/www/html/public/img/bg1.webp && \
-    rm -rf ./composer && \
+#    rm -rf ./composer && \
     ls -al /var/www/html && \
-    rm -rf public/storage && \
-    php artisan db:seed && \
-    php artisan storage:link
+    rm -rf public/storage
+#    php artisan db:seed && \
+#    php artisan storage:link
 
 
 FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm8.2

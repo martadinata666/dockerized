@@ -20,14 +20,14 @@ buildx-baseimage:
     - export DATE=$(date +%Y%m%d)
     #- apk add --no-cache curl
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE:stable" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:stable" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform linux/arm64,linux/amd64,linux/arm/v7 -t "$CI_REGISTRY_IMAGE:sid" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:sid" -t "$CI_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" . -f sid/Dockerfile
+    - docker buildx build --push --platform linux/arm64,linux/amd64,linux/arm/v7 -t "$CI_REGISTRY_IMAGE:bookworm" -t "$CI_REGISTRY_IMAGE" . -f bookworm/Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -45,9 +45,9 @@ buildx-base-dev:
     #- docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
-    - docker buildx create --use --config buildx-config.toml
+    - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f sid/Dockerfile.dev
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f bookworm/Dockerfile.dev
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -74,14 +74,14 @@ trigger-other-repo:
     - curl -X POST --fail -F token=$PHS_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/46/trigger/pipeline
     - echo "Trigger OPENSSH build"
     - curl -X POST --fail -F token=$OPENSSH_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/43/trigger/pipeline
-    - echo "Trigger APPRISE"
-    - curl -X POST --fail -F token=$APPRISE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/14/trigger/pipeline
+#    - echo "Trigger APPRISE"
+#    - curl -X POST --fail -F token=$APPRISE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/14/trigger/pipeline
 #    - echo "Trigger MARIADB"
 #    - curl -X POST --fail -F token=$MARIADB_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/15/trigger/pipeline
-    - echo "Trigger WHOOGLE"
-    - curl -X POST -F token=$WHOOGLE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/27/trigger/pipeline
+#    - echo "Trigger WHOOGLE"
+#    - curl -X POST -F token=$WHOOGLE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/27/trigger/pipeline
     - echo "Trigger CADVISOR"
-    - curl -X POST -F token=$CADVISOR_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/69/trigger/pipeline
+#    - curl -X POST -F token=$CADVISOR_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/69/trigger/pipeline
     - echo "Trigger YMPD"
     - curl -X POST --fail -F token=$YMPD_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/29/trigger/pipeline
 #    - echo "Trigger GLANCES"

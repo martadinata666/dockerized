@@ -13,7 +13,9 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists
 COPY apache.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/htdocs /var/www/html
-COPY --chown=$CONTAINERUSER:$CONTAINERUSER laravel-cron.conf /supervisor/conf.d/laravel-cron.conf
+### Laravel schedule is noisy, URL check, manually backup with cron
+#COPY --chown=$CONTAINERUSER:$CONTAINERUSER laravel-cron.conf /supervisor/conf.d/laravel-cron.conf
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER yacron.yml /home/debian/supervisor/yacron.yml
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER entrypoint.sh /entrypoint.sh
 USER $CONTAINERUSER
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]

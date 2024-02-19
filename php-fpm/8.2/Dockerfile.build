@@ -60,12 +60,13 @@ RUN set -eu; \
 # https://github.com/docker-library/php/issues/272
 # -D_LARGEFILE_SOURCE and -D_FILE_OFFSET_BITS=64 (https://www.php.net/manual/en/intro.filesystem.php)
 ENV PHP_INI_DIR=/usr/local/etc/php
-ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+ENV PHP_CFLAGS="-fstack-protector-strong -O2 -fpic -fpie -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 # Update this
-ENV PHP_VERSION=8.2.12
-ENV PHP_URL=https://www.php.net/distributions/php-$PHP_VERSION.tar.xz
+ENV PHP_VERSION=8.2.15
+#ENV PHP_URL=https://www.php.net/distributions/php-$PHP_VERSION.tar.xz
+ENV PHP_URL=http://192.168.0.2:25000/php/php-$PHP_VERSION.tar.xz
 
 RUN set -eux; \
 	mkdir -p "$PHP_INI_DIR/conf.d"; \
@@ -154,8 +155,6 @@ RUN set -eux; \
 # https://github.com/docker-library/php/issues/822
 		--with-pic \
 		\
-# --enable-ftp is included here because ftp_ssl_connect() needs ftp to be compiled statically (see https://github.com/docker-library/php/issues/236)
-		--enable-ftp \
 # --enable-mbstring is included here because otherwise there's no way to get pecl to use it properly (see https://github.com/docker-library/php/issues/195)
 		--enable-mbstring \
 # --enable-mysqlnd is included here because it's harder to compile after the fact than extensions are (since it's a plugin for several extensions, not an extension in itself)
@@ -215,6 +214,7 @@ RUN set -eux; \
         docker-php-ext-install -j$(nproc) \
          bcmath \
          exif \
+         ftp \
          gd \
          intl \
          opcache \
@@ -236,22 +236,22 @@ RUN set -eux; \
     pecl install smbclient; \
     pecl install imagick; \
 # dlib deps for pdlib
-    git clone --depth=1 https://github.com/davisking/dlib.git /dlib; \ 
-    cd /dlib/dlib; \
-    mkdir build; \
-    cd build; \
     if [ "${TARGETARCH}" = "amd64" ] ; then \
-       cmake -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=1 .. ; else cmake -DBUILD_SHARED_LIBS=ON .. ; fi; \
-       make -j$(nproc); \
-       make install; \
-       cd /; \
-       rm -rf /dlib; \
-       \
+      git clone --depth=1 https://github.com/davisking/dlib.git /dlib; \ 
+      cd /dlib/dlib; \
+      mkdir build; \
+      cd build; \
+      cmake -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=1 .. ; \
+      make -j$(nproc); \
+      make install; \
+      cd /; \
+      rm -rf /dlib; \
 # build pdlib from source
-    git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib; \
-    docker-php-ext-configure pdlib; \
-    docker-php-ext-install pdlib; \
-    docker-php-source delete; \
+      git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib; \
+      docker-php-ext-configure pdlib; \
+      docker-php-ext-install pdlib; \
+      docker-php-source delete; \
+    fi; \
     \
 # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
 	apt-mark auto '.*' > /dev/null; \
