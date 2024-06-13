@@ -1,0 +1,44 @@
+#-----------------BUILDER-----------------
+#-----------------------------------------
+FROM node:18-alpine3.17 AS builder
+RUN apk add --update-cache --repository https://alpine.global.ssl.fastly.net/alpine/v3.17/community/ \
+  python3 build-base sqlite-dev sqlite-libs vips-dev fftw-dev gcc g++ make libc6-compat vips-heif unzip curl vips-magick && ln -snf /usr/bin/python3 /usr/bin/python
+#COPY pigallery2-release /app
+RUN curl -L https://github.com/bpatrik/pigallery2/releases/download/2.0.0/pigallery2-release.zip -o pigallery2.zip && \
+    unzip pigallery2.zip -d /app
+WORKDIR /app
+RUN npm install --unsafe-perm
+RUN mkdir -p /app/data/config && \
+    mkdir -p /app/data/db && \
+    mkdir -p /app/data/images && \
+    mkdir -p /app/data/tmp
+
+
+#-----------------MAIN--------------------
+#-----------------------------------------
+FROM node:18-alpine3.17 AS main
+WORKDIR /app
+ENV NODE_ENV=production \
+    # overrides only the default value of the settings (the actualy value can be overwritten through config.json)
+    default-Database-dbFolder=/app/data/db \
+    default-Media-folder=/app/data/images \
+    default-Media-tempFolder=/app/data/tmp \
+    default-Extensions-folder=/app/data/config/extensions \
+    # flagging dockerized environemnt
+    PI_DOCKER=true
+
+EXPOSE 80
+RUN apk add --update-cache --repository https://alpine.global.ssl.fastly.net/alpine/v3.17/community/ \
+    vips vips-cpp ffmpeg vips-heif vips-magick
+COPY --from=builder /app /app
+VOLUME ["/app/data/config", "/app/data/db", "/app/data/images", "/app/data/tmp"]
+
+# Run build time diagnostics to make sure the app would work after build is finished
+RUN ["node", "./src/backend/index", "--expose-gc",  "--run-diagnostics", "--config-path=/app/diagnostics-config.json"]
+HEALTHCHECK --interval=40s --timeout=30s --retries=3 --start-period=60s \
+  CMD wget --quiet --tries=1 --no-check-certificate --spider \
+  http://localhost:80/heartbeat || exit 1
+
+# after a extensive job (like video converting), pigallery calls gc, to clean up everthing as fast as possible
+# Exec form entrypoint is need otherwise (using shell form) ENV variables are not properly passed down to the app
+ENTRYPOINT ["node", "./src/backend/index", "--expose-gc",  "--config-path=/app/data/config/config.json"]

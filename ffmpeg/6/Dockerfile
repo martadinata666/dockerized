@@ -1,7 +1,9 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
-ARG FFMPEG_VERSION=n6.1
+#https://git.ffmpeg.org/gitweb/ffmpeg.git
+ARG FFMPEG_VERSION=n6.1.1
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
-RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
+RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list
+#RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
 RUN sudo apt-get update -qq && sudo apt-get -y install \
   autoconf \
   automake \
@@ -87,7 +89,8 @@ RUN ffmpeg -version && \
 
 FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
-RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
+#RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
+RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list
 ARG IGC_VERSION=1.0.14828.8
 ARG NEO_VERSION=23.30.26918.9
 ARG LEVEL_ZERO_VERSION=1.3.26918.9
@@ -106,10 +109,10 @@ RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   libx264-164 \
   libx265-199 \
   libnuma1 \
-  libvpx8 \
+  libvpx7 \
   libopus0 \
-  libdav1d7 \
-  libunistring5 \
+  libdav1d6 \
+  libunistring2 \
   libwebp7 \
   libwebpmux3 \
   libwebpdemux2 \

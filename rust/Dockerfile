@@ -51,7 +51,7 @@ ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     OPENSSL_STATIC=true \
     PATH="/opt/armv7l-linux-musleabihf-cross/:/opt/armv7l-linux-musleabihf-cross/bin/:/opt/aarch64-linux-musl-cross/:/opt/aarch64-linux-musl-cross/bin/:/opt/x86_64-linux-musl-cross/:/opt/x86_64-linux-musl-cross/bin/:$HOME/cargo/bin/:$PATH" \
     RUSTUP_VERSION=1.26.0 \
-    RUST_VERSION=1.75.0
+    RUST_VERSION=1.76.0
 
 # Set openssl envenv per arch split to minimize confusion
 ENV X86_64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-gnu \

@@ -30,9 +30,9 @@ buildx-node:
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:14" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:14" . -f 14/Dockerfile
 #    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:16" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:16" . -f 16/Dockerfile
-    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE" -t "$CI_REGISTRY_IMAGE:lts" . -f "$VERSION"/Dockerfile
-    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE-dev" -t "$CI_REGISTRY_IMAGE:lts-dev" . -f "$VERSION"/Dockerfile.dev
-    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --build-arg FFMPEG_VERSION=$FFMPEG_VERSION --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE-ffmpeg" -t "$CI_REGISTRY_IMAGE:lts-ffmpeg" . -f "$VERSION"/Dockerfile.ffmpeg
+#    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE" -t "$CI_REGISTRY_IMAGE:lts" . -f "$VERSION"/Dockerfile
+#    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE-dev" -t "$CI_REGISTRY_IMAGE:lts-dev" . -f "$VERSION"/Dockerfile.dev
+    - docker buildx build --build-arg NODE_RELEASE=$NODE_RELEASE --build-arg NVM_RELEASE=$NVM_RELEASE --build-arg FFMPEG_VERSION=$FFMPEG_VERSION --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:$SHORT_NODE_RELEASE-ffmpeg" -t "$CI_REGISTRY_IMAGE:lts-ffmpeg" . -f "$VERSION"/Dockerfile.ffmpeg
 #    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$VERSION" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$VERSION" -t "$CI_REGISTRY_IMAGE:lts" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:lts" . -f $VERSION/Dockerfile
   after_script:
     - docker buildx stop

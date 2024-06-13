@@ -9,7 +9,7 @@ ARG DATE
 ENV NODE_ENV=production
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin /usr/local/bin
 RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends python3 libsqlite3-dev libvips-dev && \
+    sudo apt install -y --no-install-recommends python3 libsqlite3-dev libvips-dev libraw-dev && \
     sudo ln -sf /usr/bin/python3 /usr/bin/python
 #RUN npm -g install npm && \
 #    curl -L http://192.168.0.2:10000/api/v4/projects/47/packages/generic/$DATE/pigallery2/pigallery2.zip -o pigallery2.zip && \
@@ -25,7 +25,7 @@ RUN npm -d install --only=prod --no-audit --no-optional --cache=/dev/shm
 #-----------------------------------------
 FROM 192.168.0.2:5050/dedyms/node:lts
 RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends netcat-openbsd wget libvips42 && \
+    sudo apt install -y --no-install-recommends netcat-openbsd wget libvips42 libraw20 && \
     sudo apt clean && \
     sudo rm -rf /var/lib/apt/lists/*
 COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/pigallery2 /pigallery2

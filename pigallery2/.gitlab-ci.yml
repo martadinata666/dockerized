@@ -30,13 +30,14 @@ create-release:
       - .npm-cache/
     policy: pull-push
   before_script:
-    - sudo apt update
+#    - sudo apt update
 #    - sudo apt install -y --no-install-recommends libvips-dev
     - npm config set fetch-retries 100
     - npm config set fetch-retry-mintimeout 99999999
     - npm config set fetch-retry-maxtimeout 999999999
     - git config --global http.postBuffer 524288000  # Set a larger buffer size
     - git config --global core.compression 0         # Disable compression
+    - git config --global http.version HTTP/1.1
     - git clone --depth=1 https://github.com/bpatrik/pigallery2.git pigallery2
 #    - npm update
 #    - git clone --depth=1 -b heif https://github.com/martadinata666/pigallery2.git

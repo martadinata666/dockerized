@@ -27,9 +27,10 @@ ENV STASH_VERSION=$VERSION
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-minimal python-is-python3 && \
     sudo apt clean && \
-    sudo rm -rf /var/lib/apt/lists* && \
-    sudo ln -s /usr/local/bin/ffmpeg $HOME/.local/bin/ffmpeg && \
-    sudo ln -s /usr/local/bin/ffprobe $HOME/.local/bin/ffprobe
+    sudo rm -rf /var/lib/apt/lists* 
+#    && \
+#    sudo ln -s /usr/local/bin/ffmpeg $HOME/.local/bin/ffmpeg && \
+#    sudo ln -s /usr/local/bin/ffprobe $HOME/.local/bin/ffprobe
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/stash-linux $HOME/.local/bin/stash
 USER $CONTAINERUSER
 RUN mkdir $HOME/stash

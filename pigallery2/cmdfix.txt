@@ -1,1 +1,45 @@
 CMD ["sh", "-c", "cd /usr/local/etc/php && ln -sf php.ini-$APP_ENV php.ini"]
+
+Official Edge Alpine Reading format Error
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:01 AM[SILLY][DiskManager] scanning directory: heic
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[DEBUG][MetadataLoader] Error parsing exif /app/data/images/heic/image1.heic TypeError: unsupported file type: undefined (file: /app/data/images/heic/image1.heic)
+pigallery2-test-pigallery2-1  |     at lookup (/app/node_modules/image-size/dist/index.js:42:11)
+pigallery2-test-pigallery2-1  |     at imageSize (/app/node_modules/image-size/dist/index.js:113:16)
+pigallery2-test-pigallery2-1  |     at MetadataLoader.loadPhotoMetadata (/app/src/backend/model/fileaccess/MetadataLoader.js:255:65)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async DiskManager.scanDirectory (/app/src/backend/model/fileaccess/DiskManager.js:138:31)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async DiskManager.scanDirectory (/app/src/backend/model/fileaccess/DiskManager.js:118:32)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async /app/src/backend/model/database/IndexingManager.js:62:42
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[SILLY][DiskManager] scanning directory: heif
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[DEBUG][MetadataLoader] Error parsing exif /app/data/images/heif/IMG_5436-1.heif TypeError: unsupported file type: undefined (file: /app/data/images/heif/IMG_5436-1.heif)
+pigallery2-test-pigallery2-1  |     at lookup (/app/node_modules/image-size/dist/index.js:42:11)
+pigallery2-test-pigallery2-1  |     at imageSize (/app/node_modules/image-size/dist/index.js:113:16)
+pigallery2-test-pigallery2-1  |     at MetadataLoader.loadPhotoMetadata (/app/src/backend/model/fileaccess/MetadataLoader.js:255:65)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async DiskManager.scanDirectory (/app/src/backend/model/fileaccess/DiskManager.js:138:31)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async DiskManager.scanDirectory (/app/src/backend/model/fileaccess/DiskManager.js:118:32)
+pigallery2-test-pigallery2-1  |     at async descriptor.value (/app/src/backend/model/extension/ExtensionDecorator.js:24:25)
+pigallery2-test-pigallery2-1  |     at async /app/src/backend/model/database/IndexingManager.js:62:42
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[VERBS] GET /pgapi/gallery/content/ 200 155ms
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[VERBS] GET /pgapi/share/list/ 200 3ms
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[SILLY] [SharpRenderer] rendering photo:/app/data/images/heic/image1.heic, size:320
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[SILLY] [SharpRenderer] rendering photo:/app/data/images/heif/IMG_5436-1.heif, size:320
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[WARN_] Handled error:
+pigallery2-test-pigallery2-1  | ErrorDTO {
+pigallery2-test-pigallery2-1  |   code: 32,
+pigallery2-test-pigallery2-1  |   message: 'Error during generating thumbnail: /app/data/images/heic/image1.heic',
+pigallery2-test-pigallery2-1  |   details: 'Error: Input file contains unsupported image format',
+pigallery2-test-pigallery2-1  |   request: { method: '', url: '' }
+pigallery2-test-pigallery2-1  | }
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[VERBS] GET / 200 73ms
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[WARN_] Handled error:
+pigallery2-test-pigallery2-1  | ErrorDTO {
+pigallery2-test-pigallery2-1  |   code: 32,
+pigallery2-test-pigallery2-1  |   message: 'Error during generating thumbnail: /app/data/images/heif/IMG_5436-1.heif',
+pigallery2-test-pigallery2-1  |   details: 'Error: Input file contains unsupported image format',
+pigallery2-test-pigallery2-1  |   request: { method: '', url: '' }
+pigallery2-test-pigallery2-1  | }
+pigallery2-test-pigallery2-1  | 2/20/2024, 2:23:02 AM[VERBS] GET / 200 73ms

@@ -3,7 +3,9 @@ variables:
   TYPE: ""
   npm_config_cache: "$CI_PROJECT_DIR/.npm-cache"
   YARN_CACHE_FOLDER: "$CI_PROJECT_DIR/.yarn-cache"
+  NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget-cache"
   GITHUB_REPO_NAME: "jellyfin/jellyfin"
+  DOTNET_NUGET_SIGNATURE_VERIFICATION: "false"
 
 
 stages:
@@ -28,6 +30,7 @@ create-web-stable:
   script:
     - cd jellyfin-web
     - npm -d -timeout=9999999 ci --no-audit --unsafe-perm
+    - npm run build:production
     - ls -alh ./
   #after_script:
   #  - docker buildx stop
@@ -44,11 +47,16 @@ create-web-stable:
     #  - .gitlab-ci.yml
 
 create-jellyfin-stable:
-  image: 192.168.0.2:5050/dedyms/dotnet:6
+  image: 192.168.0.2:5050/dedyms/dotnet:8
   stage: build
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .nuget-cache/
+    policy: pull-push
   before_script:
     - sudo apt update
-    - sudo apt install -y jq
+    - sudo apt install -y jq git
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - git clone --depth=1 -b $RELEASE https://github.com/jellyfin/jellyfin.git jellyfin-src
@@ -73,7 +81,7 @@ buildx-stable:
   #  - docker:dind
   before_script:
     - sudo apt update
-    - sudo apt install -y jq
+    - sudo apt install -y jq git
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY

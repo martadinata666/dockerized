@@ -29,7 +29,8 @@ build-js:
     - git clone --depth=1 -b $RELEASE https://github.com/AmruthPillai/Reactive-Resume.git reactive-resume
   script:
     - cd reactive-resume
-    - rm -rf docs/
+#    - rm -rf docs/
+    - ls -al
     - pnpm install --frozen-lockfile
     - pnpm run build
     - pnpm run prisma:generate

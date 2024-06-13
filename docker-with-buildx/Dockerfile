@@ -10,9 +10,10 @@ RUN chmod a+x /docker-buildx
 
 #FROM moby/buildkit:v${BUILDKIT_VERSION} AS buildkit
 
-FROM 192.168.0.2:5050/dedyms/docker-static:latest
+FROM 192.168.0.2:5050/dedyms/docker-static:24.0.6
 USER root
 ARG BUILD_VERSION
+ENV DOCKER_BUILDKIT=0
 ENV BUILDX_NO_DEFAULT_ATTESTATIONS=1
 ENV BUILDX_VERSION=$BUILD_VERSION
 ENV DOCKER_TLS_CERTDIR=/certs

@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # Usage ./update.sh [version(multiple)...]
 #
 
-defaultSuite='sid'
+defaultSuite='bookworm'
 declare -A suites=(
 	[10.2]='buster'
 	[10.3]='bullseye'

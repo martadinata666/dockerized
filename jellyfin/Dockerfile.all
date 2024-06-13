@@ -1,0 +1,52 @@
+FROM 192.168.0.2:5050/dedyms/node:lts-dev as web-builder
+ARG JELLYFIN_VERSION=v10.9.3
+RUN git clone --depth=1 -b ${JELLYFIN_VERSION} https://github.com/jellyfin/jellyfin-web.git jellyfin-web \
+    && cd jellyfin-web \
+    && npm ci --no-audit --unsafe-perm \
+    && npm run build:production
+
+FROM 192.168.0.2:5050/dedyms/dotnet:8 as builder
+ARG JELLYFIN_VERSION=v10.9.3
+# Opt out dotnet telemetry
+USER root
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+RUN sudo apt update && sudo apt install -y --no-install-recommends git
+RUN sudo apt remove -y --purge -V ca-certificates && \
+    sudo apt install ca-certificates -y
+RUN git clone --depth=1 -b ${JELLYFIN_VERSION} https://github.com/jellyfin/jellyfin.git jellyfin && \
+    cd jellyfin &&  \
+    dotnet publish Jellyfin.Server --disable-parallel --configuration Release --output="/jellyfin" --self-contained --runtime linux-x64 "-p:DebugSymbols=false;DebugType=none"
+# because of changes in docker and systemd we need to not build in parallel at the moment
+# see https://success.docker.com/article/how-to-reserve-resource-temporarily-unavailable-errors-due-to-tasksmax-setting
+
+
+FROM 192.168.0.2:5050/dedyms/ffmpeg:6 as app
+# https://askubuntu.com/questions/972516/debian-frontend-environment-variable
+ARG DEBIAN_FRONTEND="noninteractive"
+# http://stackoverflow.com/questions/48162574/ddg#49462622
+ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+# https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(Native-GPU-Support)
+ENV NVIDIA_DRIVER_CAPABILITIES="compute,video,utility"
+RUN sudo mkdir -p /cache /config /config/transcodes \
+    && sudo chown -R $CONTAINERUSER:$CONTAINERUSER /cache /config
+
+#ENV HEALTHCHECK_URL=http://localhost:8096/health
+# Needed for special character
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=0
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+
+COPY --from=builder --chown=$CONTAINERUSER:$CONTAINERUSER /jellyfin/jellyfin /jellyfin/jellyfin
+COPY --from=web-builder --chown=$CONTAINERUSER:$CONTAINERUSER ${HOME}/jellyfin-web/dist /jellyfin/jellyfin-web
+
+EXPOSE 8096
+USER $CONTAINERUSER
+VOLUME /cache /config /config/transcodes
+CMD ["/jellyfin/jellyfin", \
+    "--datadir", "/config", \
+    "--cachedir", "/cache", \
+    "--ffmpeg", "/usr/local/bin/ffmpeg"]
+#HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
+#     CMD curl -Lk -fsS "${HEALTHCHECK_URL}" || exit 1
