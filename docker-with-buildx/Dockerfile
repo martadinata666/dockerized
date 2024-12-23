@@ -10,7 +10,7 @@ RUN chmod a+x /docker-buildx
 
 #FROM moby/buildkit:v${BUILDKIT_VERSION} AS buildkit
 
-FROM 192.168.0.2:5050/dedyms/docker-static:24.0.6
+FROM 192.168.0.2:5050/dedyms/docker-static:latest
 USER root
 ARG BUILD_VERSION
 ENV DOCKER_BUILDKIT=0

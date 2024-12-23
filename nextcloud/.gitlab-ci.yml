@@ -49,7 +49,7 @@ buildx-stable:
     - docker buildx inspect --bootstrap
     #- docker buildx build --build-arg NEXTCLOUD_VERSION=$RELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/arm64 -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile
 #    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:latest" . -f Dockerfile.ci
-    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform linux/amd64,linux/arm64 -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" . -f Dockerfile.ci
+    - docker buildx build --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:$NEXTCLOUDRELEASE" . -f Dockerfile.ci
   after_script:
     - docker buildx stop
     - docker buildx rm -f

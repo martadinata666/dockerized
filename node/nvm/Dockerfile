@@ -1,5 +1,5 @@
 FROM 192.168.0.2:5050/dedyms/debian:latest as base
-ARG NODE_RELEASE=20.10.0
+ARG NODE_RELEASE=20.16.0
 ARG NVM_RELEASE=v0.39.5
 USER root
 ENV NVM_DIR=/usr/local/nvm \

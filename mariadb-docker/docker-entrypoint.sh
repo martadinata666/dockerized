@@ -95,7 +95,7 @@ docker_process_init_files() {
 	done
 }
 
-# arguments necessary to run "mysqld --verbose --help" successfully (used for testing configuration validity and for extracting default/configured values)
+# arguments necessary to run "mariadbd --verbose --help" successfully (used for testing configuration validity and for extracting default/configured values)
 _verboseHelpArgs=(
 	--verbose --help
 	--log-bin-index="$(mktemp -u)" # https://github.com/docker-library/mysql/issues/136
@@ -104,12 +104,12 @@ _verboseHelpArgs=(
 mysql_check_config() {
 	local toRun=( "$@" "${_verboseHelpArgs[@]}" ) errors
 	if ! errors="$("${toRun[@]}" 2>&1 >/dev/null)"; then
-		mysql_error $'mysqld failed while attempting to check config\n\tcommand was: '"${toRun[*]}"$'\n\t'"$errors"
+		mysql_error $'mariadbd failed while attempting to check config\n\tcommand was: '"${toRun[*]}"$'\n\t'"$errors"
 	fi
 }
 
 # Fetch value from server config
-# We use mysqld --verbose --help instead of my_print_defaults because the
+# We use mariadbd --verbose --help instead of my_print_defaults because the
 # latter only show values present in config files, and not server defaults
 mysql_get_config() {
 	local conf="$1"; shift
@@ -192,7 +192,7 @@ _mariadb_version() {
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
 	installArgs=( --datadir="$DATADIR" --rpm --auth-root-authentication-method=normal )
-	# "Other options are passed to mysqld." (so we pass all "mysqld" arguments directly here)
+	# "Other options are passed to mariadbd." (so we pass all "mariadbd" arguments directly here)
 	mysql_install_db "${installArgs[@]}" "${@:2}" \
                 --skip-test-db \
                 --old-mode='UTF8_IS_UTF8MB3' \
@@ -412,7 +412,7 @@ docker_mariadb_backup_system()
 	fi
 
 	mysql_note "Backing up system database to $backup_db"
-	if ! mysqldump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
+	if ! mariadbdump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
 		mysql_error "Unable backup system database for upgrade from $oldfullversion."
 	fi
 	mysql_note "Backing up complete"
@@ -463,7 +463,7 @@ _check_if_upgrade_is_needed() {
 	return 1
 }
 
-# check arguments for an option that would cause mysqld to stop
+# check arguments for an option that would cause mariadbd to stop
 # return true if there is one
 _mysql_want_help() {
 	local arg
@@ -478,14 +478,14 @@ _mysql_want_help() {
 }
 
 _main() {
-	# if command starts with an option, prepend mysqld
+	# if command starts with an option, prepend mariadbd
 	if [ "${1:0:1}" = '-' ]; then
-		set -- mysqld "$@"
+		set -- mariadbd "$@"
 	fi
 
 	#ENDOFSUBSTITUTIONS
-	# skip setup if they aren't running mysqld or want an option that stops mysqld
-	if [ "$1" = 'mariadbd' ] || [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
+	# skip setup if they aren't running mariadbd or want an option that stops mariadbd
+	if [ "$1" = 'mariadbd' ] || [ "$1" = 'mariadbd' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MariaDB Server ${MARIADB_VERSION} started."
 
 		mysql_check_config "$@"

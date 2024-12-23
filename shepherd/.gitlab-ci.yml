@@ -84,7 +84,7 @@ docker-buildx-cronjob:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.cronjob
+    - docker buildx build --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile.cronjob
   only:
     #variables:
     #  - $RELEASE == "cronjob"

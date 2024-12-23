@@ -1,7 +1,8 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/gitlab-runner"
   GITHUB_REPO_NAME: "gitlabhq/gitlab-runner"
-  GITLAB_RUNNER_VERSION: ""
+  VERSION: "v17.7.0"
+#  RELEASE: ""
   # v14.8.0
   # helper-v14.8.0
 
@@ -12,16 +13,17 @@ buildx-gitlab-runner:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerize
   before_script:
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/gitlabhq/gitlab-runner/tags" | jq -r 'first(.[] | .name )')
+#    - export RELEASE=$(curl --silent "https://api.github.com/repos/gitlabhq/gitlab-runner/tags" | jq -r 'first(.[] | .name )')
+#    - export $RELEASE=17.7.0
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
+#    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f runner/Dockerfile.runner
+    - docker buildx build --build-arg RELEASE="$VERSION" --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f runner/Dockerfile.runner
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -32,8 +34,8 @@ buildx-gitlab-runner-helper:
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: dockerize
   before_script:
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/gitlabhq/gitlab-runner/tags" | jq -r 'first(.[] | .name )')
-    - echo $RELEASE
+#    - export RELEASE=$(curl --silent "https://api.github.com/repos/gitlabhq/gitlab-runner/tags" | jq -r 'first(.[] | .name )')
+#    - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
@@ -41,7 +43,7 @@ buildx-gitlab-runner-helper:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:helper" -t "$CI_REGISTRY_IMAGE:helper-$RELEASE" . -f helper/Dockerfile.helper
+    - docker buildx build --build-arg RELEASE="$VERSION" --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:helper" -t "$CI_REGISTRY_IMAGE:helper-$RELEASE" . -f helper/Dockerfile.helper
   after_script:
     - docker buildx stop
     - docker buildx rm

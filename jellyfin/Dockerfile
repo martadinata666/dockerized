@@ -19,7 +19,7 @@
 
 
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg:6 as app
+FROM 192.168.0.2:5050/dedyms/ffmpeg:7 as app
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND="noninteractive"
 # http://stackoverflow.com/questions/48162574/ddg#49462622

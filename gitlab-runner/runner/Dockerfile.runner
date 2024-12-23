@@ -30,7 +30,9 @@ ARG RELEASE
 ARG TARGETARCH
 USER root
 #RUN curl -o /usr/local/bin/gitlab-runner -L https://gitlab.com/gitlab-org/gitlab-runner/-/releases/${RELEASE}/downloads/binaries/gitlab-runner-linux-${TARGETARCH} && chmod +x /usr/local/bin/gitlab-runner
-RUN curl -o /usr/local/bin/gitlab-runner -L https://gitlab-runner-downloads.s3.amazonaws.com/${RELEASE}/binaries/gitlab-runner-linux-${TARGETARCH} && chmod +x /usr/local/bin/gitlab-runner
+#RUN curl -o /usr/local/bin/gitlab-runner -L https://gitlab-runner-downloads.s3.amazonaws.com/${RELEASE}/binaries/gitlab-runner-linux-${TARGETARCH} && chmod +x /usr/local/bin/gitlab-runner
+RUN curl -o /usr/local/bin/gitlab-runner -L https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/${RELEASE}/binaries/gitlab-runner-linux-${TARGETARCH}
+RUN chmod +x /usr/local/bin/gitlab-runner
 
 
 FROM 192.168.0.2:5050/dedyms/debian:latest

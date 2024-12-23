@@ -26,7 +26,7 @@ build-stable:
   script:
     - docker buildx create --use --config buildx-config.toml --name "$CI_PROJECT_NAME" --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg BUILDX_VERSION=$RELEASE --build-arg BUILDKIT_VERSION=$BUILDKIT_RELEASE --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --build-arg BUILDX_VERSION=$RELEASE --build-arg BUILDKIT_VERSION=$BUILDKIT_RELEASE --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm -f

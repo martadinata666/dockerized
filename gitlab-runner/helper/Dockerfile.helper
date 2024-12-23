@@ -30,7 +30,7 @@ RUN case ${TARGETARCH} in \
          "amd64")  HELPER_ARCH=x86_64  ;; \
          "arm64")  HELPER_ARCH=arm64  ;; \
     esac \ 
-    && curl -o /usr/local/bin/gitlab-runner-helper -L https://gitlab-runner-downloads.s3.amazonaws.com/${RELEASE}/binaries/gitlab-runner-helper/gitlab-runner-helper.$HELPER_ARCH \
+    && curl -o /usr/local/bin/gitlab-runner-helper -L https://s3.dualstack.us-east-1.amazonaws.com/gitlab-runner-downloads/${RELEASE}/binaries/gitlab-runner-helper/gitlab-runner-helper.$HELPER_ARCH \
     && chmod +x /usr/local/bin/gitlab-runner-helper;
 
 FROM 192.168.0.2:5050/dedyms/debian:latest

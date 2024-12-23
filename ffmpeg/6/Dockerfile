@@ -1,6 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
 #https://git.ffmpeg.org/gitweb/ffmpeg.git
-ARG FFMPEG_VERSION=n6.1.1
+ARG FFMPEG_VERSION=n6.1.2
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list
 #RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list

@@ -46,7 +46,7 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:dotnet" . -f Dockerfile
-    - docker buildx build --push . --build-arg RELEASE=${RELEASE} --build-arg RELEASELINK=${RELEASELINK} --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:${RELEASE}"
+    - docker buildx build --push . --build-arg RELEASE=${RELEASE} --build-arg RELEASELINK=${RELEASELINK} --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:${RELEASE}"
   after_script:
     - docker buildx stop
     - docker buildx rm -f

@@ -16,7 +16,7 @@ buildx-sid:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --build-arg VERSION=$RELEASE --platform linux/arm64,linux/amd64
+    - docker buildx build --push --build-arg VERSION=$RELEASE --platform "$BUILD_PLATFORM"
       -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   only:
     #variables:

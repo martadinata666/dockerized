@@ -2,14 +2,14 @@ variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/mariadb"
 
 buildx-lts:
-  # Current lts 10.11
+  # Current lts 11.4
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
   #services:
   #  - docker:dind
   before_script:
-    - export STATIC_RELEASE="10.11"
+    - export STATIC_RELEASE="11.4"
     - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
 #    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d'=' -f2- | cut -d'+' -f1 )
     - export DATE=$(date +%Y%m%d)
@@ -27,7 +27,7 @@ buildx-lts:
 #      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE"
 #      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$STATIC_RELEASE" .
 #      -f $STATIC_RELEASE/Dockerfile.debian
-    - docker buildx build --push --platform linux/arm64,linux/amd64
+    - docker buildx build --push --platform "$BUILD_PLATFORM"
       -t "$CI_REGISTRY_IMAGE:lts"
       -t "$CI_REGISTRY_IMAGE:$STATIC_RELEASE"
       -t "$CI_REGISTRY_IMAGE:$RELEASE" .

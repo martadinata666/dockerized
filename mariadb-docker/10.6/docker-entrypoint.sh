@@ -192,7 +192,7 @@ _mariadb_version() {
 docker_init_database_dir() {
 	mysql_note "Initializing database files"
 	installArgs=( --datadir="$DATADIR" --rpm --auth-root-authentication-method=normal )
-	# "Other options are passed to mariadbd." (so we pass all "mysqld" arguments directly here)
+	# "Other options are passed to mariadbd." (so we pass all "mariadbd" arguments directly here)
 	mariadb-install-db "${installArgs[@]}" "${@:2}" \
                 --skip-test-db \
                 --old-mode='UTF8_IS_UTF8MB3' \
@@ -412,7 +412,7 @@ docker_mariadb_backup_system()
 	fi
 
 	mysql_note "Backing up system database to $backup_db"
-	if ! mariadb-dump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
+	if ! mariadbdump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
 		mysql_error "Unable backup system database for upgrade from $oldfullversion."
 	fi
 	mysql_note "Backing up complete"
@@ -484,8 +484,8 @@ _main() {
 	fi
 
 	#ENDOFSUBSTITUTIONS
-	# skip setup if they aren't running mysqld or want an option that stops mysqld
-	if [ "$1" = 'mariadbd' ] || [ "$1" = 'mysqld' ] && ! _mysql_want_help "$@"; then
+	# skip setup if they aren't running mariadbd or want an option that stops mariadbd
+	if [ "$1" = 'mariadbd' ] || [ "$1" = 'mariadbd' ] && ! _mysql_want_help "$@"; then
 		mysql_note "Entrypoint script for MariaDB Server ${MARIADB_VERSION} started."
 
 		mysql_check_config "$@"

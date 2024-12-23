@@ -26,9 +26,12 @@ buildx-ffmpeg:
     - docker buildx inspect --bootstrap
     - docker buildx build --push --platform linux/amd64
       -t "$CI_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE"
-      -t "$CI_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE"
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE" 
-      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE" . -f $TARGET/Dockerfile
+      -t "$CI_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE" . -f $TARGET/Dockerfile
+#    - docker buildx build --push --platform linux/amd64
+#      -t "$CI_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE"
+#      -t "$CI_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE"
+#      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$SHORT_FFMPEG_RELEASE" 
+#      -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$FFMPEG_RELEASE-$NEO_RELEASE" . -f $TARGET/Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -36,10 +39,11 @@ buildx-ffmpeg:
     changes:
 #      - 4/Dockerfile
 #      - 5/Dockerfile
-      - 6/Dockerfile
+      - 7/Dockerfile
+#      - 6/Dockerfile
   parallel:
     matrix:
-      - TARGET: [6]
+      - TARGET: [7]
 
 .trigger-ffmpeg:
   image: 192.168.0.2:5050/dedyms/debian:latest

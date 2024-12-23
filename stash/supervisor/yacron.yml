@@ -1,0 +1,27 @@
+#curl -X POST -H "Content-Type: application/json" --data '{ "query": "{ metadataGenerate ( input : { sprites: true previews: false markers:false transcodes:false } ) }" }' localhost:9998/graphql
+
+jobs:
+  - name: self
+    command: /supervisor/autoscan.sh
+    shell: /bin/bash
+    schedule: "0 */6 * * *"
+    # auto rescan every 6 hours
+
+logging:
+  # In the format of:
+  # https://docs.python.org/3/library/logging.config.html#dictionary-schema-details
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    simple:
+      format: '%(asctime)s %(levelname)s [%(name)s]: %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      level: DEBUG
+      formatter: simple
+      stream: ext://sys.stdout
+  root:
+    level: INFO
+    handlers:
+      - console
