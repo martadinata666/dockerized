@@ -1,0 +1,97 @@
+name: Docker Image Build
+
+# Need manually created
+# DOCKERHUB_USERNAME
+# DOCKERHUB_TOKEN
+# DOCKERHUB_IMAGE_NAME
+
+on:
+  push:
+    branches: [ 'dockerfile-debian' ] #rolling build on develop only
+    tags: 'v*' #tag for specific release v1.0.2,or anytag, start with v
+  pull_request:
+    branches: [ 'main' ] #build test on main, not pushing
+  workflow_dispatch:
+
+jobs:
+  build-docker-image:
+    strategy:
+      matrix:
+        target: [debian]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }} #push except PR.
+          platforms: linux/amd64,linux/arm64
+          #tags: ${{ steps.metaid.outputs.tags }}
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/${{secrets.DOCKERHUB_IMAGE_NAME}}:${{ matrix.target }}
+          labels: ${{ steps.metaid.outputs.labels }}
+          cache-from: type=gha,mode=max
+          cache-to: type=gha,mode=max
+          file: pyinstaller/Dockerfile.${{ matrix.target }}
+
+
+
+  build-ci-image:
+    needs: [build-docker-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }} #push except PR.
+          platforms: linux/amd64,linux/arm64
+          #tags: ${{ steps.metaid.outputs.tags }}
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/${{secrets.DOCKERHUB_IMAGE_NAME}}:ci
+          labels: ${{ steps.metaid.outputs.labels }}
+          cache-from: type=gha,mode=max
+          cache-to: type=gha,mode=max
+          file: pyinstaller/Dockerfile.ci

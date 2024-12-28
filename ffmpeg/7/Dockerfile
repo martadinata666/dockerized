@@ -45,11 +45,26 @@ RUN sudo apt-get update -qq && sudo apt-get -y install \
   libfdk-aac-dev \
   libvpl2
 RUN git clone --depth=1 -b $FFMPEG_VERSION https://git.ffmpeg.org/ffmpeg.git ffmpeg
+RUN git clone --depth=1 https://github.com/GPUOpen-LibrariesAndSDKs/AMF.git amf
+#WORKDIR $HOME/amf && \
+#        ls -la $HOME/amf
+#        mkdir -p /usr/local/include/amf && \
+#        ls amf/public/include && \
+#        cp -r amf/public/include/* /usr/local/include/amf/ && \
+#       ls -l /usr/local/include/amf/
+RUN ls -aln $HOME/amf/amf/public/include && \
+    sudo mkdir -p /usr/local/include/AMF && \
+    sudo cp -r $HOME/amf/amf/public/include/* /usr/local/include/AMF && \
+    sudo chown -R $CONTAINERUSER:$CONTAINERUSER /usr/local/include/AMF && \
+    ls -aln /usr/local/include/AMF/
+    
+     
 
 WORKDIR $HOME/ffmpeg
 RUN PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig ./configure \
   --pkg-config-flags=--static \
   --extra-version=vaapi \
+  --extra-cflags=-I/usr/local/include/AMF \
   --extra-libs="-lpthread -lm" \
   --ld="g++" \
   --bindir="/usr/local/bin" \
@@ -81,6 +96,7 @@ RUN PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig ./configure \
   --disable-xlib \
   --enable-iconv \
   --enable-libfdk-aac \
+  --enable-amf \
   --enable-nonfree
 RUN make -j$(nproc) && \
     sudo make install
@@ -145,7 +161,9 @@ RUN     mkdir intel-compute-runtime && \
         cd .. && \
         rm -rf intel-compute-runtime
 COPY --from=tukang /usr/local/bin /usr/local/bin
+COPY --from=tukang /usr/local/include/AMF /usr/local/include/AMF
 RUN ffmpeg -version && \
+    ffmpeg -codecs && \
     ffmpeg -hide_banner -hwaccels
 
 

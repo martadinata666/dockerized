@@ -2,12 +2,11 @@
 variables:
   RELEASE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/iperf3"
+  BUILDKIT_UNSAFE_HTTP: 1
 #  DOCKER_HOST: tcp://docker:2375
 
 buildx-stable:
-  # Official docker image.
-#  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-  image: docker
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   stage: build
 #  services:
 #    - name: docker:dind
@@ -19,7 +18,7 @@ buildx-stable:
 #    - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:latest
   script:
 #    - docker buildx create --use --config buildkit-config.toml --driver-opt image=moby/buildkit:v0.14.0
-    - docker buildx create --use --config buildkit-config.toml
+    - docker buildx create --use --config buildkit-config.toml --driver-opt env.BUILDKIT_UNSAFE_HTTP=1
     - docker info
     - docker buildx version
 #    - docker buildx create --use --config ./buildkit-config.toml

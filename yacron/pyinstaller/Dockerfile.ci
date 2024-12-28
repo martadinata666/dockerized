@@ -1,0 +1,4 @@
+FROM martadinata666/yacron:debian as yacron
+
+FROM scratch
+COPY --from=yacron /usr/local/bin/yacron /usr/local/bin/yacron

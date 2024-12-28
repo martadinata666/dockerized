@@ -1,0 +1,23 @@
+FROM python:3.12-alpine as builder
+USER root
+RUN apk add curl build-base git zlib-dev musl-dev libffi-dev pwgen
+ENV PATH=/yacron/bin:$PATH
+#COPY pyinstaller/requirements310.txt /root
+RUN pip3 install -U pip setuptools pyinstaller==6.5.0
+#RUN pip3 install -r /root/requirements310.txt
+
+COPY . /root/yacron
+WORKDIR /root/yacron
+RUN git status
+RUN python3 setup.py install
+RUN python3 pyinstaller/yacron --version
+RUN pyinstaller pyinstaller/yacron.spec
+RUN ls -sFh dist/yacron
+RUN dist/yacron --version
+
+FROM alpine:3.17
+RUN apk add --no-cache bash
+COPY --from=builder /root/yacron/dist/yacron /usr/local/bin/yacron
+RUN yacron --version
+
+
