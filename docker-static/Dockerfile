@@ -31,9 +31,7 @@ RUN docker --version
 
 FROM 192.168.0.2:5050/dedyms/debian:latest
 ARG RELEASE
-ENV DOCKERVERSION=$RELEASE \
-    DOCKER_TLS_CERTDIR=/certs \
-    DOCKER_CLI_EXPERIMENTAL=enabled
+ENV DOCKERVERSION=$RELEASE
 COPY --from=fetcher /usr/local/bin/docker /usr/local/bin/docker
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 USER root

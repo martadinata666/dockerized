@@ -13,11 +13,8 @@ RUN chmod a+x /docker-buildx
 FROM 192.168.0.2:5050/dedyms/docker-static:latest
 USER root
 ARG BUILD_VERSION
-ENV DOCKER_BUILDKIT=0
 ENV BUILDX_NO_DEFAULT_ATTESTATIONS=1
 ENV BUILDX_VERSION=$BUILD_VERSION
-ENV DOCKER_TLS_CERTDIR=/certs
-ENV DOCKER_CLI_EXPERIMENTAL=enabled
 COPY --from=fetcher /docker-buildx /usr/lib/docker/cli-plugins/docker-buildx
 #COPY --from=buildkit /usr/bin/buildctl /usr/local/bin/buildctl
 #COPY --from=buildkit /usr/bin/buildkit* /usr/local/bin/

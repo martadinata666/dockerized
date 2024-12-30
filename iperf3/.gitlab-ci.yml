@@ -2,7 +2,7 @@
 variables:
   RELEASE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/iperf3"
-  BUILDKIT_UNSAFE_HTTP: 1
+#  BUILDKIT_UNSAFE_HTTP: 1
 #  DOCKER_HOST: tcp://docker:2375
 
 buildx-stable:
