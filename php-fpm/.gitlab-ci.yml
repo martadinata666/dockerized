@@ -1,7 +1,7 @@
 variables:
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/php-fpm"
   # Also update version on nginx and apache
-  PHP_VERSION: "8.3"
+  PHP_VERSION: "8.4"
 
 stages:
   - build-php
@@ -32,7 +32,7 @@ buildx:
     - docker buildx rm -f
   only:
     changes:
-      - 8.3/Dockerfile.build
+      - 8.4/Dockerfile.build
 
 trigger-apache-nginx:
   image: 192.168.0.2:5050/dedyms/debian:latest
@@ -44,4 +44,4 @@ trigger-apache-nginx:
     - curl -X POST -F token=$NGINX_TOKEN -F ref=master -F variables[FPM]=1 http://192.168.0.2:10000/api/v4/projects/6/trigger/pipeline
   only:
     changes:
-      - 8.3/Dockerfile.build
+      - 8.4/Dockerfile.build

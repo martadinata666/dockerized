@@ -1,4 +1,4 @@
-FROM debian:12.4
+FROM debian:12.10-slim
 ENV CONTAINERUSER=docker \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \

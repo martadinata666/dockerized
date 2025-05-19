@@ -3,7 +3,7 @@ variables:
   GITHUB_REPO_NAME: "gitlabhq/gitlab-runner"
 # Gitlab version not always same as runner version
 # Check runner tag https://gitlab.com/gitlab-org/gitlab-runner/-/tags
-  RELEASE: "v17.9.1"
+  RELEASE: "v18.0.0"
   # v14.8.0
   # helper-v14.8.0
 

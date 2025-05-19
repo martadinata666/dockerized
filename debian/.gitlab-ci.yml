@@ -58,14 +58,8 @@ trigger-other-repo:
   image: 192.168.0.2:5050/dedyms/debian:latest
   stage: trigger-other-repo
   script:
-    - echo "Trigger NODE image rebuild"
-    - curl -X POST --fail -F token=$NODE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/3/trigger/pipeline
-#    - echo "Trigger JRE image rebuild"
-#    - curl -X POST --fail -F token=$JRE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/4/trigger/pipeline
-    - echo "Trigger APACHE image rebuild"
-    - curl -X POST --fail -F token=$APACHE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/5/trigger/pipeline
-    - echo "Trigger NGINX image rebuild"
-    - curl -X POST --fail -F token=$NGINX_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/6/trigger/pipeline
+    - echo "Trigger PHP-fpm image rebuild"
+    - curl -X POST --fail -F token=$PHPFPM_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/12/trigger/pipeline
     - echo "Trigger PING build"
     - curl -X POST --fail -F token=$PING_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/7/trigger/pipeline
     - echo "Trigger IPERF3 build"
@@ -74,26 +68,16 @@ trigger-other-repo:
     - curl -X POST --fail -F token=$PHS_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/46/trigger/pipeline
     - echo "Trigger OPENSSH build"
     - curl -X POST --fail -F token=$OPENSSH_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/43/trigger/pipeline
-#    - echo "Trigger APPRISE"
-#    - curl -X POST --fail -F token=$APPRISE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/14/trigger/pipeline
-#    - echo "Trigger MARIADB"
-#    - curl -X POST --fail -F token=$MARIADB_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/15/trigger/pipeline
-#    - echo "Trigger WHOOGLE"
-#    - curl -X POST -F token=$WHOOGLE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/27/trigger/pipeline
-    - echo "Trigger CADVISOR"
-#    - curl -X POST -F token=$CADVISOR_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/69/trigger/pipeline
     - echo "Trigger YMPD"
     - curl -X POST --fail -F token=$YMPD_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/29/trigger/pipeline
-#    - echo "Trigger GLANCES"
-#    - curl -X POST -F token=$GLANCES_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/42/trigger/pipeline
     - echo "Trigger STASH"
     - curl -X POST -F token=$STASH_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/26/trigger/pipeline
-#    - echo "Trigger DOCUMIZE"
-#    - curl -X POST -F token=$DOCUMIZE_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/21/trigger/pipeline
     - echo "Trigger DOCKER-STATIC"
     - curl -X POST -F token=$DOCKER_STATIC_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/17/trigger/pipeline
     - echo "Triggger DOCKER-QEMU"
     - curl -X POST -F token=$DOCKER_QEMU_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/11/trigger/pipeline
+    - echo "Triggger FFMPEG"
+    - curl -X POST -F token=$FFMPEG_TOKEN -F ref=master http://192.168.0.2:10000/api/v4/projects/54/trigger/pipeline
 
   only:
     - triggers

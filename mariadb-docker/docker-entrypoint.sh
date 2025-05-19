@@ -435,7 +435,7 @@ docker_mariadb_upgrade() {
 	docker_mariadb_backup_system
 
 	mysql_note "Starting mariadb-upgrade"
-	mysql_upgrade --upgrade-system-tables
+	mariadb-upgrade --upgrade-system-tables
 	mysql_note "Finished mariadb-upgrade"
 
 	mysql_note "Stopping temporary server"

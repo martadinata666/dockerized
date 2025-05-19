@@ -1,11 +1,16 @@
 #curl -X POST -H "Content-Type: application/json" --data '{ "query": "{ metadataGenerate ( input : { sprites: true previews: false markers:false transcodes:false } ) }" }' localhost:9998/graphql
 
 jobs:
-  - name: self
+  - name: scan files
     command: /supervisor/autoscan.sh
     shell: /bin/bash
-    schedule: "0 */6 * * *"
+    schedule: "0 */1 * * *"
     # auto rescan every 6 hours
+  - name: generate things
+    command: /supervisor/autogenerate.sh
+    shell: /bin/bash
+    schedule: "0 */3 * * *"
+    # generate thumbnails, etct
 
 logging:
   # In the format of:
