@@ -4,7 +4,7 @@ variables:
 
 buildx-stable:
   # Official docker image.
-  image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  image: 192.168.0.2:5050/dedyms/docker-with-buildx:0.24.0
   stage: build
   #services:
   #  - docker:dind

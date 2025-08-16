@@ -26,7 +26,10 @@ ARG DEBIAN_FRONTEND="noninteractive"
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 # https://github.com/NVIDIA/nvidia-docker/wiki/Installation-(Native-GPU-Support)
 ENV NVIDIA_DRIVER_CAPABILITIES="compute,video,utility"
-RUN sudo mkdir -p /cache /config /config/transcodes \
+RUN sudo apt update && \
+    sudo apt install --no-install-recommends libicu76 && \
+    sudo apt-get dist-clean && \
+    sudo mkdir -p /cache /config /config/transcodes \
     && sudo chown -R $CONTAINERUSER:$CONTAINERUSER /cache /config
 
 #ENV HEALTHCHECK_URL=http://localhost:8096/health

@@ -1,6 +1,6 @@
 FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
 #https://git.ffmpeg.org/gitweb/ffmpeg.git
-ARG FFMPEG_VERSION=n7.1
+ARG FFMPEG_VERSION=n7.1.1
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list
 #RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
@@ -124,17 +124,17 @@ RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   libvorbisfile3 \
   zlib1g \
   libx264-164 \
-  libx265-199 \
+  libx265-215 \
   libnuma1 \
-  libvpx7 \
+  libvpx9 \
   libopus0 \
-  libdav1d6 \
-  libunistring2 \
+  libdav1d7 \
+  libunistring5 \
   libwebp7 \
   libwebpmux3 \
   libwebpdemux2 \
   libaom3 \
-  libsvtav1enc1 \
+  libsvtav1enc2 \
   libva-drm2 \
   mesa-va-drivers \
   libva-x11-2 \
@@ -143,23 +143,23 @@ RUN  sudo apt update && sudo apt install -y --no-install-recommends \
   intel-media-va-driver-non-free \
   vainfo \
   libfdk-aac2 \
-  libmfx1 \
+  libmfx-gen1.2 \
   libvpl2 && \
   sudo apt remove -y --purge *-dev && \
   sudo apt clean && \
   sudo rm -rf /var/lib/apt/lists/*
 RUN     mkdir intel-compute-runtime && \
         cd intel-compute-runtime && \
-        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-core_1.0.17791.9_amd64.deb && \
-        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17791.9/intel-igc-opencl_1.0.17791.9_amd64.deb && \
-        wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-level-zero-gpu-dbgsym_1.6.31294.12_amd64.ddeb && \
-        wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-level-zero-gpu_1.6.31294.12_amd64.deb && \
-        wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-opencl-icd-dbgsym_24.39.31294.12_amd64.ddeb && \
-        wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/intel-opencl-icd_24.39.31294.12_amd64.deb && \
-        wget https://github.com/intel/compute-runtime/releases/download/24.39.31294.12/libigdgmm12_22.5.2_amd64.deb && \
+        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17537.20/intel-igc-core_1.0.17537.20_amd64.deb && \
+        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17537.20/intel-igc-opencl_1.0.17537.20_amd64.deb && \
+        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.22/intel-level-zero-gpu-legacy1_1.3.30872.22_amd64.deb && \
+        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.22/intel-level-zero-gpu_1.3.30872.22_amd64.deb && \
+        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.22/intel-opencl-icd-legacy1_24.35.30872.22_amd64.deb && \
+        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.22/intel-opencl-icd_24.35.30872.22_amd64.deb && \
         sudo dpkg -i *.deb && \
         cd .. && \
         rm -rf intel-compute-runtime
+# Our system gen 8 stuck on old platform
 COPY --from=tukang /usr/local/bin /usr/local/bin
 COPY --from=tukang /usr/local/include/AMF /usr/local/include/AMF
 RUN ffmpeg -version && \

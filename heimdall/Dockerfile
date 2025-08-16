@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.2 AS cache
+FROM 192.168.0.2:5050/dedyms/php-fpm:8.3 AS cache
 ARG TOKEN
 ARG RELEASE=v2.6.0
 WORKDIR /var/www/html/
@@ -22,7 +22,7 @@ RUN git clone --depth=1 -b ${RELEASE} https://github.com/linuxserver/Heimdall.gi
 #    php artisan storage:link
 
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm8.2
+FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm8.3
 ARG RELEASE
 ENV HEIMDALL_RELEASE=$RELEASE
 ENV PHP_MEMORY_LIMIT 2048M

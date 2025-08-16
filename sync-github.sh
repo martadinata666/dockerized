@@ -4,7 +4,7 @@ git-disable-repo.sh --true && \
 mv ./..git ./.git && \
 git fetch && \
 git add . && \
-git commit -m "Update" && \
+git commit -m "Trixie upgrade & some fixes" && \
 git push origin master --force && \
 git-disable-repo.sh --false
 mv ./.git ./..git

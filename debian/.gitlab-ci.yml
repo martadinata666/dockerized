@@ -5,6 +5,7 @@ variables:
   DATE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/debian"
   GITHUB_REPO_NAME: ""
+  DEBIAN_NAME: "trixie"
 
 stages:
   - build-base
@@ -27,7 +28,7 @@ buildx-baseimage:
     - docker buildx inspect --bootstrap
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE:stable" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:stable" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:bookworm" -t "$CI_REGISTRY_IMAGE" . -f bookworm/Dockerfile
+    - docker buildx build --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:bookworm" -t "$CI_REGISTRY_IMAGE" . -f "$DEBIAN_NAME"/Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm
@@ -47,7 +48,7 @@ buildx-base-dev:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f bookworm/Dockerfile.dev
+    - docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:dev" . -f "$DEBIAN_NAME"/Dockerfile.dev
   after_script:
     - docker buildx stop
     - docker buildx rm

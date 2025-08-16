@@ -123,6 +123,8 @@ if expr "$1" : "apache" 1>/dev/null || [ "$1" = "php-fpm" ] || [ "${NEXTCLOUD_UP
                 echo "The following apps have been disabled:"
                 diff /tmp/list_before /tmp/list_after | grep '<' | cut -d- -f2 | cut -d: -f1
                 rm -f /tmp/list_before /tmp/list_after
+                # add missing db-indices, missing indexes
+                run_as 'php /var/www/html/occ db:add-missing-indices'
 
             fi
 

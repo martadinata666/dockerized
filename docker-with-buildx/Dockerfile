@@ -15,6 +15,7 @@ USER root
 ARG BUILD_VERSION
 ENV BUILDX_NO_DEFAULT_ATTESTATIONS=1
 ENV BUILDX_VERSION=$BUILD_VERSION
+ENV DOCKER_BUILDKIT=0
 COPY --from=fetcher /docker-buildx /usr/lib/docker/cli-plugins/docker-buildx
 #COPY --from=buildkit /usr/bin/buildctl /usr/local/bin/buildctl
 #COPY --from=buildkit /usr/bin/buildkit* /usr/local/bin/
