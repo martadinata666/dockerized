@@ -5,7 +5,7 @@
 ### Clone repository
 #### As current stable v16.1 change pulse-version `v16.1`
 
-```$ git clone --depht=1 -b pulse-version https://github.com/pulseaudio/pulseaudio.git```
+```$ git clone --depth=1 -b pulse-version https://github.com/pulseaudio/pulseaudio.git```
 
 ### Install build dependencies, here depedencies for headless. On GUI system may different.
 ```
