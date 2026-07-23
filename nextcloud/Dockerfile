@@ -1,9 +1,21 @@
 FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
+FROM 192.168.0.2:6060/dedyms/debian:dev AS downloader
+USER root
+ARG NEXTCLOUD_VERSION=34.0.2
+RUN curl -fsSL http://192.168.0.2:25000/nextcloud/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2 -o nextcloud.tar.bz2
+RUN tar -xjf nextcloud.tar.bz2 -C /usr/src/; \ 
+    ls -al /usr/src; \
+    rm -rf /usr/src/nextcloud/updater; \
+    mkdir -p /usr/src/nextcloud/data; \ 
+    mkdir -p /usr/src/nextcloud/custom_apps; \
+    chmod +x /usr/src/nextcloud/occ
+
 FROM 192.168.0.2:6060/dedyms/debian:latest as notify
 # Fetch notify_push
+USER root
 ARG TARGETPLATFORM
-ARG PUSH_VERSION
+ARG PUSH_VERSION=v1.3.4
 RUN case ${TARGETPLATFORM} in \
          "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
          "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \
@@ -12,7 +24,7 @@ RUN case ${TARGETPLATFORM} in \
     mv notify-push /usr/local/bin/notify-push && \
     chmod +x /usr/local/bin/notify-push
 
-FROM 192.168.0.2:6060/dedyms/apache:fpm8.1
+FROM 192.168.0.2:6060/dedyms/apache:fpm
 ARG TARGETPLATFORM
 ARG NEXTCLOUD_VERSION
 ARG PUSH_VERSION
@@ -22,17 +34,6 @@ ENV NEXTCLOUD_UPDATE=1
 # Move to root to create things
 USER root
 
-#RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-#        curl -o notify-push -L  https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-x86_64-unknown-linux-musl && \
-#        mv notify-push /usr/local/bin/notify-push && \
-#        chmod +x /usr/local/bin/notify-push; \
-#    fi;
-#RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-#        curl -o notify-push -L https://github.com/nextcloud/notify_push/releases/download/$PUSH_VERSION/notify_push-aarch64-unknown-linux-musl && \
-#        mv notify-push /usr/local/bin/notify-push && \
-#        chmod +x /usr/local/bin/notify-push; \
-#    fi;
-
 RUN set -ex; \
     \
     apt update; \
@@ -41,6 +42,7 @@ RUN set -ex; \
         bzip2 \
         iproute2 \
         libimage-exiftool-perl \
+        libfuse2 \
         libldap-common \
     ; \
     apt autoremove -y --purge; \
@@ -53,7 +55,6 @@ RUN { \
         echo 'opcache.max_accelerated_files=10000'; \
         echo 'opcache.memory_consumption=512'; \
         echo 'opcache.save_comments=1'; \
-        echo 'opcache.huge_code_pages=1;' \
         echo 'opcache.enable_file_override=1;' \
         echo 'opcache.jit_buffer_size=256M;' \
         echo 'opcache.jit=12555;' \
@@ -66,36 +67,16 @@ RUN { \
         echo 'memory_limit=${PHP_MEMORY_LIMIT}'; \
         echo 'upload_max_filesize=${PHP_UPLOAD_LIMIT}'; \
         echo 'post_max_size=${PHP_UPLOAD_LIMIT}'; \
-    } > /usr/local/etc/php/conf.d/nextcloud.ini
+    } > /usr/local/etc/php/conf.d/nextcloud.ini; \
+    { \
+        echo 'redis.session.locking_enabled=1'; \
+        echo 'redis.session.lock_retries=-1'; \
+        echo 'redis.session.lock_wait_time=10000'; \
+    } > /usr/local/etc/php/conf.d/nextcloud-redis.ini
 
-# Downloading NextCloud
-RUN set -ex; \
-    fetchDeps=" \
-        dirmngr \
-        gnupg \
-    "; \
-    \
-    apt update; \
-    apt install -y --no-install-recommends $fetchDeps; \
-    \
-    curl -fsSL -o nextcloud.tar.bz2 \
-        "https://192.168.0.2:25000/nextcloud/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2"; \
-    curl -fsSL -o nextcloud.tar.bz2.asc \
-        "https://download.nextcloud.com/server/releases/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2.asc"; \
-    export GNUPGHOME="$(mktemp -d)"; \
-# gpg key from https://nextcloud.com/nextcloud.asc
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys 28806A878AE423A28372792ED75899B9A724937A; \
-    gpg --batch --verify nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
-    tar -xjf nextcloud.tar.bz2 -C /usr/src/; \
-    gpgconf --kill all; \
-    rm nextcloud.tar.bz2.asc nextcloud.tar.bz2; \
-    rm -rf "$GNUPGHOME" /usr/src/nextcloud/updater; \
-    mkdir -p /usr/src/nextcloud/data; \
-    mkdir -p /usr/src/nextcloud/custom_apps; \
-    chmod +x /usr/src/nextcloud/occ; \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
-    rm -rf /var/lib/apt/lists/*
 
+# Copy from predownloaded
+COPY --from=downloader --chown=$CONTAINERUSER:$CONTAINERUSER /usr/src /usr/src
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 COPY 000-default-ssl.conf /etc/apache2/sites-available/000-default-ssl.conf
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor/notify-push.conf /supervisor/conf.d/notify-push.conf
@@ -103,6 +84,7 @@ COPY --chown=$CONTAINERUSER:$CONTAINERUSER supervisor/yacron.yml /supervisor/yac
 COPY --from=notify --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local/bin/notify-push /usr/local/bin/notify-push
 COPY --from=ffmpeg /usr/local/bin/ffmpeg /usr/local/bin/ffmpeg
 COPY --from=ffmpeg /usr/local/bin/ffprobe /usr/local/bin/ffprobe
+COPY --chown=$CONTAINERUSER:$CONTAINERUSER ldap.conf /etc/ldap/ldap.conf
 COPY *.sh upgrade.exclude /
 
 # Add modified entrypoint because fpm already using user 1000
@@ -111,5 +93,5 @@ COPY config/* /usr/src/nextcloud/config/
 
 # No cmd, already inside base image and switch back
 USER $CONTAINERUSER
-ENTRYPOINT ["/entrypoint-minimal.sh"]
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/entrypoint-minimal.sh"]
 CMD ["supervisord","-c","/supervisor/supervisord.conf"]

@@ -4,7 +4,7 @@ git-disable-repo.sh --true && \
 mv ./..git ./.git && \
 git fetch && \
 git add . && \
-git commit -m "Try ditching gitlab kinda annoying to maintain" && \
+git commit -m "nextcloud local build" && \
 git push origin master --force && \
 git-disable-repo.sh --false
 mv ./.git ./..git

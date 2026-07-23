@@ -11,12 +11,11 @@ RUN sudo apt update && \
 USER $CONTAINERUSER
 WORKDIR $HOME
 # https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
-RUN aria2c -x 16 -s 100 -j 100 -c https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-$TARGETARCH-static.tar.xz && \
+RUN aria2c -x 16 -s 100 -j 100 -c http://192.168.0.2:25000/ffmpeg/ffmpeg-release-$TARGETARCH-static.tar.xz && \
     tar -xf ffmpeg-release-$TARGETARCH-static.tar.xz && \
-    ls -alh && \
-    sudo mv ffmpeg-$VERSION-$TARGETARCH-static/ffmpeg /usr/local/bin/ffmpeg && \
-    sudo mv ffmpeg-$VERSION-$TARGETARCH-static/ffprobe /usr/local/bin/ffprobe && \
-    rm -rf ffmpeg-release-$TARGETARCH-static
+    tree
+RUN sudo mv ffmpeg-*-static/ffmpeg /usr/local/bin/ffmpeg && \
+    sudo mv ffmpeg-*-static/ffprobe /usr/local/bin/ffprobe
 
 FROM scratch
 ARG VERSION
