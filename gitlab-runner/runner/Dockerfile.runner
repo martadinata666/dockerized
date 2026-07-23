@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest as base
+FROM 192.168.0.2:6060/dedyms/debian:latest as base
 ARG TARGETPLATFORM
 ARG RELEASE
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,7 +25,7 @@ COPY checksums-* install-deps /tmp/
 RUN /tmp/install-deps "${TARGETPLATFORM}" "${DOCKER_MACHINE_VERSION}" "${DUMB_INIT_VERSION}" "${GIT_LFS_VERSION}" && rm -rf /tmp/
 
 
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 ARG RELEASE
 ARG TARGETARCH
 USER root
@@ -35,7 +35,7 @@ RUN curl -o /usr/local/bin/gitlab-runner -L https://s3.dualstack.us-east-1.amazo
 RUN chmod +x /usr/local/bin/gitlab-runner
 
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 COPY --from=base / /
 COPY --from=fetcher /usr/local/bin/gitlab-runner /usr/bin/gitlab-runner
 COPY runner/entrypoint /entrypoint

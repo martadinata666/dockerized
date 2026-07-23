@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/go:latest as builder
+FROM 192.168.0.2:6060/dedyms/go:latest as builder
 ARG TARGETARCH
 ARG VERSION=$VERSION
 ENV CADVISOR_VERSION=$VERSION
@@ -25,7 +25,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 #RUN _output/cadvisor
 
 # Runtime
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG TARGETARCH
 ENV CADVISOR_VERSION=master
 RUN sudo apt update && \

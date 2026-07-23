@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS lldap
+FROM 192.168.0.2:6060/dedyms/debian:latest AS lldap
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETPLATFORM
 RUN sudo apt update && \
@@ -54,7 +54,7 @@ RUN set -x \
     && chmod a+r -R .
 
 # Final image    
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 COPY --from=lldap --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/lldap /app
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER /entrypoint.sh /docker-entrypoint.sh
 ADD  --chown=$CONTAINERUSER:$CONTAINERUSER https://raw.githubusercontent.com/lldap/lldap/main/lldap_config.docker_template.toml /app/lldap_config.docker_template.toml

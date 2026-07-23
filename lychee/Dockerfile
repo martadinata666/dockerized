@@ -1,13 +1,13 @@
 
-FROM 192.168.0.2:5050/dedyms/debian:dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:dev AS fetcher
 ARG RELEASE
 WORKDIR /lychee
 RUN curl -o lychee.zip -L https://github.com/LycheeOrg/Lychee/releases/download/$RELEASE/Lychee.zip
 RUN unzip lychee.zip
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM 192.168.0.2:5050/dedyms/apache:fpm
+FROM 192.168.0.2:6060/dedyms/apache:fpm
 ARG RELEASE
 ENV LYCHEE_VERSION=$RELEASE
 COPY --from=ffmpeg /$HOME/.local/bin/ffmpeg /usr/local/bin/ffmpeg

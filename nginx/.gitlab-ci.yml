@@ -82,5 +82,5 @@ buildx-fpm:
       - fpm/supervisor/supervisord.conf
   parallel:
     matrix:
-      - TARGET: ["8.3"]
+      - TARGET: ["8.4"]
 

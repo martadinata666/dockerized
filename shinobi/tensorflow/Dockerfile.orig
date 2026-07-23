@@ -1,5 +1,5 @@
 #FROM node:12.18.3-buster
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as builder
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as builder
 
 RUN sudo apt update -y && \
     sudo apt install wget curl net-tools python3 -y --no-install-recommends && \
@@ -14,7 +14,7 @@ RUN npm -d --unsafe-perm --force install
 #RUN npm -d rebuild @tensorflow/tfjs-node@2.7.0 build-addon-from-source
 
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV TFJS_HW=cpu \
     TF_ENABLE_ONEDNN_OPTS=1 \
     PLUGIN_NAME=Tensorflow \

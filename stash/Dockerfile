@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 ARG VERSION
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends wget
@@ -18,11 +18,11 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 
 #RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
 
-#FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+#FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM martadinata666/yacron:ci as yacron
+FROM 192.168.0.2:6060/dedyms/yacron:ci-ssl3 AS yacron
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg:7
+FROM 192.168.0.2:6060/dedyms/ffmpeg:7
 ARG VERSION
 ENV STASH_CONFIG_FILE=$HOME/stash/config.yml
 ENV STASH_VERSION=$VERSION

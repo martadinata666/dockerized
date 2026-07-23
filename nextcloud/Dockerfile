@@ -1,6 +1,6 @@
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM 192.168.0.2:5050/dedyms/debian:latest as notify
+FROM 192.168.0.2:6060/dedyms/debian:latest as notify
 # Fetch notify_push
 ARG TARGETPLATFORM
 ARG PUSH_VERSION
@@ -12,7 +12,7 @@ RUN case ${TARGETPLATFORM} in \
     mv notify-push /usr/local/bin/notify-push && \
     chmod +x /usr/local/bin/notify-push
 
-FROM 192.168.0.2:5050/dedyms/apache:fpm8.1
+FROM 192.168.0.2:6060/dedyms/apache:fpm8.1
 ARG TARGETPLATFORM
 ARG NEXTCLOUD_VERSION
 ARG PUSH_VERSION

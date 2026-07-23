@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/go:latest AS tukang
+FROM 192.168.0.2:6060/dedyms/go:latest AS tukang
 ARG RELEASE
 RUN sudo apt-get update && \
     sudo apt-get install -y --no-install-recommends libtagc0-dev upx-ucl libicu-dev git ssl-cert make
@@ -11,7 +11,7 @@ RUN make release && \
 #    upx euterpe
 
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 RUN sudo apt-get update && \
     sudo apt-get install -y libtagc0 libicu72 && \
     sudo apt clean && \

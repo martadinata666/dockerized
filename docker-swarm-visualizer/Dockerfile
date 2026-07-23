@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS tukang
 RUN git clone --depth=1 https://github.com/yandeu/docker-swarm-visualizer.git docker-swarm-visualizer
 #RUN git clone --depth=1 https://github.com/martadinata666/docker-swarm-visualizer.git docker-swarm-visualizer
 WORKDIR $HOME/docker-swarm-visualizer
@@ -10,7 +10,7 @@ RUN npm config set fetch-retries 100 && \
     pnpm -d prune --production && \
     ls -al
 
-FROM 192.168.0.2:5050/dedyms/debian:dev as docker
+FROM 192.168.0.2:6060/dedyms/debian:dev as docker
 ARG DOCKERVERSION=19.03.9
 ARG TARGETARCH
 USER root
@@ -26,7 +26,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
         rm docker-${DOCKERVERSION}.tgz; \
     fi;
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=tukang $HOME/docker-swarm-visualizer $HOME/docker-swarm-visualizer
 WORKDIR $HOME/docker-swarm-visualizer

@@ -1,5 +1,5 @@
 ARG BUILDKIT_VERSION
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 USER root
 ARG TARGETARCH
 ARG BUILDX_VERSION
@@ -10,7 +10,7 @@ RUN chmod a+x /docker-buildx
 
 #FROM moby/buildkit:v${BUILDKIT_VERSION} AS buildkit
 
-FROM 192.168.0.2:5050/dedyms/docker-static:latest
+FROM 192.168.0.2:6060/dedyms/docker-static:latest
 USER root
 ARG BUILD_VERSION
 ENV BUILDX_NO_DEFAULT_ATTESTATIONS=1

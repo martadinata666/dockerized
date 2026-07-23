@@ -1,0 +1,30 @@
+FROM debian:trixie as builder
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
+	apt-get install -y -q \
+		curl git ca-certificates build-essential zlib1g-dev \
+		libbz2-dev libssl-dev libreadline-dev libffi-dev \
+		upx-ucl
+RUN curl https://pyenv.run | bash
+
+# /root/.pyenv/bin not /root/.pyenv/bin/
+ENV PATH="/root/.pyenv/bin:$PATH"
+
+ENV PYTHON_VERSION=3.14.0
+RUN pyenv install -l | grep $PYTHON_VERSION
+RUN CONFIGURE_OPTS=--enable-shared pyenv install $PYTHON_VERSION
+RUN pyenv global $PYTHON_VERSION
+
+RUN /root/.pyenv/versions/$PYTHON_VERSION/bin/python -m venv /yacron
+# Get deps from https://github.com/gjcarneiro/yacron/blob/master/setup.py
+RUN pip install -U setuptools pyinstaller aiohttp crontab pytz strictyaml aiosmtplib jinja2 ruamel.yaml sentry-sdk
+RUN git clone --depth=1 https://github.com/gjcarneiro/yacron.git  /root/yacron
+WORKDIR /root/yacron
+RUN python setup.py install
+RUN python pyinstaller/yacron --version
+RUN pyinstaller pyinstaller/yacron.spec
+RUN ls -sFh dist/yacron
+RUN dist/yacron --version
+RUN cp dist/yacron /usr/local/bin/yacron
+
+FROM scratch
+COPY --from=builder /usr/local/bin/yacron /usr/local/bin/yacron

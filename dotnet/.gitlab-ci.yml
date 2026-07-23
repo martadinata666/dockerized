@@ -22,7 +22,7 @@ buildx-dotnet:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
     - docker buildx build --build-arg RELEASE=$RELEASE --push --platform linux/amd64
-       -t "$CI_REGISTRY_IMAGE:8" .
+       -t "$CI_REGISTRY_IMAGE:$RELEASE" .
        -f $TARGET/Dockerfile
   after_script:
     - docker buildx stop
@@ -35,7 +35,7 @@ buildx-dotnet:
       - $TARGET/Dockerfile
   parallel:
     matrix:
-      - TARGET: ["8.0"]
+      - TARGET: ["9.0"]
 
 #remoteVersion=$(curl -s "https://gitlab.com/api/v4/projects/25444008/repository/commits?per_page=1&page=1"  | jq -r '.[0].short_id')
 #localVersion=$(curl -s "https://gitlab.com/api/v4/projects/19217373/repository/files/version/raw?ref=master")

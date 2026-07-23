@@ -1,5 +1,5 @@
 #syntax=docker/dockerfile:1.4
-FROM 192.168.0.2:5050/dedyms/php-fpm:7.4
+FROM 192.168.0.2:6060/dedyms/php-fpm:7.4
 ENV HOME=/home/debian
 # install apache and generate ssl, and ca-certificates
 USER root

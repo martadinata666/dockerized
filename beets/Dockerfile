@@ -1,5 +1,5 @@
 
-FROM 192.168.0.2:5050/dedyms/sid-slim:latest
+FROM 192.168.0.2:6060/dedyms/sid-slim:latest
 RUN apt update && apt install -y --no-install-recommends beets
 USER $CONTAINERUSER
 RUN mkdir $HOME/beets

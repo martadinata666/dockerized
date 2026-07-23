@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.0 AS composer
+FROM 192.168.0.2:6060/dedyms/php-fpm:8.0 AS composer
 ENV COMPOSER_MEMORY_LIMIT=3G
 USER root
 RUN apt update && \
@@ -21,7 +21,7 @@ RUN pwd && \
     ls -al
 #RUN ls -al /var/www/html
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as ui
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as ui
 COPY --from=composer --chown=root:root /var/www/html /webmail
 WORKDIR /webmail
 RUN npm config set fetch-retries 100 && \
@@ -38,7 +38,7 @@ RUN npm config set fetch-retries 100 && \
     npm -d run build-production && \
     rm -rf /webmail/system/.git /webmail/node_modules /webmail/modules/AdminPanelWebclient/vue/node_modules
 
-FROM 192.168.0.2:5050/dedyms/apache:fpm
+FROM 192.168.0.2:6060/dedyms/apache:fpm
 COPY --from=ui --chown=$CONTAINERUSER:$CONTAINERUSER /webmail /var/www/html
 USER $CONTAINERUSER
 RUN rm /var/www/html/index.html

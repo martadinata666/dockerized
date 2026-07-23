@@ -1,5 +1,5 @@
 
-FROM 192.168.0.2:5050/dedyms/debian:dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:dev AS fetcher
 ARG QBVERSION
 ARG MATUIRELEASE
 ARG ZIPRELEASE
@@ -36,7 +36,7 @@ RUN curl -o matui.zip -L https://github.com/bill-ahmed/qbit-matUI/releases/downl
     unzip matui.zip && \
     mv qbit-matUI\_Unix\_$ZIPRELEASE matui
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 WORKDIR $HOME
 ARG QBVERSION
 ARG MATUIRELEASE

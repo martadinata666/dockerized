@@ -1,26 +1,26 @@
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS fetcher
 USER $CONTAINERUSER
 WORKDIR $HOME
 RUN git clone --depth=1 https://github.com/Tzahi12345/YoutubeDL-Material.git ytdl
 #RUN git clone --depth=1 -b 4.3-prep https://github.com/martadinata666/YoutubeDL-Material.git ytdl
 
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS backend
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS backend
 USER $CONTAINERUSER
 WORKDIR $HOME/youtubedl-material
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER --from=fetcher $HOME/ytdl/backend ./backend
 WORKDIR $HOME/youtubedl-material/backend
 RUN npm -d ci
 
-FROM 192.168.0.2:5050/dedyms/debian:dev as tcd
+FROM 192.168.0.2:6060/dedyms/debian:dev as tcd
 USER root
 COPY fetch-tcd.sh fetch-tcd.sh
 RUN ./fetch-tcd.sh
 
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV NO_UPDATE_NOTIFIER=true
 ENV PM2_HOME=$HOME/youtubedl-material/pm2
 ENV ALLOW_CONFIG_MUTATIONS=true

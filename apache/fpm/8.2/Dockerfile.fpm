@@ -1,6 +1,6 @@
 FROM martadinata666/yacron:ci as yacron
 
-FROM 192.168.0.2:5050/dedyms/php-fpm:8.2
+FROM 192.168.0.2:6060/dedyms/php-fpm:8.2
 ENV HOME=/home/docker
 # install apache and generate ssl, and ca-certificates
 USER root

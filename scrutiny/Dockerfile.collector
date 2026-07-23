@@ -1,10 +1,10 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 ARG RELEASE
 ARG TARGETARCH
 ADD https://github.com/AnalogJ/scrutiny/releases/download/$RELEASE/scrutiny-collector-metrics-linux-$TARGETARCH ./
 RUN sudo chmod +x ./scrutiny-collector-metrics-linux-$TARGETARCH
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ARG TARGETARCH
 USER root

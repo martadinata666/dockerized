@@ -16,7 +16,9 @@ fetch-duplicati:
     - export ZIPNAME=$(echo $RELEASE | cut -c 12-)
     - export RELEASELINK=$(curl -s https://api.github.com/repos/duplicati/duplicati/releases/tags/"${RELEASE}" |jq -r '.assets[].browser_download_url' |grep ${ZIPNAME}.zip)
   script:
-    - curl -o duplicati.zip -L $RELEASELINK
+    #- curl -o duplicati.zip -L $RELEASELINK
+    - curl -o duplicati.zip -L 
+      https://github.com/duplicati/duplicati/releases/download/v2.2.0.1_stable_2025-11-09/duplicati-2.2.0.1_stable_2025-11-09-linux-x64-cli.zip
   artifacts:
     paths:
       - duplicati.zip
@@ -34,11 +36,11 @@ buildx-stable:
     #- apk add curl jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases" | jq -r 'first(.[] | select(.tag_name | contains("canary"))) | .tag_name')
     - echo $RELEASE
-    - export ZIPNAME=$(echo $RELEASE | cut -c 12-)
-    - export RELEASELINK=$(curl -s https://api.github.com/repos/duplicati/duplicati/releases/tags/"${RELEASE}" |jq -r '.assets[].browser_download_url' |grep ${ZIPNAME}.zip)
+#    - export ZIPNAME=$(echo $RELEASE | cut -c 12-)
+#    - export RELEASELINK=$(curl -s https://api.github.com/repos/duplicati/duplicati/releases/tags/"${RELEASE}" |jq -r '.assets[].browser_download_url' |grep ${ZIPNAME}.zip)
     #- export RELEASELINK=https://updates.duplicati.com/canary/duplicati-2.0.6.103_canary_2022-06-12.zip
-    - echo $RELEASELINK
-    - export DATE=$(date +%Y%m%d)
+#    - echo $RELEASELINK
+#    - export DATE=$(date +%Y%m%d)
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 #    - docker login -u "$CI_DOCKERHUB_REGISTRY_USER" -p "$CI_DOCKERHUB_REGISTRY_PASSWORD" $CI_DOCKERHUB_REGISTRY
     - docker run --rm --privileged 192.168.0.2:5050/dedyms/docker-binfmt-qemu:sid
@@ -46,7 +48,7 @@ buildx-stable:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
 #    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE:dotnet" . -f Dockerfile
-    - docker buildx build --push . --build-arg RELEASE=${RELEASE} --build-arg RELEASELINK=${RELEASELINK} --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:${RELEASE}"
+    - docker buildx build --push . --build-arg RELEASE=${RELEASE} --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:${RELEASE}"
   after_script:
     - docker buildx stop
     - docker buildx rm -f

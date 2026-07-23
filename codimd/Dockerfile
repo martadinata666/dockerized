@@ -1,6 +1,6 @@
 
 # Build webpack
-FROM 192.168.0.2:5050/dedyms/codimd:dev AS frontend
+FROM 192.168.0.2:6060/dedyms/codimd:dev AS frontend
 RUN git clone -b develop --depth=1 https://github.com/hackmdio/codimd.git /codimd
 WORKDIR /codimd
 #RUN sed -i 's/npm/npm -d/g' bin/setup
@@ -10,7 +10,7 @@ RUN cp config.json.example config.json && \
     npm -d run build
 
 # Install prod
-FROM 192.168.0.2:5050/dedyms/codimd:dev AS backend
+FROM 192.168.0.2:6060/dedyms/codimd:dev AS backend
 RUN git clone -b develop --depth=1 https://github.com/hackmdio/codimd.git /codimd
 WORKDIR /codimd
 RUN npm -d install --only=prod --legacy-peer-deps && \
@@ -21,7 +21,7 @@ RUN rm -rf .git .gitignore .travis.yml .dockerignore .editorconfig .babelrc .mai
         config.json.example README.md CONTRIBUTING.md AUTHORS
 
 # extract out
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 USER $CONTAINERUSER
 COPY --from=frontend --chown=$CONTAINERUSER:$CONTAINERUSER /codimd/public $HOME/codimd/public
 COPY --from=backend --chown=$CONTAINERUSER:$CONTAINERUSER /codimd $HOME/codimd

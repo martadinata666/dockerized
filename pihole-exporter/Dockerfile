@@ -8,7 +8,7 @@ WORKDIR /pihole-exporter
 RUN GO111MODULE=on go mod vendor
 RUN CGO_ENABLED=0 GOOS=$OS GOARCH=$ARCH go build -ldflags '-s -w' -o binary ./
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV PIHOLE_EXPORTER_RELEASE=$RELEASE
 #ENV PIHOLE_HOSTNAME: localhost

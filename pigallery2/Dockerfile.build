@@ -1,8 +1,8 @@
 
 ### FFMPEG
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev
+FROM 192.168.0.2:6060/dedyms/node:lts-dev
 RUN apt update && apt install -y --no-install-recommends python3
 COPY --from=ffmpeg --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/.local/bin /home/$CONTAINERUSER/.local/bin
 USER $CONTAINERUSER

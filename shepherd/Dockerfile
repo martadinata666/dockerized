@@ -1,5 +1,5 @@
-#FROM 192.168.0.2:5050/dedyms/docker-with-buildx:latest
-FROM 192.168.0.2:5050/dedyms/docker-static:latest
+#FROM 192.168.0.2:6060/dedyms/docker-with-buildx:latest
+FROM 192.168.0.2:6060/dedyms/docker-static:latest
 ENV SLEEP_TIME='5m'
 ENV FILTER_SERVICES=''
 ENV TZ='US/Eastern'

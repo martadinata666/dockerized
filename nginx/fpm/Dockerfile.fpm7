@@ -1,9 +1,9 @@
 FROM martadinata666/yacron:git as yacron
 
-FROM 192.168.0.2:5050/dedyms/debian:latest AS sslgenerator
+FROM 192.168.0.2:6060/dedyms/debian:latest AS sslgenerator
 RUN apt update && apt install -y ssl-cert
 
-FROM 192.168.0.2:5050/dedyms/php-fpm:7.4
+FROM 192.168.0.2:6060/dedyms/php-fpm:7.4
 USER root
 COPY mainline/99nginx /etc/apt/preferences.d/99nginx
 RUN apt update && \

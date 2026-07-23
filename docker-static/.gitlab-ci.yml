@@ -9,13 +9,14 @@ stages:
 buildx-stable:
   # Official docker image.
   image: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
+  #image: moby/buildkit
   stage: build
   #services:
   #  - name: 192.168.0.2:5050/dedyms/docker-with-buildx:latest
   #    alias: docker
   before_script:
     #- apk add curl jq
-    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c2-)
+    - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name | cut -c9-)
     - echo $RELEASE
     - export DATE=$(date +%Y%m%d)
 #    - docker --version

@@ -1,0 +1,1 @@
+docker buildx build . -f fpm/8.4/Dockerfile.fpm -t 192.168.0.2:6060/dedyms/apache:fpm --push

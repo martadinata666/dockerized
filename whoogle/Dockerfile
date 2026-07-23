@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 ARG RELEASE
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
 RUN sudo apt update && sudo apt install -y --no-install-recommends \
@@ -14,7 +14,7 @@ RUN pip3 install --user --no-warn-script-location --no-cache-dir -r requirements
     mkdir $HOME/whoogle/config && \
     chown $CONTAINERUSER:$CONTAINERUSER $HOME/whoogle/config
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends libcurl4 curl python3-minimal python3-setuptools && \
     sudo apt clean && \

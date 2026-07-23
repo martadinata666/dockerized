@@ -1,17 +1,17 @@
 # Build app 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS tukang
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-pip python3-setuptools grc git python3-dev
 ARG RELEASE
-RUN git clone --recursive -b $RELEASE https://github.com/Unmanic/unmanic.git $HOME/unmanic #app clone
+RUN git clone --recursive -b staging https://github.com/Unmanic/unmanic.git $HOME/unmanic #app clone
 WORKDIR $HOME/unmanic
 RUN npm --cache=/dev/shm install @quasar/cli && \
     pip3 install --no-cache-dir -r requirements.txt && \
     python3 ./setup.py install --user
 
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg:6
+FROM 192.168.0.2:6060/dedyms/ffmpeg:8
 ARG RELEASE
 ENV UNMANIC_RELEASE=$RELEASE
 RUN sudo apt update && \

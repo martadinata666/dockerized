@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as builder
+FROM 192.168.0.2:6060/dedyms/debian:dev as builder
 ARG QEMU_VERSION=8.0.0
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends ninja-build pkg-config libglib2.0-dev flex bison
@@ -18,7 +18,7 @@ RUN ./embed.sh && rm ./embed.sh-static
 RUN ls -alR /opt/qemu-user-static
 #ENTRYPOINT ["sh", "-c", "update-binfmts --enable && dpkg-reconfigure qemu-user-static"]
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 USER root
 ENV PATH="/opt/qemu-user-static:/opt/qemu-user-static/bin:$PATH"
 RUN apt update && \

@@ -1,5 +1,5 @@
-#FROM 192.168.0.2:5050/dedyms/debian:latest
-FROM 192.168.0.2:5050/dedyms/ffmpeg:6.0
+#FROM 192.168.0.2:6060/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/ffmpeg:6.0
 # https://github.com/intel/compute-runtime/releases, env to modified every release
 ARG TARGETARCH
 ARG DISTRO=bookworm

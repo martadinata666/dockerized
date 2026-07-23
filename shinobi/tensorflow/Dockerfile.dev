@@ -1,5 +1,5 @@
 #FROM node:12.18.3-buster
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as builder
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as builder
 
 #RUN sudo apt update -y && \
 #    sudo apt install wget curl net-tools python3 python-is-python3 openjdk-11-jdk-headless -y --no-install-recommends && \
@@ -31,7 +31,7 @@ RUN tar -xf libtensorflow.tar.gz && \
 RUN npm rebuild @tensorflow/tfjs-node build-addon-from-source
 
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV TFJS_HW=cpu \
     PLUGIN_NAME=Tensorflow \
     PLUGIN_HOST=localhost \

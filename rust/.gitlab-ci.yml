@@ -10,8 +10,8 @@ build-rust:
   stage: build
   before_script:
     - export DATE=$(date +%Y%m%d)
-    - export SCCACHERELEASE=$(curl --silent "https://api.github.com/repos/$SCCACHE_REPO_NAME/releases/latest" | jq -r .tag_name)
-    - echo $SCCACHERELEASE
+#    - export SCCACHERELEASE=$(curl --silent "https://api.github.com/repos/$SCCACHE_REPO_NAME/releases/latest" | jq -r .tag_name)
+#    - echo $SCCACHERELEASE
     - export RELEASE=$(grep -m1 "RUST_VERSION" Dockerfile | cut -d':' -f2- | cut -c18-)
     - echo $RELEASE
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
@@ -20,7 +20,7 @@ build-rust:
   script:
     - docker buildx create --use --config buildx-config.toml --driver-opt image=moby/buildkit:"$BUILDKIT_VERSION"
     - docker buildx inspect --bootstrap
-    - docker buildx build --build-arg SCCACHE_VERSION=$SCCACHERELEASE --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
+    - docker buildx build --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
 #    - docker buildx build --build-arg SCCACHE_VERSION=$SCCACHERELEASE --push --platform linux/amd64 -t "$CI_REGISTRY_IMAGE" -t "$CI_REGISTRY_IMAGE:$RELEASE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:$RELEASE" . -f Dockerfile
   after_script:
     - docker buildx stop

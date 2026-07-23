@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:latest AS tukang
 ARG RELEASE
 ARG TARGETARCH
 USER $CONTAINERUSER
@@ -16,7 +16,7 @@ RUN chmod +x $HOME/scrutiny/bin/scrutiny-web-linux-$TARGETARCH && \
     rm $HOME/scrutiny/web/scrutiny-web-frontend.tar.gz
 
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV SCRUTINY_VERSION=$RELEASE
 USER $CONTAINERUSER

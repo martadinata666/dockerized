@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG KEYRING=/usr/share/keyrings/nodesource.gpg
 ARG VERSION=node_18.x
 ARG DISTRO=bookworm

@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS builder
+FROM 192.168.0.2:6060/dedyms/debian:dev AS builder
 USER root
 ARG RELEASE
 ENV PREFIX=/opt/mono
@@ -18,7 +18,7 @@ RUN ls -al && \
     strip $PREFIX/bin/mono
 RUN /opt/mono/bin/mono --version
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV MONO_VERSION=$RELEASE
 ENV PATH=/opt/mono/bin:/opt/mono:$PATH

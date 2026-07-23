@@ -1,9 +1,10 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETPLATFORM
+USER root
 COPY target/ bin/
-COPY polaris/docs/ docs/
 RUN mkdir -p target/
+RUN apt update && apt install -y tree && tree ./
 RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     mv bin/x86_64-unknown-linux-gnu/release/polaris target/polaris && \
     sudo chmod +x target/polaris && \
@@ -11,25 +12,24 @@ RUN if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then \
     pwd \
     ; fi
     
-RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
-    mv bin/aarch64-unknown-linux-gnu/release/polaris target/polaris && \
-    sudo chmod +x target/polaris && \
-    ls -la target/ . && \
-    pwd \
-    ; fi
+#RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+#    mv bin/aarch64-unknown-linux-gnu/release/polaris target/polaris && \
+#    sudo chmod +x target/polaris && \
+#    ls -la target/ . && \
+#    pwd \
+#    ; fi
 RUN sudo strip target/polaris
+
+# Download the web
 RUN curl -L -o web.zip https://github.com/agersant/polaris-web/releases/latest/download/web.zip && \
     unzip web.zip    
 RUN mkdir polaris && \
-    cp -r web polaris/web && \
-    cp -r docs polaris/docs
+    cp -r web polaris/web
 RUN mkdir -p data
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+
+FROM 192.168.0.2:6060/dedyms/debian:latest
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/polaris /opt/polaris
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/polaris /usr/local/bin/polaris
-COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/data /data
-WORKDIR /data
 USER $CONTAINERUSER
-EXPOSE 8080
-CMD ["polaris","-f","-w","/opt/polaris/web","-s","/opt/polaris/docs/swagger","--pid","/tmp","-d","/data/db.sqlite","--cache","/data"]
+CMD ["polaris","--foreground","--web","/opt/polaris/web","--data","/data","--cache","/cache","--config","/data/polaris.toml"]

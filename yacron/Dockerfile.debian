@@ -1,5 +1,4 @@
-FROM ubuntu:22.04
-
+FROM debian:trixie as builder
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 	apt-get install -y -q \
 		curl git ca-certificates build-essential zlib1g-dev \
@@ -7,22 +6,24 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 		upx-ucl
 RUN curl https://pyenv.run | bash
 
-ENV PATH="/root/.pyenv/bin:$PATH"
+# pyenv setup
+ENV PYTHON_VERSION=3.14.0
+ENV PATH="/root/.pyenv/versions/$PYTHON_VERSION/bin/:/root/.pyenv/bin/:$PATH"
+RUN pyenv install -l | grep $PYTHON_VERSION
+RUN CONFIGURE_OPTS=--enable-shared pyenv install $PYTHON_VERSION
+RUN pyenv global $PYTHON_VERSION
 
-RUN pyenv install -l | grep 3.12
-RUN CONFIGURE_OPTS=--enable-shared pyenv install 3.12.2
-RUN pyenv global 3.12.2
 
-RUN /root/.pyenv/versions/3.12.2/bin/python -m venv /yacron
-ENV PATH=/yacron/bin:$PATH
-RUN pip install -U pip setuptools pyinstaller==6.5.0
 RUN git clone --depth=1 https://github.com/gjcarneiro/yacron.git  /root/yacron
-#COPY . /root/yacron
 WORKDIR /root/yacron
-RUN git status
-RUN python setup.py install
-RUN python pyinstaller/yacron --version
-RUN pyinstaller pyinstaller/yacron.spec
-RUN ls -sFh dist/yacron
-RUN dist/yacron --version
-RUN cp dist/yacron /usr/local/bin/yacron
+# install the tools need to build, the yacron deps from https://github.com/gjcarneiro/yacron/blob/master/setup.py
+RUN pip3 install -U setuptools pyinstaller && \
+    pip3 install -U aiohttp crontab pytz strictyaml aiosmtplib jinja2 ruamel.yaml sentry-sdk && \
+    python3 setup.py install && \
+    python3 pyinstaller/yacron --version && \
+    pyinstaller pyinstaller/yacron.spec && \
+    dist/yacron --version && \
+    cp dist/yacron /usr/local/bin/yacron
+
+FROM scratch
+COPY --from=builder /usr/local/bin/yacron /usr/local/bin/yacron

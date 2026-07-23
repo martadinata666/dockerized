@@ -1,11 +1,11 @@
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as web-builder
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as web-builder
 ARG JELLYFIN_VERSION=v10.9.3
 RUN git clone --depth=1 -b ${JELLYFIN_VERSION} https://github.com/jellyfin/jellyfin-web.git jellyfin-web \
     && cd jellyfin-web \
     && npm ci --no-audit --unsafe-perm \
     && npm run build:production
 
-FROM 192.168.0.2:5050/dedyms/dotnet:8 as builder
+FROM 192.168.0.2:6060/dedyms/dotnet:8 as builder
 ARG JELLYFIN_VERSION=v10.9.3
 # Opt out dotnet telemetry
 USER root
@@ -21,7 +21,7 @@ RUN git clone --depth=1 -b ${JELLYFIN_VERSION} https://github.com/jellyfin/jelly
 # see https://success.docker.com/article/how-to-reserve-resource-temporarily-unavailable-errors-due-to-tasksmax-setting
 
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg:6 as app
+FROM 192.168.0.2:6060/dedyms/ffmpeg:6 as app
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND="noninteractive"
 # http://stackoverflow.com/questions/48162574/ddg#49462622

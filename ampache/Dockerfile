@@ -1,11 +1,11 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:dev AS fetcher
 ARG RELEASE
 #WORKDIR /ampache
 RUN curl -o ampache.zip -L https://github.com/ampache/ampache/releases/download/${RELEASE}/ampache-${RELEASE}\_all\_php8.2.zip && \
     unzip ./ampache.zip -d ampache && \
     rm ./ampache.zip
 
-FROM 192.168.0.2:5050/dedyms/apache:fpm
+FROM 192.168.0.2:6060/dedyms/apache:fpm
 ARG RELEASE
 ENV AMPACHE_RELEASE=$RELEASE
 ENV PHP_MEMORY_LIMIT 1024M

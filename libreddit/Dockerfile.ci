@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:latest AS tukang
 ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETPLATFORM
 COPY target/ bin/
@@ -17,7 +17,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     pwd \
     ; fi
     
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV LIBREDDIT_VERSION=$RELEASE
 ENV LIBREDDIT_DEFAULT_THEME=dark

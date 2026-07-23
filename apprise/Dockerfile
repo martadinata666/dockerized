@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 # set environment variables
 ARG APPRISE_RELEASE
 ARG APPRISE_API_RELEASE
@@ -15,7 +15,7 @@ RUN pip3 install --break-system-packages --user --no-cache-dir -r ./apprise/requ
 ADD https://raw.githubusercontent.com/STaRDoGG/apprise-nord-dark-theme/main/minified/highlight.min.css ./apprise/apprise_api/static/css/highlight.min.css
 ADD https://raw.githubusercontent.com/STaRDoGG/apprise-nord-dark-theme/main/minified/materialize.min.css ./apprise/apprise_api/static/css/materialize.min.css
 
-FROM 192.168.0.2:5050/dedyms/nginx:mainline
+FROM 192.168.0.2:6060/dedyms/nginx:mainline
 ARG APPRISE_RELEASE
 ARG API_RELEASE
 ENV APPRISE_RELEASE=$APPRISE_RELEASE

@@ -1,11 +1,11 @@
 
-FROM 192.168.0.2:5050/dedyms/libreddit:dev-rust AS tukang
+FROM 192.168.0.2:6060/dedyms/libreddit:dev-rust AS tukang
 ARG RELEASE
 RUN git clone --depth=1 -b $RELEASE https://github.com/spikecodes/libreddit.git /libreddit
 #RUN git clone --depth=1 https://github.com/spikecodes/libreddit.git /libreddit
 WORKDIR /libreddit
 RUN cargo build --release
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV LIBREDDIT_VERSION=$RELEASE
 ENV LIBREDDIT_DEFAULT_THEME=dark

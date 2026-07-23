@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/ffmpeg:latest
+FROM 192.168.0.2:6060/dedyms/ffmpeg:latest
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - && \
     sudo apt-get install -y --no-install-recommends nodejs && \
     sudo rm -rf /var/lib/apt/lists/* && \

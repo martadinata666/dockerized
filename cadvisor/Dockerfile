@@ -1,5 +1,5 @@
 # Fetch from git
-FROM 192.168.0.2:5050/dedyms/debian:latest as fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest as fetcher
 ARG TARGETPLATFORM
 ARG VERSION=$VERSION
 ENV CADVISOR_VERSION=$VERSION
@@ -16,7 +16,7 @@ RUN case ${TARGETPLATFORM} in \
 #RUN make build
 
 # Image for usage
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG VERSION=$VERSION
 ENV CADVISOR_VERSION=VERSION
 COPY --from=fetcher /usr/local/bin/cadvisor /usr/local/bin/cadvisor

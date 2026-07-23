@@ -1,5 +1,5 @@
 ### Fetch composer deps
-FROM 192.168.0.2:5050/dedyms/php-fpm:7.4 as vendor
+FROM 192.168.0.2:6060/dedyms/php-fpm:7.4 as vendor
 ARG RELEASE
 USER root
 RUN apt update && \
@@ -23,7 +23,7 @@ RUN curl -L https://getcomposer.org/download/latest-2.x/composer.phar -o ./compo
     rm ./composer
 
 ### Build diskover
-FROM 192.168.0.2:5050/dedyms/debian:dev AS builder
+FROM 192.168.0.2:6060/dedyms/debian:dev AS builder
 ARG RELEASE
 USER root
 RUN apt update && \
@@ -40,7 +40,7 @@ RUN ls -al && \
 
 
 #FROM registry.gitlab.com/dedyms/php-fpm:alpine
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm7
+FROM 192.168.0.2:6060/dedyms/nginx:mainline-fpm7
 ENV HOME=/home/$CONTAINERUSER
 # Install php ldap extension
 #RUN apt-get update && \

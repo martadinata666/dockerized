@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/nginx:mainline-fpm
+FROM 192.168.0.2:6060/dedyms/nginx:mainline-fpm
 # Switch to root to install xdebug
 ARG USER=debian
 ARG SUDOERS="$USER       ALL=(ALL) NOPASSWD:ALL"

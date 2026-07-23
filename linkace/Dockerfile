@@ -1,9 +1,9 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as fetcher
+FROM 192.168.0.2:6060/dedyms/debian:dev as fetcher
 ARG RELEASE
 RUN curl -L https://github.com/Kovah/LinkAce/releases/download/${RELEASE}/linkace-${RELEASE}.zip -o linkace.zip && \
     unzip linkace.zip -d htdocs
 
-FROM 192.168.0.2:5050/dedyms/apache:fpm
+FROM 192.168.0.2:6060/dedyms/apache:fpm
 ARG RELEASE
 ENV LINKACE_VERSION=$RELEASE
 USER root

@@ -1,10 +1,10 @@
 
 ### FFMPEG
-FROM 192.168.0.2:5050/dedyms/ffmpeg-static:latest AS ffmpeg
+FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
 #-----------------BUILDER-----------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS builder
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS builder
 ARG DATE
 ARG RELEASE
 ENV NODE_ENV=production
@@ -24,7 +24,7 @@ RUN npm -d install --only=prod --no-audit --no-optional --cache=/dev/shm
 
 #-----------------MAIN--------------------
 #-----------------------------------------
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ARG RELEASE
 ENV PIGALLERY2_VERSION=$RELEASE
 RUN sudo apt update && \

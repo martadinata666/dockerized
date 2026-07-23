@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest as fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest as fetcher
 #ENV MS=500 CTX_ROOT=/
 #FROM debian:sid-slim
 ARG TARGETARCH
@@ -29,7 +29,7 @@ RUN if [ "${TARGETARCH}" = "arm" ]; then \
 RUN docker --version
 
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV DOCKERVERSION=$RELEASE
 COPY --from=fetcher /usr/local/bin/docker /usr/local/bin/docker

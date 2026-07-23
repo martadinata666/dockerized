@@ -1,7 +1,5 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 USER root
-ARG RELEASE
-ARG RELEASELINK
 RUN apt update && \
     apt install -y --no-install-recommends unzip && \
     apt clean && \
@@ -10,25 +8,26 @@ USER $CONTAINERUSER
 RUN mkdir -p $HOME/duplicati
 WORKDIR $HOME/duplicati
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER duplicati.zip duplicati.zip
-RUN mkdir -p $HOME/duplicati/data && \
-    unzip ./duplicati.zip -d ./ && \
-    rm duplicati.zip && \
-    ls -al
+RUN unzip ./duplicati.zip -d ./ext && \
+    mkdir ./duplicati && \
+    mv ./ext/*/* ./duplicati && \
+    ls -al ./duplicati
 
 
-FROM 192.168.0.2:5050/dedyms/mono:latest
+#FROM 192.168.0.2:6060/dedyms/mono:latest
 #FROM mcr.microsoft.com/dotnet/sdk:6.0.402-bullseye-slim
 #ARG HOME=/$HOME
 #ARG CONTAINERUSER=debian
 #RUN groupadd --gid 1000 debian && \
 #    useradd --system --create-home --uid 1000 --gid 1000 debian
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ENV DUPLICATI_VERSION=${RELEASE}
 RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends libsqlite3-0 && \
+    sudo apt install -y --no-install-recommends libsqlite3-0 libicu72&& \
     sudo apt clean && \
     sudo rm -rf /var/lib/apt/lists/*
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/duplicati $HOME/duplicati
 USER $CONTAINERUSER
 WORKDIR $HOME/duplicati
-CMD ["mono","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=/data","--webservice-allowed-hostnames=*"]
+CMD ["duplicati-server","--webservice-interface=any","--server-datafolder=/data","--webservice-allowed-hostnames=*"]
 #CMD ["dotnet","Duplicati.Server.exe","--webservice-interface=any","--server-datafolder=$HOME/duplicati/data","--webservice-allowed-hostnames=*"]

@@ -9,7 +9,7 @@ buildx-lts:
   #services:
   #  - docker:dind
   before_script:
-    - export STATIC_RELEASE="11.4"
+    - export STATIC_RELEASE="11.8"
     - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d':' -f2- | cut -d'+' -f1 )
 #    - export RELEASE=$(grep -m1 "MARIADB_VERSION" $STATIC_RELEASE/Dockerfile.debian | cut -d'=' -f2- | cut -d'+' -f1 )
     - export DATE=$(date +%Y%m%d)

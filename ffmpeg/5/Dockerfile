@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev as tukang
 ARG FFMPEG_VERSION=n5.1.3
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ sid non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
@@ -80,7 +80,7 @@ RUN PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig ./configure \
   sudo make install
 RUN ffmpeg -version
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ sid non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
 ARG IGC_VERSION=1.0.13230.7

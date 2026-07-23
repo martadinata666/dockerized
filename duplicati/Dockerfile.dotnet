@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest AS fetcher
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
 USER root
 ARG RELEASE
 ARG RELEASELINK
@@ -16,8 +16,8 @@ RUN mkdir -p $HOME/duplicati/data && \
     ls -al
 
 
-#FROM 192.168.0.2:5050/dedyms/mono:latest
-FROM 192.168.0.2:5050/dedyms/dotnet:6
+#FROM 192.168.0.2:6060/dedyms/mono:latest
+FROM 192.168.0.2:6060/dedyms/dotnet:6
 #ARG HOME=/home/debian
 #ARG CONTAINERUSER=debian
 #RUN groupadd --gid 1000 debian && \

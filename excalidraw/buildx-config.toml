@@ -1,5 +1,5 @@
 # registry configures a new Docker register used for cache import or output.
-[registry."192.168.0.2:5050"]
+[registry."192.168.0.2:6060"]
   http = true
   insecure = true
 #  ca=["/etc/config/myca.pem"]

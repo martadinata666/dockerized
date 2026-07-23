@@ -1,5 +1,5 @@
 
-#FROM 192.168.0.2:5050/dedyms/node:lts-dev as builder
+#FROM 192.168.0.2:6060/dedyms/node:lts-dev as builder
 #WORKDIR $HOME
 #ENV NODE_ENV=production
 #USER $CONTAINERUSER
@@ -9,7 +9,7 @@
 #WORKDIR $HOME/deemix-gui/webui
 #RUN yarn install --prod && yarn build && rm -rf node_modules
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV WEBPORT=6595
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER deemix-gui $HOME/deemix-gui
 WORKDIR $HOME/deemix-gui

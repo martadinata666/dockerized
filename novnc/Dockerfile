@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 ARG RELEASE
 RUN sudo apt update && sudo apt install --no-install-recommends -y ssl-cert && sudo apt clean && sudo rm -rf /var/lib/apt/lists/*
 USER $CONTAINERUSER
@@ -9,7 +9,7 @@ RUN git clone --depth=1 https://github.com/novnc/noVNC.git noVNC \
 	&& rm -rf noVNC/utils/websockify/.git \
         && cp noVNC/vnc.html noVNC/index.html
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ENV REMOTE_HOST=localhost
 ENV REMOTE_PORT=5900
 ENV NOVNC_PORT=13000

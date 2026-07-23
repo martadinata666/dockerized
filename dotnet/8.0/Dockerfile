@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG DOTNET_VERSION=8.0
 RUN curl -L https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -o packages-microsoft-prod.deb && \
     sudo dpkg -i packages-microsoft-prod.deb && \

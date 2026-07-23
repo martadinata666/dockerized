@@ -1,13 +1,13 @@
 #ARG DOTNET_VERSION=6.0
-#FROM 192.168.0.2:5050/dedyms/jellyfin:dev-web as web-builder
+#FROM 192.168.0.2:6060/dedyms/jellyfin:dev-web as web-builder
 #ARG JELLYFIN_WEB_VERSION=master
 #RUN curl -L https://github.com/jellyfin/jellyfin-web/archive/${JELLYFIN_WEB_VERSION}.tar.gz | tar zxf - \
 # && cd jellyfin-web-* \
 # && npm ci --no-audit --unsafe-perm \
 # && mv dist /dist
 
-#FROM 192.168.0.2:5050/dedyms/jellyfin:dev-dotnet as builder
-#FROM 192.168.0.2:5050/dedyms/mono:latest as builder
+#FROM 192.168.0.2:6060/dedyms/jellyfin:dev-dotnet as builder
+#FROM 192.168.0.2:6060/dedyms/mono:latest as builder
 #RUN apt update && apt install -y --no-install-recommends git
 #RUN git clone --depth=1 https://github.com/jellyfin/jellyfin.git /repo
 #WORKDIR /repo
@@ -19,7 +19,7 @@
 
 
 
-FROM 192.168.0.2:5050/dedyms/ffmpeg:7 as app
+FROM 192.168.0.2:6060/dedyms/ffmpeg:7 as app
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND="noninteractive"
 # http://stackoverflow.com/questions/48162574/ddg#49462622

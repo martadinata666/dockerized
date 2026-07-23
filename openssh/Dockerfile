@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev as tukang
 WORKDIR /openssh
 ARG RELEASE
 RUN git clone --depth=1 -b $RELEASE https://github.com/openssh/openssh-portable.git /openssh
@@ -10,7 +10,7 @@ RUN autoreconf && \
     make -j $(nproc) && \
     sudo make install
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ENV SSHPORT=2222
 ENV OPENSSH_VERSION=$RELEASE
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /usr/local $HOME/.local

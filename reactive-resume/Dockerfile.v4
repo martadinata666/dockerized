@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS fetcher
 ARG RELEASE
 #ENV PLAYWRIGHT_BROWSERS_PATH=$HOME/ms-playwright
 #ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
@@ -8,7 +8,7 @@ WORKDIR $HOME/reactiveresume
 # Needed for arm64 deps "sharp"
 RUN pnpm install --frozen-lockfile
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ARG RELEASE
 ENV REACTIVE_RESUME_VERSION=$RELEASE
 ENV VERSION=$RELEASE

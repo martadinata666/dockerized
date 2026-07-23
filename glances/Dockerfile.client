@@ -1,6 +1,6 @@
-FROM 192.168.0.2:5050/dedyms/glances:latest as tukang
+FROM 192.168.0.2:6060/dedyms/glances:latest as tukang
 
-FROM 192.168.0.2:5050/dedyms/openssh:latest
+FROM 192.168.0.2:6060/dedyms/openssh:latest
 ARG RELEASE
 ENV GLANCES_RELEASE=$RELEASE
 USER root

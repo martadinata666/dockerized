@@ -1,6 +1,6 @@
-FROM 192.168.0.2:5050/dedyms/apprise:latest AS apprise
+FROM 192.168.0.2:6060/dedyms/apprise:latest AS apprise
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS fetcher
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS fetcher
 ARG RELEASE
 WORKDIR $HOME
 RUN apt update && apt install -y --no-install-recommends python3 python-is-python3 libsqlite3-dev && git clone -b $RELEASE --depth=1 https://github.com/louislam/uptime-kuma.git uptime-kuma
@@ -10,7 +10,7 @@ RUN npm -d install && \
     npm -d run build && \
     npm -d prune --prod
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 RUN apt update && apt install -y --no-install-recommends \
         python3 python3-pip python3-cryptography python3-six python3-yaml python3-click python3-markdown python3-requests python3-requests-oauthlib \
         sqlite3 iputils-ping util-linux file && \

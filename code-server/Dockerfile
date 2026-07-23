@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/node:lts as tukang
+FROM 192.168.0.2:6060/dedyms/node:lts as tukang
 ARG RELEASE
 ARG TARRELEASE
 ARG TARGETARCH

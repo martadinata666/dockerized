@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG DOTNET_VERSION=6.0.408
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends git wget libicu72 && \

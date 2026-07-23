@@ -14,7 +14,7 @@ ARG SUDOERS="$CONTAINERUSER       ALL=(ALL) NOPASSWD:ALL"
 
 COPY sudo_lecture.txt /etc/sudo_lecture.txt
 RUN apt update && \
-    apt install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales && \
+    apt install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales tree && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt-get && \
     apt clean && \

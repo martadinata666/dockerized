@@ -4,7 +4,7 @@ set -Eeuo pipefail
 # Usage ./update.sh [version(multiple)...]
 #
 
-defaultSuite='bookworm'
+defaultSuite='trixie'
 declare -A suites=(
 	[10.2]='buster'
 	[10.3]='bullseye'
@@ -16,6 +16,7 @@ declare -A suffix=(
         ['buster']='deb10'
         ['bullseye']='deb11'
         ['bookworm']='deb12'
+        ['trixie']='deb13'
         ['sid']='debsid'
 )
 

@@ -1,10 +1,10 @@
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as node
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as node
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends libasound2-dev cmake
 RUN npm -d --prefix noVNC/ install ws && \
     npm -d --prefix noVNC/ install audify
 
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 ARG RELEASE
 #RUN apt update && apt install --no-install-recommends -y ssl-cert && apt clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth=1 https://github.com/novnc/noVNC.git noVNC && \
@@ -19,7 +19,7 @@ COPY xfce4/xstartup noVNC/xstartup
 COPY pcm-player.js noVNC/pcm-player.js
 COPY --from=node $HOME/noVNC/node_modules $HOME/noVNC/node_modules
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV REMOTE_HOST=localhost
 ENV REMOTE_PORT=5902
 ENV NOVNC_PORT=13000

@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest as tukang
+FROM 192.168.0.2:6060/dedyms/debian:latest as tukang
 ARG TARGETPLATFORM
 COPY target/ bin/
 RUN mkdir -p target/
@@ -16,7 +16,7 @@ RUN if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
     pwd \
     ; fi
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/target/bb-proxy $HOME/.local/bin/bb-proxy
 # Compile the main app so that it doesn't need to be compiled each startup/entry.
 CMD ["bb-proxy"]

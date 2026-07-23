@@ -1,5 +1,5 @@
 # Copy
-FROM 192.168.0.2:5050/dedyms/node:lts-dev as fetcher
+FROM 192.168.0.2:6060/dedyms/node:lts-dev as fetcher
 COPY --chown=$CONTAINERUSER:$CONTAINERUSER /beatbump/app/build $HOME/beatbump/build
 ADD --chown=$CONTAINERUSER:$CONTAINERUSER  https://raw.githubusercontent.com/snuffyDev/Beatbump/master/app/package.json $HOME/beatbump/package.json
 ADD --chown=$CONTAINERUSER:$CONTAINERUSER https://raw.githubusercontent.com/snuffyDev/Beatbump/master/app/package-lock.json $HOME/beatbump/package-lock.json
@@ -12,7 +12,7 @@ RUN npm -d ci --no-audit --legacy-peer-deps && \
 
 
 # Runtime
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ENV VITE_DOMAIN="localhost"
 ENV VITE_SITE_URL="http://localhost:3000"
 ENV ORIGIN="http://localhost:3000"

@@ -1,5 +1,5 @@
 
-FROM 192.168.0.2:5050/dedyms/node:lts-dev AS tukang
+FROM 192.168.0.2:6060/dedyms/node:lts-dev AS tukang
 USER $CONTAINERUSER
 ARG RELEASE
 WORKDIR $HOME
@@ -9,7 +9,7 @@ RUN pnpm config set store-dir .pnpm-store && \
     pnpm install --prod
 
 
-FROM 192.168.0.2:5050/dedyms/node:lts
+FROM 192.168.0.2:6060/dedyms/node:lts
 ARG RELEASE
 ENV MSTREAM_RELEASE=$RELEASE
 COPY --from=tukang --chown=$CONTAINERUSER:$CONTAINERUSER /home/$CONTAINERUSER/mstream/ /home/$CONTAINERUSER/mstream/

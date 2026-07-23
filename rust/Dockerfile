@@ -1,5 +1,5 @@
 ##################################################################
-FROM 192.168.0.2:5050/dedyms/debian:dev as musl
+FROM 192.168.0.2:6060/dedyms/debian:dev AS musl
 #COPY x86_64-linux-musl-cross.tgz aarch64-linux-musl-cross.tgz $HOME && \
 #    sudo tar zxf ./x86_64-linux-musl-cross.tgz -C /opt && \
 #    sudo tar zxf ./aarch64-linux-musl-cross.tgz -C /opt && \
@@ -20,18 +20,19 @@ RUN wget --progress=dot:mega -t 10-c http://192.168.0.2:25000/musl/x86_64-linux-
     ls -al /opt
 
 ##################################################################
-FROM 192.168.0.2:5050/dedyms/debian:dev as sccache
+#FROM 192.168.0.2:6060/dedyms/debian:dev as sccache
 # Install build deps and add sccache 
-ARG SCCACHE_VERSION=v0.7.4
-ARG SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
-ARG SCCACHE_URL=https://github.com/mozilla/sccache/releases/download
-RUN curl -L $SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz | tar xz && \
-    sudo mv $SCCACHE_FILE/sccache /usr/local/bin/sccache && \
-    sudo chmod +x /usr/local/bin/sccache
+#ARG SCCACHE_VERSION=v0.15.0
+#ARG SCCACHE_FILE=sccache-$SCCACHE_VERSION-x86_64-unknown-linux-musl
+#ARG SCCACHE_URL=https://github.com/mozilla/sccache/releases/download
+#RUN curl -L $SCCACHE_URL/$SCCACHE_VERSION/$SCCACHE_FILE.tar.gz | tar xz && \
+#    sudo mv $SCCACHE_FILE/sccache /usr/local/bin/sccache && \
+#    sudo chmod +x /usr/local/bin/sccache
 
 
 ##################################################################
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
+ARG RUST_VERSION
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
     RUSTUP_HOME=$HOME/rustup \
@@ -50,8 +51,8 @@ ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     PKG_CONFIG_ALL_STATIC=true \
     OPENSSL_STATIC=true \
     PATH="/opt/armv7l-linux-musleabihf-cross/:/opt/armv7l-linux-musleabihf-cross/bin/:/opt/aarch64-linux-musl-cross/:/opt/aarch64-linux-musl-cross/bin/:/opt/x86_64-linux-musl-cross/:/opt/x86_64-linux-musl-cross/bin/:$HOME/cargo/bin/:$PATH" \
-    RUSTUP_VERSION=1.27.1 \
-    RUST_VERSION=1.83.0
+    RUSTUP_VERSION=1.28.2 \
+    RUST_VERSION=${RUST_VERSION}
 
 # Set openssl envenv per arch split to minimize confusion
 ENV X86_64_UNKNOWN_LINUX_GNU_OPENSSL_DIR=/opt/lib/openssl-static-gnu \
@@ -136,10 +137,11 @@ RUN sudo dpkg --add-architecture armhf && \
 COPY --from=musl /opt /opt
 
 ### Copy sccache
-COPY --from=sccache /usr/local/bin/sccache /usr/local/bin/sccache
+#COPY --from=sccache /usr/local/bin/sccache /usr/local/bin/sccache
 
 ### Build openssl GNU and MUSL
-ARG SSL_VER="3.1.0"
+# https://openssl-library.org/source/ 3.5.7 supposed tobe LTS to 2030
+ARG SSL_VER="3.5.7"
 ARG SSL_DIR=/opt/lib/openssl-static-gnu
 ARG SSL_aarch64_DIR=/opt/lib/openssl-static-aarch64-gnu
 ARG SSL_MUSL_DIR=/opt/lib/openssl-static-musl

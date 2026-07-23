@@ -1,4 +1,4 @@
-#FROM 192.168.0.2:5050/dedyms/node:lts-dev AS build-web
+#FROM 192.168.0.2:6060/dedyms/node:lts-dev AS build-web
 #ARG DEBIAN_FRONTEND=noninteractive
 #USER $CONTAINERUSER
 #RUN git clone https://github.com/Dusk-Labs/dim.git $HOME/dim
@@ -6,7 +6,7 @@
 #RUN yarn && yarn build
 
 
-#FROM 192.168.0.2:5050/dedyms/dim:dev-rust AS build-app
+#FROM 192.168.0.2:6060/dedyms/dim:dev-rust AS build-app
 #COPY dim /dim
 #WORKDIR /dim
 #RUN sqlite3 -init ./database/migrations/*.sql ./dim_dev.db
@@ -16,7 +16,7 @@
 #RUN cargo build --features vaapi --release
 
 
-FROM 192.168.0.2:5050/dedyms/debian:vaapi
+FROM 192.168.0.2:6060/dedyms/debian:vaapi
 ENV RUST_BACKTRACE=full
 ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV SSL_CERT_DIR=/etc/ssl/certs

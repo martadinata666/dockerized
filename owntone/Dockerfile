@@ -1,5 +1,5 @@
 
-FROM 192.168.0.2:5050/dedyms/owntone-server:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/owntone-server:dev AS tukang
 RUN apt update && apt install -y --no-install-recommends git
 USER $CONTAINERUSER
 ARG RELEASE
@@ -20,7 +20,7 @@ RUN autoreconf -i && \
     make -j6 && \
     make install
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ENV PATH="$HOME/.local/sbin:$PATH"
 ARG RELEASE
 ENV OWNTONE_RELEASE=$RELEASE

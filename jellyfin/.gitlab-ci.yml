@@ -26,7 +26,9 @@ create-web-stable:
     - sudo apt install -y --no-install-recommends gifsicle python-is-python3 jq
     - export RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPO_NAME/releases/latest" | jq -r .tag_name)
     - echo $RELEASE
-    - git clone --depth=1 -b $RELEASE https://github.com/jellyfin/jellyfin-web.git jellyfin-web
+    - git clone --depth=1 -b master https://github.com/jellyfin/jellyfin-web.git jellyfin-web
+    #- git clone --depth=1 -b $RELEASE https://github.com/jellyfin/jellyfin-web.git jellyfin-web
+#    - sudo npm -d install npm@10.9.4 #jellyfin web 10.11 can't use npm 11+++
   script:
     - cd jellyfin-web
     - npm -d -timeout=9999999 ci --no-audit --unsafe-perm
@@ -47,7 +49,7 @@ create-web-stable:
     #  - .gitlab-ci.yml
 
 create-jellyfin-stable:
-  image: 192.168.0.2:5050/dedyms/dotnet:8
+  image: 192.168.0.2:5050/dedyms/dotnet:9.0
   stage: build
   cache:
     key: "$CI_COMMIT_REF_SLUG"

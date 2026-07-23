@@ -4,6 +4,7 @@ variables:
   UPDATE: ""
   DATE: ""
   CI_DOCKERHUB_REGISTRY_IMAGE: "martadinata666/debian"
+  CI_3RD_REGISTRY_IMAGE: "192.168.0.2:6060/dedyms/debian"
   GITHUB_REPO_NAME: ""
   DEBIAN_NAME: "trixie"
 
@@ -28,7 +29,7 @@ buildx-baseimage:
     - docker buildx inspect --bootstrap
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:buster" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:buster" . -f buster/Dockerfile
     #- docker buildx build --push --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE:bullseye" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:bullseye" -t "$CI_REGISTRY_IMAGE:stable" -t "$CI_DOCKERHUB_REGISTRY_IMAGE:stable" . -f bullseye/Dockerfile
-    - docker buildx build --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:bookworm" -t "$CI_REGISTRY_IMAGE" . -f "$DEBIAN_NAME"/Dockerfile
+    - docker buildx build --push --platform "$BUILD_PLATFORM" -t "$CI_REGISTRY_IMAGE:$DEBIAN_NAME" -t "$CI_REGISTRY_IMAGE" . -f "$DEBIAN_NAME"/Dockerfile
   after_script:
     - docker buildx stop
     - docker buildx rm

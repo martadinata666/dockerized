@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:latest as tukang
+FROM 192.168.0.2:6060/dedyms/debian:latest as tukang
 ENV ARCH=""
 ARG DATE
 ARG VERSION

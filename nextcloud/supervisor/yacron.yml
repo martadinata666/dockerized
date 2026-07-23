@@ -1,8 +1,18 @@
 jobs:
   - name: nextcloud-cron
-    command: php -f /var/www/html/cron.php
+#    command: php -f /var/www/html/cron.php
+    command: php -f /var/www/html/cron.php -- --verbose
     # every 5 minutes
     schedule: "*/5 * * * *"
+    utc: false
+#    executionTimeout: 299
+    concurrencyPolicy: Forbid
+
+  - name: nextcloud-app-update
+#    command: php -f /var/www/html/cron.php
+    command: /var/www/html/occ -vvv app:update --all
+    # every 5 minutes
+    schedule: "0 1 * * *"
     utc: false
 #    executionTimeout: 299
     concurrencyPolicy: Forbid

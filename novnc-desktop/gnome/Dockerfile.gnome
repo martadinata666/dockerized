@@ -1,10 +1,10 @@
-FROM 192.168.0.2:5050/dedyms/node:16-dev as node
+FROM 192.168.0.2:6060/dedyms/node:16-dev as node
 RUN apt update && apt install -y --no-install-recommends pulseaudio libasound2
 WORKDIR /noVNC/
 RUN npm -d --prefix /noVNC/ install ws && \
     npm -d --prefix /noVNC/ install audify
 
-FROM 192.168.0.2:5050/dedyms/debian:dev AS tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev AS tukang
 ARG RELEASE
 WORKDIR /noVNC
 RUN apt update && apt install --no-install-recommends -y ssl-cert && apt clean && rm -rf /var/lib/apt/lists/*
@@ -20,7 +20,7 @@ COPY gnome/xstartup /noVNC/xstartup
 COPY pcm-player.js /noVNC/pcm-player.js
 COPY --from=node /noVNC/node_modules /noVNC/node_modules
 
-FROM 192.168.0.2:5050/dedyms/node:16
+FROM 192.168.0.2:6060/dedyms/node:16
 ENV REMOTE_HOST=localhost
 ENV REMOTE_PORT=5902
 ENV NOVNC_PORT=13000

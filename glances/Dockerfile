@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev as tukang
 ARG RELEASE
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
 #ARG PIP_RELEASE=echo "$RELEASE" | tr -d v
@@ -6,7 +6,7 @@ RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-pip build-essential python3-dev python3-setuptools lm-sensors wireless-tools iputils-ping curl
 RUN pip3 install --user --no-cache-dir --pre glances[all]==$RELEASE
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG RELEASE
 ENV GLANCES_RELEASE=$RELEASE
 RUN sudo apt update && \

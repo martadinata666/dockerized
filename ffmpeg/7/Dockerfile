@@ -1,7 +1,7 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev as tukang
 #https://git.ffmpeg.org/gitweb/ffmpeg.git
-ARG FFMPEG_VERSION=n7.1.1
-ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
+ENV FFMPEG_VERSION=n7.1.1
+ENV KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list
 #RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
 RUN sudo apt-get update -qq && sudo apt-get -y install \
@@ -103,7 +103,7 @@ RUN make -j$(nproc) && \
 RUN ffmpeg -version && \
     ffmpeg -hide_banner -hwaccels
 
-FROM 192.168.0.2:5050/dedyms/debian:latest
+FROM 192.168.0.2:6060/dedyms/debian:latest
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 #RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ stable non-free non-free-firmware" | sudo tee /etc/apt/sources.list.d/non-free.list

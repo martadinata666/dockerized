@@ -1,4 +1,4 @@
-FROM 192.168.0.2:5050/dedyms/debian:dev as tukang
+FROM 192.168.0.2:6060/dedyms/debian:dev as tukang
 ARG FFMPEG_VERSION=n6.0
 ARG KEYRING=/usr/share/keyrings/debian-archive-keyring.gpg
 RUN echo "deb [signed-by=$KEYRING] http://deb.debian.org/debian/ unstable non-free" | sudo tee /etc/apt/sources.list.d/non-free.list

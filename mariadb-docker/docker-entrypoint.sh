@@ -412,7 +412,7 @@ docker_mariadb_backup_system()
 	fi
 
 	mysql_note "Backing up system database to $backup_db"
-	if ! mariadbdump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
+	if ! mariadb-dump --skip-lock-tables --replace --databases mysql --socket="${SOCKET}" | zstd > "${DATADIR}/${backup_db}"; then
 		mysql_error "Unable backup system database for upgrade from $oldfullversion."
 	fi
 	mysql_note "Backing up complete"
