@@ -2,7 +2,7 @@ FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
 FROM 192.168.0.2:6060/dedyms/debian:dev AS downloader
 USER root
-ARG NEXTCLOUD_VERSION=34.0.2
+ARG NEXTCLOUD_VERSION=34.0.3
 RUN curl -fsSL http://192.168.0.2:25000/nextcloud/nextcloud-${NEXTCLOUD_VERSION}.tar.bz2 -o nextcloud.tar.bz2
 RUN tar -xjf nextcloud.tar.bz2 -C /usr/src/; \ 
     ls -al /usr/src; \
@@ -15,7 +15,7 @@ FROM 192.168.0.2:6060/dedyms/debian:latest as notify
 # Fetch notify_push
 USER root
 ARG TARGETPLATFORM
-ARG PUSH_VERSION=v1.3.4
+ARG PUSH_VERSION=v1.4.0
 RUN case ${TARGETPLATFORM} in \
          "linux/amd64")  NOTIFY_PUSH_ARCH=x86_64  ;; \
          "linux/arm64")  NOTIFY_PUSH_ARCH=aarch64  ;; \

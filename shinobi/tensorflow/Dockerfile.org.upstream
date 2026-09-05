@@ -1,0 +1,45 @@
+FROM node:20-trixie
+
+ENV TFJS_HW=cpu \
+    PLUGIN_NAME=Tensorflow \
+    PLUGIN_HOST=localhost \
+    PLUGIN_PORT=8080 \
+    PLUGIN_HOST_PORT=8082 \
+    PLUGIN_KEY=RANDOM \
+    PLUGIN_MODE=client
+
+RUN apt update -y
+RUN apt install wget curl net-tools -y
+
+RUN mkdir -p /home/shinobi-plugins/tensorflow /config
+WORKDIR /home/shinobi-plugins/tensorflow
+
+COPY tensorflow /home/shinobi-plugins/tensorflow
+
+RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginBase.js -O pluginBase.js
+RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/tools/modifyConfigurationForPlugin.js -O modifyConfigurationForPlugin.js
+
+RUN apt install -y python3 build-essential
+RUN apt install -y \
+                make \
+                g++ \
+                gcc \
+                node-pre-gyp \
+                sudo
+
+RUN npm install pm2 -g
+
+RUN apt-get install -y python3 build-essential
+
+RUN npm install
+
+RUN chmod -f +x /home/shinobi-plugins/tensorflow/init.sh
+
+
+VOLUME ["/config"]
+
+EXPOSE 8082
+
+ENTRYPOINT ["/home/shinobi-plugins/tensorflow/init.sh"]
+
+CMD [ "pm2-docker", "pm2.yml" ]

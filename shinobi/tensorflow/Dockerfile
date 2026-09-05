@@ -7,7 +7,7 @@ FROM 192.168.0.2:6060/dedyms/node:lts-dev as builder
 #    sudo apt install -y ./bazel*.deb
 
 RUN sudo apt update -y && \
-    sudo apt install -y --no-install-recommends wget curl net-tools python3 python-is-python3 openjdk-11-jdk-headless python3-numpy libdnnl-dev && \
+    sudo apt install -y --no-install-recommends wget curl net-tools python3 python-is-python3 openjdk-21-jre-headless python3-numpy libdnnl-dev && \
     wget -c https://github.com/bazelbuild/bazel/releases/download/3.7.2/bazel_3.7.2-linux-x86_64.deb && \
     sudo apt install -y ./bazel*.deb && \
     sudo npm -g install @mapbox/node-pre-gyp
@@ -19,7 +19,7 @@ RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginChec
 RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/plugins/pluginCheck.js -O $HOME/shinobi/tensorflow/pluginCheck.js
 RUN wget https://gitlab.com/Shinobi-Systems/Shinobi/-/raw/dev/tools/modifyConfigurationForPlugin.js -O $HOME/shinobi/tensorflow/modifyConfigurationForPlugin.js
 WORKDIR $HOME/shinobi/tensorflow
-RUN npm -d --force --cache=/dev/shm install
+RUN npm -d --force install
 RUN git clone --depth=1 -b v2.7.0 https://github.com/tensorflow/tensorflow $HOME/tensorflow-src
 WORKDIR $HOME/tensorflow-src
 RUN bazel build --config=mkl -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-DDNNL\_ENABLE\_ITT\_TASKS=True //tensorflow/tools/lib_package:libtensorflow && \
@@ -41,7 +41,7 @@ ENV TFJS_HW=cpu \
     PM2_HOME=/shinobi/tensorflow/pm2
 
 RUN sudo apt update && \
-    sudo apt install libdnnl2 && \
+    sudo apt -y install libdnnl-dev && \
     sudo apt clean && \
     sudo rm -rf /var/lib/apt/lists/*
 

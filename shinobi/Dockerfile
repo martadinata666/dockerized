@@ -5,8 +5,8 @@ RUN git clone --depth=1 -b dev https://gitlab.com/Shinobi-Systems/Shinobi.git Sh
 WORKDIR $HOME/Shinobi
 # Always check notification on web, for unknown reason will blanked
 #RUN node --version
-RUN npm -d ci --no-audit && \
-    npm install node-telegram-bot-api
+RUN npm -d ci --no-audit
+#    npm install node-telegram-bot-api
 #    npm install --save mysql2@^2.1.0 && \
 #    npm install --save  knex@2.4.2
 #RUN npm install --prod
