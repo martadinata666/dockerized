@@ -1,1 +1,0 @@
-python3 needed to rebuild deasync
