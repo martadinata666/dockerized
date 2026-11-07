@@ -66,7 +66,7 @@ ENV PHP_CFLAGS="-fstack-protector-strong -O2 -fpic -fpie -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 # Update this
-ENV PHP_VERSION=8.4.11
+ENV PHP_VERSION=8.4.27
 ENV PHP_URL=https://www.php.net/distributions/php-$PHP_VERSION.tar.xz
 #ENV PHP_URL=http://192.168.0.2:25000/php/php-$PHP_VERSION.tar.xz
 
@@ -238,22 +238,22 @@ RUN set -eux; \
     pecl install smbclient; \
     pecl install imagick; \
 # dlib deps for pdlib
-    if [ "${TARGETARCH}" = "amd64" ] ; then \
-      git clone --depth=1 https://github.com/davisking/dlib.git /dlib; \ 
-      cd /dlib/dlib; \
-      mkdir build; \
-      cd build; \
-      cmake -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=1 .. ; \
-      make -j$(nproc); \
-      make install; \
-      cd /; \
-      rm -rf /dlib; \
+#    if [ "${TARGETARCH}" = "amd64" ] ; then \
+#      git clone --depth=1 https://github.com/davisking/dlib.git /dlib; \ 
+#      cd /dlib/dlib; \
+#      mkdir build; \
+#      cd build; \
+#      cmake -DBUILD_SHARED_LIBS=ON -DUSE_AVX_INSTRUCTIONS=1 .. ; \
+#      make -j$(nproc); \
+#      make install; \
+#      cd /; \
+#      rm -rf /dlib; \
 # build pdlib from source
-      git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib; \
-      docker-php-ext-configure pdlib; \
-      docker-php-ext-install pdlib; \
-      docker-php-source delete; \
-    fi; \
+#      git clone --depth=1 https://github.com/goodspb/pdlib.git /usr/src/php/ext/pdlib; \
+#      docker-php-ext-configure pdlib; \
+#      docker-php-ext-install pdlib; \
+#      docker-php-source delete; \
+#    fi; \
     \
 # reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
 	apt-mark auto '.*' > /dev/null; \
