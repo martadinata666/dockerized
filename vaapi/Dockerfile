@@ -1,43 +1,41 @@
-#FROM 192.168.0.2:6060/dedyms/debian:latest
-FROM 192.168.0.2:6060/dedyms/ffmpeg:6.0
+FROM 192.168.0.2:6060/dedyms/debian:latest
+
 # https://github.com/intel/compute-runtime/releases, env to modified every release
 ARG TARGETARCH
 ARG DISTRO=bookworm
 ARG GMMLIB_VERSION=22.3.0
-ARG IGC_VERSION=1.0.12812.26
-ARG NEO_VERSION=22.53.25242.13
-ARG LEVEL_ZERO_VERSION=1.3.25242.13
+ARG IGC_VERSION=1.0.12504.5
+ARG NEO_VERSION=22.43.24595.30
+ARG LEVEL_ZERO_VERSION=1.3.24595.30
 ARG JELLYFIN_VERSION
 #ARG TARGETARCH=amd64
 ENV NEO_VERSION=$NEO_VERSION
 ENV JELLYFIN_FFMPEG_VERSION=$JELLYFIN_VERSION
 
 # Get Jellyfin-ffmpeg from GitHub and override to intel-media-va-driver-non-free
-#RUN sudo apt update && \
-#    sudo apt install -y --no-install-recommends wget && \
-#    mkdir jellyfin && \
-#    cd jellyfin && \
-#    wget --progress=dot:mega https://github.com/martadinata666/jellyfin-ffmpeg/releases/download/v${JELLYFIN_VERSION}/jellyfin-ffmpeg5_${JELLYFIN_VERSION}-${DISTRO}_${TARGETARCH}.deb && \
-#    sudo apt install -y ./jellyfin-ffmpeg5_${JELLYFIN_VERSION}-${DISTRO}_${TARGETARCH}.deb && \
-#    sudo apt install -y --no-install-recommends mesa-va-drivers && \
-#    sudo ln -s /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg && \
-#    sudo ln -s /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe && \
-#    cd .. && \
-#    rm -rf jellyfin && \
-#    sudo rm -rf /var/lib/apt/lists/* && \
-#    sudo apt clean autoclean && \
-#    sudo apt autoremove -y
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends wget && \
+    mkdir jellyfin && \
+    cd jellyfin && \
+    wget --progress=dot:mega https://github.com/martadinata666/jellyfin-ffmpeg/releases/download/v${JELLYFIN_VERSION}/jellyfin-ffmpeg5_${JELLYFIN_VERSION}-${DISTRO}_${TARGETARCH}.deb && \
+    sudo apt install -y ./jellyfin-ffmpeg5_${JELLYFIN_VERSION}-${DISTRO}_${TARGETARCH}.deb && \
+    sudo apt install -y --no-install-recommends mesa-va-drivers && \
+    sudo ln -s /usr/lib/jellyfin-ffmpeg/ffmpeg /usr/local/bin/ffmpeg && \
+    sudo ln -s /usr/lib/jellyfin-ffmpeg/ffprobe /usr/local/bin/ffprobe && \
+    cd .. && \
+    rm -rf jellyfin && \
+    sudo rm -rf /var/lib/apt/lists/* && \
+    sudo apt clean autoclean && \
+    sudo apt autoremove -y
 
 # Intel VAAPI Tone mapping dependencies:
 # Prefer NEO to Beignet since the latter one doesn't support Comet Lake or newer for now.
 # Do not use the intel-opencl-icd package from repo since they will not build with RELEASE_WITH_REGKEYS enabled.
-# libigdgmm12 from sid repo newer than repo wget --progress=dot:mega https://github.com/intel/compute-runtime/releases/download/${NEO_VERSION}/libigdgmm12_${GMMLIB_VERSION}_amd64.deb && \
 RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-        sudo apt remove --purge intel-opencl-icd && \
-        sudo apt update && \
-        sudo apt install -y --no-install-recommends wget ocl-icd-libopencl1 && \
+        sudo apt update && sudo apt install -y --no-install-recommends wget ocl-icd-libopencl1 && \
         mkdir intel-compute-runtime && \
         cd intel-compute-runtime && \
+        wget --progress=dot:mega https://github.com/intel/compute-runtime/releases/download/${NEO_VERSION}/libigdgmm12_${GMMLIB_VERSION}_amd64.deb && \
         wget --progress=dot:mega https://github.com/intel/compute-runtime/releases/download/${NEO_VERSION}/intel-opencl-icd_${NEO_VERSION}_amd64.deb && \
         wget --progress=dot:mega https://github.com/intel/compute-runtime/releases/download/${NEO_VERSION}/intel-level-zero-gpu_${LEVEL_ZERO_VERSION}_amd64.deb && \
         wget --progress=dot:mega https://github.com/intel/intel-graphics-compiler/releases/download/igc-${IGC_VERSION}/intel-igc-core_${IGC_VERSION}_amd64.deb && \
