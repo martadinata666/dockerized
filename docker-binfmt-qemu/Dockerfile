@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 RUN apt update && \
     apt install -y --no-install-recommends binfmt-support qemu-user-static && \
     apt-get clean && \
