@@ -5,7 +5,7 @@ USER root
 RUN apt update && apt install -y ssl-cert
 
 ARG PHP_VERSION
-FROM 192.168.0.2:6060/dedyms/php-fpm:$PHP_VERSION
+FROM 192.168.0.2:6060/dedyms/php-fpm:8.4
 USER root
 COPY mainline/99nginx /etc/apt/preferences.d/99nginx
 RUN apt update && \
