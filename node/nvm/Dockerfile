@@ -1,8 +1,8 @@
 FROM 192.168.0.2:6060/dedyms/debian:latest as base
 # LTS NODE RELASE https://nodejs.org/en/about/previous-releases
-ENV NODE_RELEASE=24
+ARG NODE_RELEASE
 # https://github.com/nvm-sh/nvm
-ENV NVM_RELEASE=v0.40.6
+ARG NVM_RELEASE
 USER root
 ENV NVM_DIR=/usr/local/nvm \
     NODE_VERSION=$NODE_RELEASE \

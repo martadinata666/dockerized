@@ -66,7 +66,7 @@ ENV PHP_CFLAGS="-fstack-protector-strong -O2 -fpic -fpie -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 # Update this
-ENV PHP_VERSION=8.4.27
+ARG PHP_VERSION
 ENV PHP_URL=https://www.php.net/distributions/php-$PHP_VERSION.tar.xz
 #ENV PHP_URL=http://192.168.0.2:25000/php/php-$PHP_VERSION.tar.xz
 
@@ -79,7 +79,7 @@ RUN set -eux; \
 	chmod 1777 /var/www/html
 
 # docker php utils
-COPY 8.4/docker-php-* /usr/local/bin/
+COPY utils/docker-php-* /usr/local/bin/
 #COPY 8.2/docker-php-ext-* docker-php-entrypoint /usr/local/bin/
 
 RUN set -eux; \

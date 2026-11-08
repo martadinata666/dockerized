@@ -1,17 +1,19 @@
-FROM martadinata666/yacron:ci as yacron
+ARG VERSION
+
+FROM 192.168.0.2:6060/dedyms/yacron:ci as yacron
 
 FROM 192.168.0.2:6060/dedyms/debian:latest AS sslgenerator
 USER root
 RUN apt update && apt install -y ssl-cert
 
-ARG PHP_VERSION
-FROM 192.168.0.2:6060/dedyms/php-fpm:8.4
+#ARG PHP_VERSION
+FROM 192.168.0.2:6060/dedyms/php-fpm:${VERSION}
 USER root
 COPY mainline/99nginx /etc/apt/preferences.d/99nginx
 RUN apt update && \
     apt install -y --no-install-recommends curl gnupg2 ca-certificates lsb-release debian-archive-keyring supervisor bash libexpat1 ssl-cert ca-certificates && \
     curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian bookworm nginx" | tee /etc/apt/sources.list.d/nginx.list && \
+    echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/mainline/debian trixie nginx" | tee /etc/apt/sources.list.d/nginx.list && \
     apt update && \
     apt install -y --no-install-recommends nginx && \
     apt clean && \

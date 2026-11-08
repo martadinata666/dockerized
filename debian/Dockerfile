@@ -22,7 +22,7 @@ RUN curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/maste
     apt clean
 
 RUN apt update && \
-    apt-fast install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales tree && \
+    apt-fast install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales tree libatomic1 && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt && \
     ln -s /usr/bin/eatmydata /usr/local/bin/apt-get && \
     apt clean && \
