@@ -3,8 +3,8 @@
 
 #FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
 
-#FROM 192.168.0.2:6060/dedyms/yacron:ci-ssl3 AS yacron
-FROM martadinata666/yacron:ci-ssl3 AS yacron
+FROM 192.168.0.2:6060/dedyms/yacron:ci AS yacron
+#FROM martadinata666/yacron:ci-ssl3 AS yacron
 
 #ARG STASHVERSION
 FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
@@ -26,10 +26,10 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
     fi;
 
 
-ARG STASHVERSION
 FROM 192.168.0.2:6060/dedyms/ffmpeg:8
 ENV STASH_CONFIG_FILE=$HOME/stash/config.yml
-ENV STASH_VERSION=$STASH_VERSION
+ARG STASHVERSION
+ENV STASH_VERSION=$STASHVERSION
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-minimal python-is-python3 supervisor && \
     sudo apt clean && \
