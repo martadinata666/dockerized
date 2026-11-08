@@ -32,7 +32,15 @@ RUN wget --progress=dot:mega -t 10-c http://192.168.0.2:25000/musl/x86_64-linux-
 
 ##################################################################
 FROM 192.168.0.2:6060/dedyms/debian:latest
+
+RUN sudo curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/master/apt-fast -o /usr/local/bin/apt-fast && \
+    sudo chmod +x /usr/local/bin/apt-fast && \
+    sudo curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/master/apt-fast.conf -o /etc/apt-fast.conf && \
+    sudo apt update && \
+    sudo apt install -y aria2
+
 ARG RUST_VERSION
+ARG RUSTUP_VERSION
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     CARGO_NET_GIT_FETCH_WITH_CLI=true \
     RUSTUP_HOME=$HOME/rustup \
@@ -51,7 +59,7 @@ ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse \
     PKG_CONFIG_ALL_STATIC=true \
     OPENSSL_STATIC=true \
     PATH="/opt/armv7l-linux-musleabihf-cross/:/opt/armv7l-linux-musleabihf-cross/bin/:/opt/aarch64-linux-musl-cross/:/opt/aarch64-linux-musl-cross/bin/:/opt/x86_64-linux-musl-cross/:/opt/x86_64-linux-musl-cross/bin/:$HOME/cargo/bin/:$PATH" \
-    RUSTUP_VERSION=1.28.2 \
+    RUSTUP_VERSION=${RUSTUP_VERSION} \
     RUST_VERSION=${RUST_VERSION}
 
 # Set openssl envenv per arch split to minimize confusion
@@ -78,8 +86,8 @@ ENV ARMV7_UNKNOWN_LINUX_GNUEABIHF_OPENSSL_DIR=/opt/lib/openssl-static-arm-gnueab
 
 # Install rust and amd64 deps
 RUN set -eux; \
-    sudo apt-get update; \
-    sudo apt-get install -y --no-install-recommends \
+    sudo apt-fast update; \
+    sudo apt-fast install -y --no-install-recommends \
         ca-certificates \
         curl \
         git \
@@ -140,7 +148,7 @@ COPY --from=musl /opt /opt
 #COPY --from=sccache /usr/local/bin/sccache /usr/local/bin/sccache
 
 ### Build openssl GNU and MUSL
-# https://openssl-library.org/source/ 3.5.7 supposed tobe LTS to 2030
+# https://openssl-library.org/source/ 3.5.7 supposed to be LTS to 2030
 ARG SSL_VER="3.5.7"
 ARG SSL_DIR=/opt/lib/openssl-static-gnu
 ARG SSL_aarch64_DIR=/opt/lib/openssl-static-aarch64-gnu
