@@ -1,3 +1,4 @@
+ARG FFMPEG_VERSION
 # Build app 
 FROM 192.168.0.2:6060/dedyms/node:lts-dev AS tukang
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
@@ -11,9 +12,7 @@ RUN npm --cache=/dev/shm install @quasar/cli && \
     python3 ./setup.py install --user
 
 
-FROM 192.168.0.2:6060/dedyms/ffmpeg:8
-ARG RELEASE
-ENV UNMANIC_RELEASE=$RELEASE
+FROM 192.168.0.2:6060/dedyms/ffmpeg:${FFMPEG_VERSION}
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-minimal python3-pip python3-setuptools libgomp1 libharfbuzz0b libmediainfo0v5 libv4l-0 sqlite3 && \
     sudo apt clean && \

@@ -18,7 +18,7 @@ RUN sudo apt update && \
     sudo apt install -y --no-install-recommends yasm ps-watcher netcat-openbsd git && \
     sudo apt clean && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    sudo npm install pm2 -g
+    npm install pm2
 ENV SHINOBI_VERSION=dev-$DATE \
     PM2_HOME=/Shinobi/pm2
 COPY --from=fetcher --chown=$CONTAINERUSER:$CONTAINERUSER $HOME/Shinobi /Shinobi

@@ -1,4 +1,4 @@
-
+ARG VERSION
 #RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
 
 #FROM 192.168.0.2:6060/dedyms/ffmpeg-static:latest AS ffmpeg
@@ -26,7 +26,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
     fi;
 
 
-FROM 192.168.0.2:6060/dedyms/ffmpeg:8
+FROM 192.168.0.2:6060/dedyms/ffmpeg:${VERSION}
 ENV STASH_CONFIG_FILE=$HOME/stash/config.yml
 ARG STASHVERSION
 ENV STASH_VERSION=$STASHVERSION

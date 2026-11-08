@@ -10,5 +10,5 @@ echo $NEXTCLOUDRELEASE
 echo $RELEASE
 echo $PUSHRELEASE
 docker buildx build --pull --push \
-                                  --build-arg NEXTCLOUD_VERSION=$NEXTCLOUDRELEASE --build-arg PUSH_VERSION=$PUSHRELEASE \
+                                  --build-arg NEXTCLOUD_VERSION=$RELEASE --build-arg PUSH_VERSION=$PUSHRELEASE \
                                   . -f Dockerfile -t 192.168.0.2:6060/dedyms/nextcloud:$RELEASE
