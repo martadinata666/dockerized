@@ -10,6 +10,7 @@ declare -A suites=(
 	[10.3]='bullseye'
 	[10.4]='bullseye'
 	[10.5]='bullseye'
+        [13]='trixie'
 )
 
 declare -A suffix=(

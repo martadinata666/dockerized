@@ -1,6 +1,6 @@
 ARG VERSION
 
-FROM 192.168.0.2:6060/dedyms/yacron:ci
+FROM 192.168.0.2:6060/dedyms/yacron:ci as yacron
 
 FROM 192.168.0.2:6060/dedyms/php-fpm:${VERSION}
 #FROM php:${VERSION}-debian-fpm

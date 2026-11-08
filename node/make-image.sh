@@ -3,7 +3,7 @@ export RELEASE=$(curl --silent "https://api.github.com/repos/nodejs/node/release
 export NODE_RELEASE=$(echo $RELEASE | cut -c2-)
 export SHORT_NODE_RELEASE=$(echo $RELEASE | cut -c2-3)
 export NVM_RELEASE=$(curl --silent "https://api.github.com/repos/nvm-sh/nvm/releases/latest" | jq -r .tag_name)
-FFMPEG_VERSION=8
+FFMPEG_VERSION=9
 VERSION=nvm
 CI_REGISTRY_IMAGE=192.168.0.2:6060/dedyms/node
 

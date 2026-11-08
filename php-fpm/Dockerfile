@@ -32,7 +32,7 @@ ENV PHPIZE_DEPS \
 # persistent / runtime deps
 RUN set -eu; \
 	apt update; \
-	apt install -y --no-install-recommends \
+	apt-fast install -y --no-install-recommends \
 		ca-certificates \
 		curl \
                 tini \
@@ -86,7 +86,7 @@ RUN set -eux; \
 	\
 	savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
-	apt-get install -y --no-install-recommends \
+	apt-fast install -y --no-install-recommends \
 		$PHPIZE_DEPS \
                 git \
                 cmake \
@@ -219,7 +219,6 @@ RUN set -eux; \
          ftp \
          gd \
          intl \
-         opcache \
          pcntl \
          pdo_mysql \
          pdo_pgsql \

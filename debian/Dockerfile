@@ -14,17 +14,11 @@ ARG GID=1000
 ARG SUDOERS="$CONTAINERUSER       ALL=(ALL) NOPASSWD:ALL"
 
 COPY sudo_lecture.txt /etc/sudo_lecture.txt
-RUN curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/master/apt-fast -o /usr/local/bin/apt-fast && \
+RUN apt update && \
+    apt install -y --no-install-recommends sudo ca-certificates tzdata curl tini ncdu nano htop locales tree libatomic1 aria2 && \
+    curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/master/apt-fast -o /usr/local/bin/apt-fast && \
     chmod +x /usr/local/bin/apt-fast && \
     curl -L https://raw.githubusercontent.com/ilikenwf/apt-fast/refs/heads/master/apt-fast.conf -o /etc/apt-fast.conf && \
-    apt update && \
-    apt install -y aria2 && \
-    apt clean
-
-RUN apt update && \
-    apt-fast install -y --no-install-recommends eatmydata sudo ca-certificates tzdata curl tini ncdu nano htop locales tree libatomic1 && \
-    ln -s /usr/bin/eatmydata /usr/local/bin/apt && \
-    ln -s /usr/bin/eatmydata /usr/local/bin/apt-get && \
     apt clean && \
     rm -rf /var/lib/apt/lists/* && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
