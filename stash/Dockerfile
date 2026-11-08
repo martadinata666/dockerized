@@ -1,20 +1,3 @@
-FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
-ARG VERSION=v0.32.0
-RUN sudo apt update && \
-    sudo apt install -y --no-install-recommends wget
-USER $CONTAINERUSER
-WORKDIR $HOME
-ARG TARGETARCH
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-       wget --progress=dot:mega https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && \ 
-       chmod +x ./stash-linux; \
-    fi;
-
-RUN if [ "${TARGETARCH}" = "arm64" ]; then \
-       wget --progress=dot:mega https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux-arm64v8 && \
-       mv stash-linux-arm64v8 stash-linux && \
-       chmod +x ./stash-linux; \
-    fi;
 
 #RUN wget https://github.com/stashapp/stash/releases/download/$VERSION/stash-linux && chmod +x ./stash-linux
 
@@ -23,10 +6,30 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 #FROM 192.168.0.2:6060/dedyms/yacron:ci-ssl3 AS yacron
 FROM martadinata666/yacron:ci-ssl3 AS yacron
 
+#ARG STASHVERSION
+FROM 192.168.0.2:6060/dedyms/debian:latest AS fetcher
+ARG STASHVERSION
+RUN sudo apt update && \
+    sudo apt install -y --no-install-recommends wget
+USER $CONTAINERUSER
+WORKDIR $HOME
+ARG TARGETARCH
+RUN if [ "${TARGETARCH}" = "amd64" ]; then \
+       wget --progress=dot:mega https://github.com/stashapp/stash/releases/download/$STASHVERSION/stash-linux && \ 
+       chmod +x ./stash-linux; \
+    fi;
+
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+       wget --progress=dot:mega https://github.com/stashapp/stash/releases/download/$STASHVERSION/stash-linux-arm64v8 && \
+       mv stash-linux-arm64v8 stash-linux && \
+       chmod +x ./stash-linux; \
+    fi;
+
+
+ARG STASHVERSION
 FROM 192.168.0.2:6060/dedyms/ffmpeg:8
-ARG VERSION
 ENV STASH_CONFIG_FILE=$HOME/stash/config.yml
-ENV STASH_VERSION=$VERSION
+ENV STASH_VERSION=$STASH_VERSION
 RUN sudo apt update && \
     sudo apt install -y --no-install-recommends python3-minimal python-is-python3 supervisor && \
     sudo apt clean && \
